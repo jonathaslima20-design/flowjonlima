@@ -14,13 +14,41 @@ const supabase = createClient(
 export default async function Image({ params }: { params: { username: string } }) {
   const { data: profile } = await supabase
     .from('profiles')
-    .select('display_name, bio, avatar_url, username')
+    .select('display_name, avatar_url, username')
     .eq('username', params.username)
     .maybeSingle();
 
   const name = profile?.display_name || profile?.username || params.username;
-  const bio = profile?.bio || 'Confira meus links na BioFlowzy.';
   const avatar = profile?.avatar_url || null;
+
+  if (avatar) {
+    return new ImageResponse(
+      (
+        <div
+          style={{
+            width: '1200px',
+            height: '630px',
+            background: '#000',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <img
+            src={avatar}
+            width={1200}
+            height={630}
+            style={{
+              width: '1200px',
+              height: '630px',
+              objectFit: 'contain',
+            }}
+          />
+        </div>
+      ),
+      { ...size }
+    );
+  }
 
   return new ImageResponse(
     (
@@ -33,91 +61,55 @@ export default async function Image({ params }: { params: { username: string } }
           alignItems: 'center',
           justifyContent: 'center',
           fontFamily: 'sans-serif',
-          position: 'relative',
         }}
       >
-        {/* Card */}
         <div
           style={{
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             gap: '24px',
-            padding: '60px',
           }}
         >
-          {/* Avatar */}
-          {avatar ? (
-            <img
-              src={avatar}
-              width={160}
-              height={160}
-              style={{
-                border: '5px solid #fff',
-                objectFit: 'cover',
-              }}
-            />
-          ) : (
-            <div
-              style={{
-                width: '160px',
-                height: '160px',
-                background: '#fff',
-                border: '5px solid #fff',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '64px',
-                color: '#0033FF',
-                fontWeight: 900,
-              }}
-            >
-              {name.charAt(0).toUpperCase()}
-            </div>
-          )}
-
-          {/* Name */}
           <div
             style={{
-              fontSize: '64px',
+              width: '220px',
+              height: '220px',
+              background: '#fff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '120px',
+              color: '#0033FF',
+              fontWeight: 900,
+            }}
+          >
+            {name.charAt(0).toUpperCase()}
+          </div>
+          <div
+            style={{
+              fontSize: '72px',
               fontWeight: 900,
               color: '#fff',
               textAlign: 'center',
               lineHeight: 1.1,
-              maxWidth: '900px',
+              maxWidth: '1000px',
             }}
           >
             {name}
           </div>
-
-          {/* Bio */}
-          <div
-            style={{
-              fontSize: '28px',
-              color: 'rgba(255,255,255,0.8)',
-              textAlign: 'center',
-              maxWidth: '800px',
-              lineHeight: 1.4,
-            }}
-          >
-            {bio.length > 100 ? bio.slice(0, 100) + '…' : bio}
-          </div>
-
-          {/* Brand badge */}
           <div
             style={{
               display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              background: '#fff',
-              padding: '8px 20px',
-              borderRadius: '0px',
-              marginTop: '8px',
+              background: '#FFED00',
+              padding: '10px 24px',
+              fontSize: '22px',
+              fontWeight: 900,
+              color: '#0033FF',
+              letterSpacing: '-0.5px',
             }}
           >
-            <span style={{ fontSize: '18px', fontWeight: 900, color: '#0033FF', letterSpacing: '-0.5px' }}>
-              BioFlowzy
-            </span>
+            BioFlowzy
           </div>
         </div>
       </div>

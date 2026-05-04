@@ -50,10 +50,11 @@ export const metadata: Metadata = {
     siteName: 'BioFlowzy',
     images: [
       {
-        url: '/opengraph-image',
+        url: `${siteUrl}/opengraph-image`,
         width: 1200,
         height: 630,
         alt: 'BioFlowzy — Um link para compartilhar tudo o que importa',
+        type: 'image/png',
       },
     ],
   },
@@ -61,7 +62,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'BioFlowzy — Um link para compartilhar tudo o que importa',
     description: 'Crie uma página de bio link em minutos. Compartilhe tudo em um só lugar.',
-    images: ['/opengraph-image'],
+    images: [`${siteUrl}/opengraph-image`],
   },
 };
 

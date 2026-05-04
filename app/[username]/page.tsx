@@ -21,6 +21,8 @@ export async function generateMetadata({ params }: { params: { username: string 
 
   const name = profile.display_name || profile.username;
   const description = profile.bio || `Confira os links de ${name} na BioFlowzy.`;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.bioflowzy.com';
+  const ogImageUrl = `${siteUrl}/${profile.username}/opengraph-image`;
 
   return {
     title: `${name} | BioFlowzy`,
@@ -30,11 +32,23 @@ export async function generateMetadata({ params }: { params: { username: string 
       description,
       type: 'profile',
       locale: 'pt_BR',
+      url: `${siteUrl}/${profile.username}`,
+      siteName: 'BioFlowzy',
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: name,
+          type: 'image/png',
+        },
+      ],
     },
     twitter: {
       card: 'summary_large_image',
       title: name,
       description,
+      images: [ogImageUrl],
     },
   };
 }
