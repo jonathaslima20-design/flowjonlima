@@ -26,7 +26,6 @@ export function AvatarCropModal({ imageSrc, onConfirm, onCancel }: Props) {
 
   const CANVAS_SIZE = 320;
 
-  // Reset state when a new image is opened
   useEffect(() => {
     if (imageSrc) {
       setCrop({ x: 0, y: 0, zoom: 1 });
@@ -47,8 +46,7 @@ export function AvatarCropModal({ imageSrc, onConfirm, onCancel }: Props) {
     const ctx = canvas.getContext('2d')!;
     ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
-    // Fill background
-    ctx.fillStyle = '#111';
+    ctx.fillStyle = '#fff';
     ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
     const scale = (Math.min(CANVAS_SIZE / img.naturalWidth, CANVAS_SIZE / img.naturalHeight)) * crop.zoom;
@@ -59,22 +57,20 @@ export function AvatarCropModal({ imageSrc, onConfirm, onCancel }: Props) {
 
     ctx.drawImage(img, cx - drawW / 2, cy - drawH / 2, drawW, drawH);
 
-    // Dark overlay outside circle
+    // Guia circular (apenas visual — arquivo salvo é quadrado)
     ctx.save();
-    ctx.fillStyle = 'rgba(0,0,0,0.65)';
-    ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
-    ctx.globalCompositeOperation = 'destination-out';
-    ctx.beginPath();
-    ctx.arc(CANVAS_SIZE / 2, CANVAS_SIZE / 2, CANVAS_SIZE / 2 - 8, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-
-    // Circle border
-    ctx.strokeStyle = '#FACC15';
-    ctx.lineWidth = 3;
+    ctx.strokeStyle = 'rgba(250, 204, 21, 0.95)';
+    ctx.setLineDash([6, 6]);
+    ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.arc(CANVAS_SIZE / 2, CANVAS_SIZE / 2, CANVAS_SIZE / 2 - 8, 0, Math.PI * 2);
     ctx.stroke();
+    ctx.restore();
+
+    // Borda quadrada (área real salva)
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(1.5, 1.5, CANVAS_SIZE - 3, CANVAS_SIZE - 3);
   }, [crop]);
 
   useEffect(() => {
@@ -95,7 +91,6 @@ export function AvatarCropModal({ imageSrc, onConfirm, onCancel }: Props) {
 
   function onMouseUp() { setDragging(false); }
 
-  // Touch support
   function onTouchStart(e: React.TouchEvent) {
     const t = e.touches[0];
     setDragging(true);
@@ -114,28 +109,23 @@ export function AvatarCropModal({ imageSrc, onConfirm, onCancel }: Props) {
     if (!img) return;
     setProcessing(true);
 
-    const OUTPUT = 400;
+    const OUTPUT = 800;
     const out = document.createElement('canvas');
     out.width = OUTPUT;
     out.height = OUTPUT;
     const ctx = out.getContext('2d')!;
 
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, OUTPUT, OUTPUT);
+
+    const ratio = OUTPUT / CANVAS_SIZE;
     const scale = (Math.min(CANVAS_SIZE / img.naturalWidth, CANVAS_SIZE / img.naturalHeight)) * crop.zoom;
-    const drawW = img.naturalWidth * scale;
-    const drawH = img.naturalHeight * scale;
-    const cx = CANVAS_SIZE / 2 + crop.x;
-    const cy = CANVAS_SIZE / 2 + crop.y;
+    const drawW = img.naturalWidth * scale * ratio;
+    const drawH = img.naturalHeight * scale * ratio;
+    const cx = OUTPUT / 2 + crop.x * ratio;
+    const cy = OUTPUT / 2 + crop.y * ratio;
 
-    // Crop source rect (circle area inside CANVAS_SIZE)
-    const radius = CANVAS_SIZE / 2 - 8;
-    const srcX = (cx - radius - (cx - drawW / 2)) / scale;
-    const srcY = (cy - radius - (cy - drawH / 2)) / scale;
-    const srcSize = (radius * 2) / scale;
-
-    ctx.beginPath();
-    ctx.arc(OUTPUT / 2, OUTPUT / 2, OUTPUT / 2, 0, Math.PI * 2);
-    ctx.clip();
-    ctx.drawImage(img, srcX, srcY, srcSize, srcSize, 0, 0, OUTPUT, OUTPUT);
+    ctx.drawImage(img, cx - drawW / 2, cy - drawH / 2, drawW, drawH);
 
     out.toBlob(blob => {
       setProcessing(false);
@@ -149,7 +139,9 @@ export function AvatarCropModal({ imageSrc, onConfirm, onCancel }: Props) {
       <DialogContent className="max-w-md w-full p-0 overflow-hidden brutal-border bg-white">
         <DialogHeader className="px-6 pt-6 pb-0">
           <DialogTitle className="font-display text-xl">Recortar foto de perfil</DialogTitle>
-          <p className="text-sm text-black/60 mt-1">Arraste para ajustar o enquadramento.</p>
+          <p className="text-sm text-black/60 mt-1">
+            Arraste para ajustar. A foto é salva em formato quadrado; o círculo é apenas a pré-visualização de como aparecerá na bio.
+          </p>
         </DialogHeader>
 
         <div className="flex justify-center mt-4 px-6">
@@ -169,7 +161,6 @@ export function AvatarCropModal({ imageSrc, onConfirm, onCancel }: Props) {
           />
         </div>
 
-        {/* Zoom slider */}
         <div className="px-6 py-4 flex items-center gap-3">
           <span className="text-xs font-bold text-black/50">-</span>
           <input
