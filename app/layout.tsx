@@ -48,21 +48,11 @@ export const metadata: Metadata = {
     locale: 'pt_BR',
     url: siteUrl,
     siteName: 'BioFlowzy',
-    images: [
-      {
-        url: `${siteUrl}/opengraph-image`,
-        width: 1200,
-        height: 630,
-        alt: 'BioFlowzy — Um link para compartilhar tudo o que importa',
-        type: 'image/png',
-      },
-    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'BioFlowzy — Um link para compartilhar tudo o que importa',
     description: 'Crie uma página de bio link em minutos. Compartilhe tudo em um só lugar.',
-    images: [`${siteUrl}/opengraph-image`],
   },
 };
 
