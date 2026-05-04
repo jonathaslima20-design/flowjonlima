@@ -21,7 +21,6 @@ export async function generateMetadata({ params }: { params: { username: string 
 
   const name = profile.display_name || profile.username;
   const description = profile.bio || `Confira os links de ${name} na BioFlowzy.`;
-  const imageUrl = profile.avatar_url || '/Gemini_Generated_Image_i7bfh0i7bfh0i7bf_(1).png';
 
   return {
     title: `${name} | BioFlowzy`,
@@ -31,13 +30,11 @@ export async function generateMetadata({ params }: { params: { username: string 
       description,
       type: 'profile',
       locale: 'pt_BR',
-      images: [{ url: imageUrl, width: 400, height: 400, alt: name }],
     },
     twitter: {
-      card: 'summary',
+      card: 'summary_large_image',
       title: name,
       description,
-      images: [imageUrl],
     },
   };
 }

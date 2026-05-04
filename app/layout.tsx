@@ -31,7 +31,10 @@ const cormorant = Cormorant_Garamond({ subsets: ['latin'], weight: ['400', '600'
 const dmserif = DM_Serif_Display({ subsets: ['latin'], weight: '400', variable: '--font-dmserif', display: 'swap' });
 const ibmplex = IBM_Plex_Mono({ subsets: ['latin'], weight: ['400', '500', '700'], variable: '--font-ibmplex', display: 'swap' });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.bioflowzy.com';
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: 'BioFlowzy — Sua bio, seu link, seu universo',
   description: 'Plataforma brutalista de bio links. Compartilhe tudo em um só lugar.',
   icons: {
@@ -43,11 +46,22 @@ export const metadata: Metadata = {
     description: 'Crie uma página de bio link em minutos. Compartilhe tudo em um só lugar.',
     type: 'website',
     locale: 'pt_BR',
+    url: siteUrl,
+    siteName: 'BioFlowzy',
+    images: [
+      {
+        url: '/opengraph-image',
+        width: 1200,
+        height: 630,
+        alt: 'BioFlowzy — Um link para compartilhar tudo o que importa',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'BioFlowzy — Um link para compartilhar tudo o que importa',
     description: 'Crie uma página de bio link em minutos. Compartilhe tudo em um só lugar.',
+    images: ['/opengraph-image'],
   },
 };
 
