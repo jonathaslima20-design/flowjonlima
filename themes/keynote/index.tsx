@@ -92,7 +92,7 @@ export function KeynoteTheme({ profile, links, socials, videos, banners, section
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: bg, color: text, fontFamily: getFontStack(s.bodyFont, 'var(--font-space-grotesk), "Helvetica Neue", sans-serif') }}>
-      <div className={`max-w-md mx-auto px-5 ${preview ? 'pt-6' : 'pt-[72px]'} pb-24`}>
+      <div className="max-w-md mx-auto px-5 pt-[72px] pb-24">
         <div className="flex items-center gap-2 text-[10px] tracking-[0.4em] uppercase opacity-70 mb-8">
           <div className="w-2 h-2 rounded-full keynote-live" style={{ background: accent }} aria-hidden />
           <span>{s.liveLabel || 'Live Keynote'}</span>

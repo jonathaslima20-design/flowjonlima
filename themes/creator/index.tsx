@@ -162,7 +162,7 @@ export function CreatorTheme({ profile, links, socials, videos, banners, section
         );
       })}
 
-      <div className={`relative max-w-md mx-auto px-5 ${preview ? 'pt-6' : 'pt-[72px]'} pb-16`}>
+      <div className="relative max-w-md mx-auto px-5 pt-[72px] pb-16">
         <div className="flex flex-col items-center text-center">
           <div className="relative" style={{ width: profile.avatar_size ?? 128, height: profile.avatar_size ?? 128 }}>
             <div

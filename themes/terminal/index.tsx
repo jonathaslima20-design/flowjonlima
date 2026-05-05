@@ -63,7 +63,7 @@ export function TerminalTheme({ profile, links, socials, videos, banners, sectio
   const asciiContent = (s.asciiBanner && s.asciiBanner.trim()) ? s.asciiBanner : defaultAscii;
 
   return (
-    <div className={`min-h-screen ${preview ? 'pt-6' : 'pt-[72px]'} pb-24 px-4`} style={{ backgroundColor: bg, color: text, fontFamily: getFontStack(s.bodyFont, '"JetBrains Mono", "Fira Code", ui-monospace, monospace') }}>
+    <div className="min-h-screen pt-[72px] pb-24 px-4" style={{ backgroundColor: bg, color: text, fontFamily: getFontStack(s.bodyFont, '"JetBrains Mono", "Fira Code", ui-monospace, monospace') }}>
       <div className="max-w-md mx-auto rounded-lg overflow-hidden" style={{ border: '1px solid #ffffff15', boxShadow: '0 20px 50px rgba(0,0,0,0.4)' }}>
         <div className="flex items-center gap-2 px-3 py-2 border-b" style={{ background: '#0006', borderColor: '#ffffff10' }}>
           <div className="w-3 h-3 rounded-full bg-[#FF5F56]" />

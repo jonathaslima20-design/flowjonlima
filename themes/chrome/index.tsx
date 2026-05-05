@@ -57,7 +57,7 @@ export function ChromeTheme({ profile, links, socials, videos, banners, sectionO
       <div className="absolute inset-0 pointer-events-none" aria-hidden style={{ background: `radial-gradient(ellipse 80% 60% at 50% 0%, ${ambient}44, transparent), radial-gradient(ellipse 60% 40% at 20% 100%, ${ambient}22, transparent)` }} />
       <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full pointer-events-none" aria-hidden style={{ background: ambient, filter: 'blur(120px)', opacity: 0.25 }} />
 
-      <div className={`relative max-w-md mx-auto px-5 ${preview ? 'pt-6' : 'pt-[72px]'} pb-24`}>
+      <div className="relative max-w-md mx-auto px-5 pt-[72px] pb-24">
         <div className="flex flex-col items-center text-center">
           <div className="relative chrome-avatar" style={{ width: profile.avatar_size ?? 112, height: profile.avatar_size ?? 112 }}>
             <div className="relative w-full h-full rounded-full overflow-hidden" style={{

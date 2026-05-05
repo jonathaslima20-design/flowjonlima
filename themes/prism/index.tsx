@@ -63,7 +63,7 @@ export function PrismTheme({ profile, links, socials, videos, banners, sectionOr
         style={{ background: `conic-gradient(from 0deg at 50% 30%, ${accent}33, ${secondary}33, #FDE68A22, ${accent}33)`, filter: 'blur(90px)', opacity: s.shimmer / 100 }} />
       {s.grain && <div className="absolute inset-0 pointer-events-none prism-grain" aria-hidden />}
 
-      <div className={`relative max-w-md mx-auto px-5 ${preview ? 'pt-6' : 'pt-[72px]'} pb-24`}>
+      <div className="relative max-w-md mx-auto px-5 pt-[72px] pb-24">
         <div className="flex flex-col items-center text-center">
           <div className="relative rounded-full overflow-hidden prism-halo" style={{ width: profile.avatar_size ?? 112, height: profile.avatar_size ?? 112 }}>
             <div className="absolute inset-[-4px] rounded-full" style={{ background: iridescent, animation: 'prism-rotate 6s linear infinite' }} aria-hidden />

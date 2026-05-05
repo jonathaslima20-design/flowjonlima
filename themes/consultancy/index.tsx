@@ -69,7 +69,7 @@ export function ConsultancyTheme({ profile, links, socials, videos, banners, sec
         </div>
       )}
 
-      <div className={`max-w-md mx-auto px-6 ${preview ? 'pt-6' : 'pt-[72px]'} pb-24`}>
+      <div className="max-w-md mx-auto px-6 pt-[72px] pb-24">
         <div className="flex items-center justify-between text-[10px] tracking-[0.4em] uppercase opacity-70 mb-12 pb-4 border-b-2" style={{ borderColor: text }}>
           <span>{s.reportLabel || 'Report 01'}</span>
           <span className="font-bold" style={{ color: accent }}>&mdash;</span>

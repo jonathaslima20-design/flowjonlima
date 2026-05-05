@@ -85,7 +85,7 @@ export function NeonLabTheme({ profile, links, socials, videos, banners, section
         })}
       </div>
 
-      <div className={`relative max-w-md mx-auto px-5 ${preview ? 'pt-6' : 'pt-[72px]'} pb-24`}>
+      <div className="relative max-w-md mx-auto px-5 pt-[72px] pb-24">
         <div className="flex flex-col items-center text-center">
           <div className="relative" style={{ width: profile.avatar_size ?? 110, height: profile.avatar_size ?? 110 }}>
             <div className="absolute inset-[-4px] rounded-full neonlab-flicker" style={{
