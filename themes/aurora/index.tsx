@@ -3,7 +3,7 @@
 import { ExternalLink } from 'lucide-react';
 import { SOCIALS_BY_KEY, getSocialHref } from '@/lib/socials';
 import type { BioThemeProps, BioThemeMeta } from '@/themes/types';
-import { getThemeSettings, getFontStack } from '@/themes/types';
+import { getThemeSettings, getFontStack, orderedSections } from '@/themes/types';
 import { BioflowzyBadge } from '@/components/bio/BioflowzyBadge';
 import { VideoEmbed } from '@/components/themes/VideoEmbed';
 
@@ -51,7 +51,7 @@ export const auroraMeta: BioThemeMeta = {
 const SPEED_MAP: Record<string, string> = { off: '0s', slow: '40s', medium: '22s', fast: '12s' };
 const BANNER_H: Record<string, string> = { sm: 'aspect-[6/1]', md: 'aspect-[3/1]', lg: 'aspect-[5/2]' };
 
-export function AuroraTheme({ profile, links, socials, videos, banners, track, preview }: BioThemeProps) {
+export function AuroraTheme({ profile, links, socials, videos, banners, sectionOrder, track, preview }: BioThemeProps) {
   const s = getThemeSettings(profile, 'aurora', auroraMeta.controls);
   const accent = s.useAccentCustom && s.accentCustom ? s.accentCustom : (profile.button_color || '#7DD3FC');
   const bg = profile.bg_color || '#050B1F';
@@ -101,95 +101,107 @@ export function AuroraTheme({ profile, links, socials, videos, banners, track, p
           )}
           {profile.bio && <p className="mt-3 text-sm opacity-80 max-w-xs leading-relaxed whitespace-pre-line" style={{ color: profile.text_color }}>{profile.bio}</p>}
 
-          {s.showSocials !== false && socials?.length > 0 && (
-            <div className="mt-6 flex gap-2 flex-wrap justify-center">
-              {socials.map((soc: any) => {
-                const meta = SOCIALS_BY_KEY[(soc.platform || '').toLowerCase()];
-                const Icon = meta?.icon;
-                return (
-                  <a
-                    key={soc.id}
-                    href={getSocialHref(soc.platform, soc.url)}
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={() => t('social', soc.id)}
-                    className="w-10 h-10 rounded-full flex items-center justify-center transition-transform hover:scale-110"
-                    style={{
-                      background: 'rgba(255,255,255,0.1)',
-                      backdropFilter: `blur(${s.blur}px) saturate(${s.saturation}%)`,
-                      WebkitBackdropFilter: `blur(${s.blur}px) saturate(${s.saturation}%)`,
-                      border: '1px solid rgba(255,255,255,0.18)',
-                      color: profile.text_color,
-                    }}
-                    aria-label={meta?.label || soc.platform}
-                  >
-                    {Icon && <Icon className="w-4 h-4" />}
-                  </a>
-                );
-              })}
-            </div>
-          )}
         </div>
 
         <div className="flex flex-col gap-3 mt-8">
-          {links.map((l: any) => (
-            <a
-              key={l.id}
-              href={l.url}
-              target="_blank"
-              rel="noreferrer"
-              onClick={() => t('link', l.id)}
-              className={`group relative px-5 py-4 rounded-[var(--aurora-radius)] flex items-center justify-between transition-all ${tiltClass}`}
-              style={{
-                background: `linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04))`,
-                backdropFilter: `blur(${s.blur}px) saturate(${s.saturation}%)`,
-                WebkitBackdropFilter: `blur(${s.blur}px) saturate(${s.saturation}%)`,
-                border: '1px solid rgba(255,255,255,0.18)',
-                boxShadow: `0 8px 32px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.25)`,
-                color: profile.text_color,
-              }}
-            >
-              <span className="font-medium">{l.title}</span>
-              <ExternalLink className="w-4 h-4 opacity-60" />
-              <span
-                className="absolute inset-0 rounded-[var(--aurora-radius)] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
-                style={{ background: `linear-gradient(135deg, ${accent}22, transparent 60%)` }}
-                aria-hidden
-              />
-            </a>
-          ))}
-
-          {banners?.map((b: any) => {
-            const inner = (
-              <div
-                className={`rounded-[var(--aurora-radius)] overflow-hidden ${BANNER_H[b.size] || BANNER_H.md}`}
-                style={{
-                  border: '1px solid rgba(255,255,255,0.18)',
-                  boxShadow: `0 8px 32px rgba(0,0,0,0.35)`,
-                }}
-              >
-                {b.image_url && <img src={b.image_url} alt="" className="w-full h-full object-cover" />}
+          {orderedSections(sectionOrder, {
+            socials: s.showSocials !== false && socials?.length > 0 ? (
+              <div key="socials" className="flex gap-2 flex-wrap justify-center">
+                {socials.map((soc: any) => {
+                  const meta = SOCIALS_BY_KEY[(soc.platform || '').toLowerCase()];
+                  const Icon = meta?.icon;
+                  return (
+                    <a
+                      key={soc.id}
+                      href={getSocialHref(soc.platform, soc.url)}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => t('social', soc.id)}
+                      className="w-10 h-10 rounded-full flex items-center justify-center transition-transform hover:scale-110"
+                      style={{
+                        background: 'rgba(255,255,255,0.1)',
+                        backdropFilter: `blur(${s.blur}px) saturate(${s.saturation}%)`,
+                        WebkitBackdropFilter: `blur(${s.blur}px) saturate(${s.saturation}%)`,
+                        border: '1px solid rgba(255,255,255,0.18)',
+                        color: profile.text_color,
+                      }}
+                      aria-label={meta?.label || soc.platform}
+                    >
+                      {Icon && <Icon className="w-4 h-4" />}
+                    </a>
+                  );
+                })}
               </div>
-            );
-            return b.link_url ? (
-              <a key={b.id} href={b.link_url} target="_blank" rel="noreferrer" onClick={() => t('banner', b.id)}>{inner}</a>
-            ) : (
-              <div key={b.id}>{inner}</div>
-            );
+            ) : null,
+            links: links.length > 0 ? (
+              <div key="links" className="flex flex-col gap-3">
+                {links.map((l: any) => (
+                  <a
+                    key={l.id}
+                    href={l.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={() => t('link', l.id)}
+                    className={`group relative px-5 py-4 rounded-[var(--aurora-radius)] flex items-center justify-between transition-all ${tiltClass}`}
+                    style={{
+                      background: `linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04))`,
+                      backdropFilter: `blur(${s.blur}px) saturate(${s.saturation}%)`,
+                      WebkitBackdropFilter: `blur(${s.blur}px) saturate(${s.saturation}%)`,
+                      border: '1px solid rgba(255,255,255,0.18)',
+                      boxShadow: `0 8px 32px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.25)`,
+                      color: profile.text_color,
+                    }}
+                  >
+                    <span className="font-medium">{l.title}</span>
+                    <ExternalLink className="w-4 h-4 opacity-60" />
+                    <span
+                      className="absolute inset-0 rounded-[var(--aurora-radius)] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+                      style={{ background: `linear-gradient(135deg, ${accent}22, transparent 60%)` }}
+                      aria-hidden
+                    />
+                  </a>
+                ))}
+              </div>
+            ) : null,
+            banners: banners?.length > 0 ? (
+              <div key="banners" className="flex flex-col gap-3">
+                {banners.map((b: any) => {
+                  const inner = (
+                    <div
+                      className={`rounded-[var(--aurora-radius)] overflow-hidden ${BANNER_H[b.size] || BANNER_H.md}`}
+                      style={{
+                        border: '1px solid rgba(255,255,255,0.18)',
+                        boxShadow: `0 8px 32px rgba(0,0,0,0.35)`,
+                      }}
+                    >
+                      {b.image_url && <img src={b.image_url} alt="" className="w-full h-full object-cover" />}
+                    </div>
+                  );
+                  return b.link_url ? (
+                    <a key={b.id} href={b.link_url} target="_blank" rel="noreferrer" onClick={() => t('banner', b.id)}>{inner}</a>
+                  ) : (
+                    <div key={b.id}>{inner}</div>
+                  );
+                })}
+              </div>
+            ) : null,
+            videos: videos.length > 0 ? (
+              <div key="videos" className="flex flex-col gap-3">
+                {videos.map((v: any) => (
+                  <div
+                    key={v.id}
+                    className="rounded-[var(--aurora-radius)] overflow-hidden"
+                    style={{ border: '1px solid rgba(255,255,255,0.18)', boxShadow: `0 8px 32px rgba(0,0,0,0.35)`, background: 'rgba(0,0,0,0.3)' }}
+                  >
+                    <div className="relative aspect-video bg-black">
+                      <VideoEmbed video={v} preview={preview} />
+                    </div>
+                    {v.title && <div className="p-3 text-sm opacity-90" style={{ color: profile.text_color }}>{v.title}</div>}
+                  </div>
+                ))}
+              </div>
+            ) : null,
           })}
-
-          {videos.map((v: any) => (
-            <div
-              key={v.id}
-              className="rounded-[var(--aurora-radius)] overflow-hidden"
-              style={{ border: '1px solid rgba(255,255,255,0.18)', boxShadow: `0 8px 32px rgba(0,0,0,0.35)`, background: 'rgba(0,0,0,0.3)' }}
-            >
-              <div className="relative aspect-video bg-black">
-                <VideoEmbed video={v} preview={preview} />
-              </div>
-              {v.title && <div className="p-3 text-sm opacity-90" style={{ color: profile.text_color }}>{v.title}</div>}
-            </div>
-          ))}
         </div>
 
         {s.footerText && s.footerText.trim() && (

@@ -2,7 +2,7 @@
 
 import { SOCIALS_BY_KEY, getSocialHref } from '@/lib/socials';
 import type { BioThemeProps, BioThemeMeta } from '@/themes/types';
-import { getThemeSettings, getFontStack } from '@/themes/types';
+import { getThemeSettings, getFontStack, orderedSections } from '@/themes/types';
 import { BioflowzyBadge } from '@/components/bio/BioflowzyBadge';
 import { VideoEmbed } from '@/components/themes/VideoEmbed';
 
@@ -48,7 +48,7 @@ export const terminalMeta: BioThemeMeta = {
 
 const BANNER_H: Record<string, string> = { sm: 'aspect-[6/1]', md: 'aspect-[3/1]', lg: 'aspect-[5/2]' };
 
-export function TerminalTheme({ profile, links, socials, videos, banners, track, preview }: BioThemeProps) {
+export function TerminalTheme({ profile, links, socials, videos, banners, sectionOrder, track, preview }: BioThemeProps) {
   const s = getThemeSettings(profile, 'terminal', terminalMeta.controls);
   const accent = s.useAccentCustom && s.accentCustom ? s.accentCustom : (profile.button_color || '#22D3EE');
   const bg = profile.bg_color || '#0B0F14';
@@ -91,59 +91,70 @@ export function TerminalTheme({ profile, links, socials, videos, banners, track,
             </div>
           </div>
 
-          {s.showSocials !== false && socials?.length > 0 && (
-            <div className="mb-4">
-              <div><span style={{ color: accent }}>{s.prompt} </span><span className="opacity-80">{s.socialsCmd || 'cat socials.json'}</span></div>
-              <div className="ml-3 mt-1 text-xs opacity-85">
-                {'{'}
-                {socials.map((soc: any, i: number) => {
-                  const meta = SOCIALS_BY_KEY[(soc.platform || '').toLowerCase()];
-                  return (
-                    <div key={soc.id} className="ml-3">
-                      <span style={{ color: '#F472B6' }}>&quot;{meta?.label || soc.platform}&quot;</span>
-                      <span className="opacity-60">: </span>
-                      <a href={getSocialHref(soc.platform, soc.url)} target="_blank" rel="noreferrer" onClick={() => t('social', soc.id)} style={{ color: caret }} className="hover:underline">
-                        &quot;{soc.url}&quot;
-                      </a>
-                      {i < socials.length - 1 && <span className="opacity-60">,</span>}
+          {orderedSections(sectionOrder, {
+            socials: s.showSocials !== false && socials?.length > 0 ? (
+              <div key="socials" className="mb-4">
+                <div><span style={{ color: accent }}>{s.prompt} </span><span className="opacity-80">{s.socialsCmd || 'cat socials.json'}</span></div>
+                <div className="ml-3 mt-1 text-xs opacity-85">
+                  {'{'}
+                  {socials.map((soc: any, i: number) => {
+                    const meta = SOCIALS_BY_KEY[(soc.platform || '').toLowerCase()];
+                    return (
+                      <div key={soc.id} className="ml-3">
+                        <span style={{ color: '#F472B6' }}>&quot;{meta?.label || soc.platform}&quot;</span>
+                        <span className="opacity-60">: </span>
+                        <a href={getSocialHref(soc.platform, soc.url)} target="_blank" rel="noreferrer" onClick={() => t('social', soc.id)} style={{ color: caret }} className="hover:underline">
+                          &quot;{soc.url}&quot;
+                        </a>
+                        {i < socials.length - 1 && <span className="opacity-60">,</span>}
+                      </div>
+                    );
+                  })}
+                  {'}'}
+                </div>
+              </div>
+            ) : null,
+            links: links.length > 0 ? (
+              <div key="links">
+                <div className="mb-2"><span style={{ color: accent }}>{s.prompt} </span><span className="opacity-80">{s.linksCmd || 'ls -la ./links'}</span></div>
+                <div className="flex flex-col gap-2">
+                  {links.map((l: any, i: number) => (
+                    <a key={l.id} href={l.url} target="_blank" rel="noreferrer" onClick={() => t('link', l.id)}
+                      className="group flex items-baseline gap-3 px-2 py-2 rounded hover:bg-white/5 transition-colors">
+                      <span className="opacity-50 text-xs w-8">{String(i + 1).padStart(3, '0')}</span>
+                      <span style={{ color: caret }}>&gt;</span>
+                      <span className="flex-1" style={{ color: text }}>{l.title}</span>
+                      <span className="text-xs opacity-50 group-hover:opacity-100 transition-opacity" style={{ color: accent }}>[open]</span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            ) : null,
+            banners: banners?.length > 0 ? (
+              <div key="banners">
+                {banners.map((b: any) => {
+                  const inner = (
+                    <div className={`mt-3 rounded overflow-hidden ${BANNER_H[b.size] || BANNER_H.md}`} style={{ border: `1px solid ${accent}44` }}>
+                      {b.image_url && <img src={b.image_url} alt="" className="w-full h-full object-cover" />}
                     </div>
                   );
+                  return b.link_url ? <a key={b.id} href={b.link_url} target="_blank" rel="noreferrer" onClick={() => t('banner', b.id)}>{inner}</a> : <div key={b.id}>{inner}</div>;
                 })}
-                {'}'}
               </div>
-            </div>
-          )}
-
-          <div className="mb-2"><span style={{ color: accent }}>{s.prompt} </span><span className="opacity-80">{s.linksCmd || 'ls -la ./links'}</span></div>
-          <div className="flex flex-col gap-2">
-            {links.map((l: any, i: number) => (
-              <a key={l.id} href={l.url} target="_blank" rel="noreferrer" onClick={() => t('link', l.id)}
-                className="group flex items-baseline gap-3 px-2 py-2 rounded hover:bg-white/5 transition-colors">
-                <span className="opacity-50 text-xs w-8">{String(i + 1).padStart(3, '0')}</span>
-                <span style={{ color: caret }}>&gt;</span>
-                <span className="flex-1" style={{ color: text }}>{l.title}</span>
-                <span className="text-xs opacity-50 group-hover:opacity-100 transition-opacity" style={{ color: accent }}>[open]</span>
-              </a>
-            ))}
-          </div>
-
-          {banners?.map((b: any) => {
-            const inner = (
-              <div className={`mt-3 rounded overflow-hidden ${BANNER_H[b.size] || BANNER_H.md}`} style={{ border: `1px solid ${accent}44` }}>
-                {b.image_url && <img src={b.image_url} alt="" className="w-full h-full object-cover" />}
+            ) : null,
+            videos: videos.length > 0 ? (
+              <div key="videos">
+                {videos.map((v: any) => (
+                  <div key={v.id} className="mt-3">
+                    <div><span style={{ color: accent }}>{s.prompt} </span><span className="opacity-80">play {v.title || 'video.mp4'}</span></div>
+                    <div className="mt-1 relative aspect-video overflow-hidden rounded" style={{ border: `1px solid ${accent}44` }}>
+                      <VideoEmbed video={v} preview={preview} />
+                    </div>
+                  </div>
+                ))}
               </div>
-            );
-            return b.link_url ? <a key={b.id} href={b.link_url} target="_blank" rel="noreferrer" onClick={() => t('banner', b.id)}>{inner}</a> : <div key={b.id}>{inner}</div>;
+            ) : null,
           })}
-
-          {videos.map((v: any) => (
-            <div key={v.id} className="mt-3">
-              <div><span style={{ color: accent }}>{s.prompt} </span><span className="opacity-80">play {v.title || 'video.mp4'}</span></div>
-              <div className="mt-1 relative aspect-video overflow-hidden rounded" style={{ border: `1px solid ${accent}44` }}>
-                <VideoEmbed video={v} preview={preview} />
-              </div>
-            </div>
-          ))}
 
           <div className="mt-4"><span style={{ color: accent }}>{s.prompt} </span><span className="term-caret" style={{ background: caret }} /></div>
           {s.footerText && s.footerText.trim() && (

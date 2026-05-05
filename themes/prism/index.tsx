@@ -3,7 +3,7 @@
 import { ExternalLink } from 'lucide-react';
 import { SOCIALS_BY_KEY, getSocialHref } from '@/lib/socials';
 import type { BioThemeProps, BioThemeMeta } from '@/themes/types';
-import { getThemeSettings, getFontStack } from '@/themes/types';
+import { getThemeSettings, getFontStack, orderedSections } from '@/themes/types';
 import { BioflowzyBadge } from '@/components/bio/BioflowzyBadge';
 import { VideoEmbed } from '@/components/themes/VideoEmbed';
 
@@ -46,7 +46,7 @@ export const prismMeta: BioThemeMeta = {
 
 const BANNER_H: Record<string, string> = { sm: 'aspect-[6/1]', md: 'aspect-[3/1]', lg: 'aspect-[5/2]' };
 
-export function PrismTheme({ profile, links, socials, videos, banners, track, preview }: BioThemeProps) {
+export function PrismTheme({ profile, links, socials, videos, banners, sectionOrder, track, preview }: BioThemeProps) {
   const s = getThemeSettings(profile, 'prism', prismMeta.controls);
   const accent = s.useAccentCustom && s.accentCustom ? s.accentCustom : (profile.button_color || '#A5F3FC');
   const bg = profile.bg_color || '#0A0618';
@@ -85,51 +85,63 @@ export function PrismTheme({ profile, links, socials, videos, banners, track, pr
           )}
           {profile.bio && <p className="mt-3 text-sm opacity-80 max-w-xs leading-relaxed whitespace-pre-line">{profile.bio}</p>}
 
-          {s.showSocials !== false && socials?.length > 0 && (
-            <div className="mt-6 flex gap-2 flex-wrap justify-center">
-              {socials.map((soc: any) => {
-                const meta = SOCIALS_BY_KEY[(soc.platform || '').toLowerCase()];
-                const Icon = meta?.icon;
-                return (
-                  <a key={soc.id} href={getSocialHref(soc.platform, soc.url)} target="_blank" rel="noreferrer" onClick={() => t('social', soc.id)}
-                    className="w-10 h-10 rounded-full flex items-center justify-center transition-transform hover:scale-110 prism-social"
-                    style={{ border: `1px solid ${accent}55`, color: text, background: 'rgba(255,255,255,0.05)' }}>
-                    {Icon && <Icon className="w-4 h-4" />}
-                  </a>
-                );
-              })}
-            </div>
-          )}
         </div>
 
         <div className="mt-8 flex flex-col gap-3">
-          {links.map((l: any) => (
-            <a key={l.id} href={l.url} target="_blank" rel="noreferrer" onClick={() => t('link', l.id)}
-              className="relative group px-5 py-4 flex items-center justify-between prism-card"
-              style={{ borderRadius: radius, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: text, ['--tilt' as any]: `${s.tiltAmount}deg` }}>
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" style={{ borderRadius: radius, background: iridescent, backgroundSize: '200% 200%', animation: 'prism-flow 3s ease infinite', mixBlendMode: 'overlay' }} aria-hidden />
-              <span className="relative font-medium">{l.title}</span>
-              <ExternalLink className="relative w-4 h-4 opacity-60" />
-            </a>
-          ))}
-
-          {banners?.map((b: any) => {
-            const inner = (
-              <div className={`overflow-hidden prism-card ${BANNER_H[b.size] || BANNER_H.md}`} style={{ borderRadius: radius, border: '1px solid rgba(255,255,255,0.15)', ['--tilt' as any]: `${s.tiltAmount}deg` }}>
-                {b.image_url && <img src={b.image_url} alt="" className="w-full h-full object-cover" />}
+          {orderedSections(sectionOrder, {
+            socials: s.showSocials !== false && socials?.length > 0 ? (
+              <div key="socials" className="flex gap-2 flex-wrap justify-center">
+                {socials.map((soc: any) => {
+                  const meta = SOCIALS_BY_KEY[(soc.platform || '').toLowerCase()];
+                  const Icon = meta?.icon;
+                  return (
+                    <a key={soc.id} href={getSocialHref(soc.platform, soc.url)} target="_blank" rel="noreferrer" onClick={() => t('social', soc.id)}
+                      className="w-10 h-10 rounded-full flex items-center justify-center transition-transform hover:scale-110 prism-social"
+                      style={{ border: `1px solid ${accent}55`, color: text, background: 'rgba(255,255,255,0.05)' }}>
+                      {Icon && <Icon className="w-4 h-4" />}
+                    </a>
+                  );
+                })}
               </div>
-            );
-            return b.link_url ? <a key={b.id} href={b.link_url} target="_blank" rel="noreferrer" onClick={() => t('banner', b.id)}>{inner}</a> : <div key={b.id}>{inner}</div>;
+            ) : null,
+            links: links.length > 0 ? (
+              <div key="links" className="flex flex-col gap-3">
+                {links.map((l: any) => (
+                  <a key={l.id} href={l.url} target="_blank" rel="noreferrer" onClick={() => t('link', l.id)}
+                    className="relative group px-5 py-4 flex items-center justify-between prism-card"
+                    style={{ borderRadius: radius, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: text, ['--tilt' as any]: `${s.tiltAmount}deg` }}>
+                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" style={{ borderRadius: radius, background: iridescent, backgroundSize: '200% 200%', animation: 'prism-flow 3s ease infinite', mixBlendMode: 'overlay' }} aria-hidden />
+                    <span className="relative font-medium">{l.title}</span>
+                    <ExternalLink className="relative w-4 h-4 opacity-60" />
+                  </a>
+                ))}
+              </div>
+            ) : null,
+            banners: banners?.length > 0 ? (
+              <div key="banners">
+                {banners.map((b: any) => {
+                  const inner = (
+                    <div className={`overflow-hidden prism-card ${BANNER_H[b.size] || BANNER_H.md}`} style={{ borderRadius: radius, border: '1px solid rgba(255,255,255,0.15)', ['--tilt' as any]: `${s.tiltAmount}deg` }}>
+                      {b.image_url && <img src={b.image_url} alt="" className="w-full h-full object-cover" />}
+                    </div>
+                  );
+                  return b.link_url ? <a key={b.id} href={b.link_url} target="_blank" rel="noreferrer" onClick={() => t('banner', b.id)}>{inner}</a> : <div key={b.id}>{inner}</div>;
+                })}
+              </div>
+            ) : null,
+            videos: videos.length > 0 ? (
+              <div key="videos">
+                {videos.map((v: any) => (
+                  <div key={v.id} className="overflow-hidden prism-card" style={{ borderRadius: radius, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(0,0,0,0.3)', ['--tilt' as any]: `${s.tiltAmount}deg` }}>
+                    <div className="relative aspect-video bg-black">
+                      <VideoEmbed video={v} preview={preview} />
+                    </div>
+                    {v.title && <div className="p-3 text-sm opacity-90">{v.title}</div>}
+                  </div>
+                ))}
+              </div>
+            ) : null,
           })}
-
-          {videos.map((v: any) => (
-            <div key={v.id} className="overflow-hidden prism-card" style={{ borderRadius: radius, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(0,0,0,0.3)', ['--tilt' as any]: `${s.tiltAmount}deg` }}>
-              <div className="relative aspect-video bg-black">
-                <VideoEmbed video={v} preview={preview} />
-              </div>
-              {v.title && <div className="p-3 text-sm opacity-90">{v.title}</div>}
-            </div>
-          ))}
         </div>
 
         {s.footerText && s.footerText.trim() && (

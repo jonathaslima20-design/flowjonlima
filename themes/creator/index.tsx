@@ -3,7 +3,7 @@
 import { Sparkles, Heart, Star, Zap } from 'lucide-react';
 import { SOCIALS_BY_KEY, getSocialHref } from '@/lib/socials';
 import type { BioThemeProps, BioThemeMeta } from '@/themes/types';
-import { getThemeSettings, getFontStack } from '@/themes/types';
+import { getThemeSettings, getFontStack, orderedSections } from '@/themes/types';
 import { BioflowzyBadge } from '@/components/bio/BioflowzyBadge';
 import { VideoEmbed } from '@/components/themes/VideoEmbed';
 
@@ -117,7 +117,7 @@ function buildStickers(mode: string, type: string, accent: string): StickerSpec[
   }));
 }
 
-export function CreatorTheme({ profile, links, socials, videos, banners, track, preview }: BioThemeProps) {
+export function CreatorTheme({ profile, links, socials, videos, banners, sectionOrder, track, preview }: BioThemeProps) {
   const s = getThemeSettings(profile, 'creator', creatorMeta.controls);
   const accent = s.useAccentCustom && s.accentCustom ? s.accentCustom : (profile.button_color || '#FF6B9D');
   const highlightColor = s.useHighlightCustom && s.highlightCustom ? s.highlightCustom : (s.highlightColor || '#FDE047');
@@ -222,129 +222,141 @@ export function CreatorTheme({ profile, links, socials, videos, banners, track, 
             </p>
           )}
 
-          {s.showSocials !== false && socials?.length > 0 && (
-            <div className="mt-5 flex gap-2.5 flex-wrap justify-center">
-              {socials.map((soc: any, i: number) => {
-                const meta = SOCIALS_BY_KEY[(soc.platform || '').toLowerCase()];
-                const Icon = meta?.icon;
-                const palette = [accent, '#FDE047', '#5EEAD4', '#B794F6', '#FB7185'];
-                const color = palette[i % palette.length];
-                return (
-                  <a
-                    key={soc.id}
-                    href={getSocialHref(soc.platform, soc.url)}
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={() => t('social', soc.id)}
-                    className={`w-11 h-11 flex items-center justify-center transition-all hover:-translate-y-0.5 ${hoverCls}`}
-                    style={{
-                      borderRadius: shape === SHAPES.blob ? '50%' : shape,
-                      background: '#FFFFFF',
-                      color,
-                      boxShadow: `4px 4px 0 ${color}`,
-                      border: `2px solid ${text}`,
-                    }}
-                    aria-label={meta?.label || soc.platform}
-                  >
-                    {Icon && <Icon className="w-[18px] h-[18px]" />}
-                  </a>
-                );
-              })}
-            </div>
-          )}
         </div>
 
         <div className="mt-8 flex flex-col gap-4">
-          {links.map((l: any, i: number) => {
-            const palette = [accent, '#5EEAD4', '#FDE047', '#B794F6', '#FB7185'];
-            const cardColor = palette[i % palette.length];
-            const isCta = i === 0 && s.holoCta;
-            return (
-              <a
-                key={l.id}
-                href={l.url}
-                target="_blank"
-                rel="noreferrer"
-                onClick={() => t('link', l.id)}
-                className={`group px-5 py-4 transition-all ${hoverCls}`}
-                style={{
-                  borderRadius: shape,
-                  background: isCta
-                    ? `linear-gradient(135deg, ${accent}, #5EEAD4, #FDE047, #B794F6)`
-                    : '#FFFFFF',
-                  backgroundSize: isCta ? '300% 300%' : 'auto',
-                  animation: isCta ? 'creator-holo 4s ease infinite' : undefined,
-                  color: isCta ? '#FFFFFF' : text,
-                  border: `3px solid ${text}`,
-                  boxShadow: `6px 6px 0 ${cardColor}`,
-                  fontWeight: 700,
-                }}
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex-1 min-w-0 text-left">
-                    <div className="text-[16px] truncate" style={{ fontWeight: 800 }}>
-                      {l.title}
+          {orderedSections(sectionOrder, {
+            socials: s.showSocials !== false && socials?.length > 0 ? (
+              <div key="socials" className="flex gap-2.5 flex-wrap justify-center">
+                {socials.map((soc: any, i: number) => {
+                  const meta = SOCIALS_BY_KEY[(soc.platform || '').toLowerCase()];
+                  const Icon = meta?.icon;
+                  const palette = [accent, '#FDE047', '#5EEAD4', '#B794F6', '#FB7185'];
+                  const color = palette[i % palette.length];
+                  return (
+                    <a
+                      key={soc.id}
+                      href={getSocialHref(soc.platform, soc.url)}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => t('social', soc.id)}
+                      className={`w-11 h-11 flex items-center justify-center transition-all hover:-translate-y-0.5 ${hoverCls}`}
+                      style={{
+                        borderRadius: shape === SHAPES.blob ? '50%' : shape,
+                        background: '#FFFFFF',
+                        color,
+                        boxShadow: `4px 4px 0 ${color}`,
+                        border: `2px solid ${text}`,
+                      }}
+                      aria-label={meta?.label || soc.platform}
+                    >
+                      {Icon && <Icon className="w-[18px] h-[18px]" />}
+                    </a>
+                  );
+                })}
+              </div>
+            ) : null,
+            links: links.length > 0 ? (
+              <div key="links" className="flex flex-col gap-4">
+                {links.map((l: any, i: number) => {
+                  const palette = [accent, '#5EEAD4', '#FDE047', '#B794F6', '#FB7185'];
+                  const cardColor = palette[i % palette.length];
+                  const isCta = i === 0 && s.holoCta;
+                  return (
+                    <a
+                      key={l.id}
+                      href={l.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => t('link', l.id)}
+                      className={`group px-5 py-4 transition-all ${hoverCls}`}
+                      style={{
+                        borderRadius: shape,
+                        background: isCta
+                          ? `linear-gradient(135deg, ${accent}, #5EEAD4, #FDE047, #B794F6)`
+                          : '#FFFFFF',
+                        backgroundSize: isCta ? '300% 300%' : 'auto',
+                        animation: isCta ? 'creator-holo 4s ease infinite' : undefined,
+                        color: isCta ? '#FFFFFF' : text,
+                        border: `3px solid ${text}`,
+                        boxShadow: `6px 6px 0 ${cardColor}`,
+                        fontWeight: 700,
+                      }}
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex-1 min-w-0 text-left">
+                          <div className="text-[16px] truncate" style={{ fontWeight: 800 }}>
+                            {l.title}
+                          </div>
+                          {l.subtitle && (
+                            <div className="text-xs mt-0.5 opacity-70 truncate">{l.subtitle}</div>
+                          )}
+                        </div>
+                        <div
+                          className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
+                          style={{
+                            background: isCta ? 'rgba(255,255,255,0.3)' : cardColor,
+                            color: isCta ? '#FFFFFF' : text,
+                            border: `2px solid ${text}`,
+                          }}
+                        >
+                          <Sparkles className="w-4 h-4" fill="currentColor" />
+                        </div>
+                      </div>
+                    </a>
+                  );
+                })}
+              </div>
+            ) : null,
+            banners: banners?.length > 0 ? (
+              <div key="banners" className="flex flex-col gap-4">
+                {banners.map((b: any) => {
+                  const inner = (
+                    <div
+                      className={`overflow-hidden ${BANNER_H[b.size] || BANNER_H.md}`}
+                      style={{
+                        borderRadius: shape,
+                        border: `3px solid ${text}`,
+                        boxShadow: `6px 6px 0 ${accent}`,
+                      }}
+                    >
+                      {b.image_url && <img src={b.image_url} alt="" className="w-full h-full object-cover" />}
                     </div>
-                    {l.subtitle && (
-                      <div className="text-xs mt-0.5 opacity-70 truncate">{l.subtitle}</div>
-                    )}
-                  </div>
+                  );
+                  return b.link_url ? (
+                    <a key={b.id} href={b.link_url} target="_blank" rel="noreferrer" onClick={() => t('banner', b.id)}>{inner}</a>
+                  ) : (
+                    <div key={b.id}>{inner}</div>
+                  );
+                })}
+              </div>
+            ) : null,
+            videos: videos.length > 0 ? (
+              <div key="videos" className="flex flex-col gap-4">
+                {videos.map((v: any) => (
                   <div
-                    className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
+                    key={v.id}
+                    className="overflow-hidden"
                     style={{
-                      background: isCta ? 'rgba(255,255,255,0.3)' : cardColor,
-                      color: isCta ? '#FFFFFF' : text,
-                      border: `2px solid ${text}`,
+                      borderRadius: shape,
+                      background: '#FFFFFF',
+                      border: `3px solid ${text}`,
+                      boxShadow: `6px 6px 0 #5EEAD4`,
                     }}
                   >
-                    <Sparkles className="w-4 h-4" fill="currentColor" />
+                    <div className="relative aspect-video bg-black">
+                      <VideoEmbed video={v} preview={preview} />
+                    </div>
+                    {v.title && (
+                      <div className="px-4 py-3 text-sm" style={{ color: text, fontWeight: 700 }}>
+                        {v.title}
+                      </div>
+                    )}
                   </div>
-                </div>
-              </a>
-            );
-          })}
-
-          {banners?.map((b: any) => {
-            const inner = (
-              <div
-                className={`overflow-hidden ${BANNER_H[b.size] || BANNER_H.md}`}
-                style={{
-                  borderRadius: shape,
-                  border: `3px solid ${text}`,
-                  boxShadow: `6px 6px 0 ${accent}`,
-                }}
-              >
-                {b.image_url && <img src={b.image_url} alt="" className="w-full h-full object-cover" />}
+                ))}
               </div>
-            );
-            return b.link_url ? (
-              <a key={b.id} href={b.link_url} target="_blank" rel="noreferrer" onClick={() => t('banner', b.id)}>{inner}</a>
-            ) : (
-              <div key={b.id}>{inner}</div>
-            );
+            ) : null,
           })}
-
-          {videos.map((v: any) => (
-            <div
-              key={v.id}
-              className="overflow-hidden"
-              style={{
-                borderRadius: shape,
-                background: '#FFFFFF',
-                border: `3px solid ${text}`,
-                boxShadow: `6px 6px 0 #5EEAD4`,
-              }}
-            >
-              <div className="relative aspect-video bg-black">
-                <VideoEmbed video={v} preview={preview} />
-              </div>
-              {v.title && (
-                <div className="px-4 py-3 text-sm" style={{ color: text, fontWeight: 700 }}>
-                  {v.title}
-                </div>
-              )}
-            </div>
-          ))}
         </div>
         {s.footerText && s.footerText.trim() && (
           <div className="mt-6 text-center text-xs font-bold" style={{ color: text, opacity: 0.75 }}>{s.footerText}</div>

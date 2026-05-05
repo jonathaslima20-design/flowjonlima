@@ -3,7 +3,7 @@
 import { ChevronRight } from 'lucide-react';
 import { SOCIALS_BY_KEY, getSocialHref } from '@/lib/socials';
 import type { BioThemeProps, BioThemeMeta } from '@/themes/types';
-import { getThemeSettings, getFontStack } from '@/themes/types';
+import { getThemeSettings, getFontStack, orderedSections } from '@/themes/types';
 import { BioflowzyBadge } from '@/components/bio/BioflowzyBadge';
 import { VideoEmbed } from '@/components/themes/VideoEmbed';
 
@@ -43,7 +43,7 @@ export const chromeMeta: BioThemeMeta = {
 
 const BANNER_H: Record<string, string> = { sm: 'aspect-[6/1]', md: 'aspect-[3/1]', lg: 'aspect-[5/2]' };
 
-export function ChromeTheme({ profile, links, socials, videos, banners, track, preview }: BioThemeProps) {
+export function ChromeTheme({ profile, links, socials, videos, banners, sectionOrder, track, preview }: BioThemeProps) {
   const s = getThemeSettings(profile, 'chrome', chromeMeta.controls);
   const accent = s.useAccentCustom && s.accentCustom ? s.accentCustom : (profile.button_color || '#60A5FA');
   const bg = profile.bg_color || '#0D1117';
@@ -76,77 +76,89 @@ export function ChromeTheme({ profile, links, socials, videos, banners, track, p
           )}
           {profile.bio && <p className="mt-3 text-[15px] opacity-80 max-w-xs leading-relaxed whitespace-pre-line">{profile.bio}</p>}
 
-          {s.showSocials !== false && socials?.length > 0 && (
-            <div className="mt-6 flex gap-2 flex-wrap justify-center">
-              {socials.map((soc: any) => {
-                const meta = SOCIALS_BY_KEY[(soc.platform || '').toLowerCase()];
-                const Icon = meta?.icon;
-                return (
-                  <a key={soc.id} href={getSocialHref(soc.platform, soc.url)} target="_blank" rel="noreferrer" onClick={() => t('social', soc.id)}
-                    className="w-11 h-11 rounded-full flex items-center justify-center chrome-tile"
-                    style={{
-                      background: 'rgba(255,255,255,0.08)',
-                      backdropFilter: `blur(${s.blur}px) saturate(180%)`,
-                      WebkitBackdropFilter: `blur(${s.blur}px) saturate(180%)`,
-                      border: '1px solid rgba(255,255,255,0.15)',
-                      boxShadow: `0 ${s.depth / 2}px ${s.depth}px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.15)`,
-                      color: text,
-                    }}>
-                    {Icon && <Icon className="w-4 h-4" />}
-                  </a>
-                );
-              })}
-            </div>
-          )}
         </div>
 
         <div className="mt-8 flex flex-col gap-3">
-          {links.map((l: any, i: number) => (
-            <a key={l.id} href={l.url} target="_blank" rel="noreferrer" onClick={() => t('link', l.id)}
-              className="relative group px-5 py-4 flex items-center justify-between chrome-card overflow-hidden"
-              style={{
-                borderRadius: s.cardRadius ?? 16,
-                background: 'rgba(255,255,255,0.06)',
-                backdropFilter: `blur(${s.blur}px) saturate(180%)`,
-                WebkitBackdropFilter: `blur(${s.blur}px) saturate(180%)`,
-                border: '1px solid rgba(255,255,255,0.12)',
-                boxShadow: `0 ${s.depth}px ${s.depth * 1.5}px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.15)`,
-                color: text,
-                transform: `translateZ(0)`,
-                animationDelay: `${i * 80}ms`,
-              }}>
-              {s.highlight && <div className="absolute inset-x-6 top-0 h-px pointer-events-none" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)' }} aria-hidden />}
-              <span className="relative font-medium">{l.title}</span>
-              <ChevronRight className="relative w-4 h-4 opacity-60 transition-transform group-hover:translate-x-0.5" />
-            </a>
-          ))}
-
-          {banners?.map((b: any) => {
-            const inner = (
-              <div className={`rounded-2xl overflow-hidden chrome-card ${BANNER_H[b.size] || BANNER_H.md}`} style={{
-                border: '1px solid rgba(255,255,255,0.12)',
-                boxShadow: `0 ${s.depth}px ${s.depth * 1.5}px rgba(0,0,0,0.4)`,
-              }}>
-                {b.image_url && <img src={b.image_url} alt="" className="w-full h-full object-cover" />}
+          {orderedSections(sectionOrder, {
+            socials: s.showSocials !== false && socials?.length > 0 ? (
+              <div key="socials" className="flex gap-2 flex-wrap justify-center">
+                {socials.map((soc: any) => {
+                  const meta = SOCIALS_BY_KEY[(soc.platform || '').toLowerCase()];
+                  const Icon = meta?.icon;
+                  return (
+                    <a key={soc.id} href={getSocialHref(soc.platform, soc.url)} target="_blank" rel="noreferrer" onClick={() => t('social', soc.id)}
+                      className="w-11 h-11 rounded-full flex items-center justify-center chrome-tile"
+                      style={{
+                        background: 'rgba(255,255,255,0.08)',
+                        backdropFilter: `blur(${s.blur}px) saturate(180%)`,
+                        WebkitBackdropFilter: `blur(${s.blur}px) saturate(180%)`,
+                        border: '1px solid rgba(255,255,255,0.15)',
+                        boxShadow: `0 ${s.depth / 2}px ${s.depth}px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.15)`,
+                        color: text,
+                      }}>
+                      {Icon && <Icon className="w-4 h-4" />}
+                    </a>
+                  );
+                })}
               </div>
-            );
-            return b.link_url ? <a key={b.id} href={b.link_url} target="_blank" rel="noreferrer" onClick={() => t('banner', b.id)}>{inner}</a> : <div key={b.id}>{inner}</div>;
+            ) : null,
+            links: links.length > 0 ? (
+              <div key="links" className="flex flex-col gap-3">
+                {links.map((l: any, i: number) => (
+                  <a key={l.id} href={l.url} target="_blank" rel="noreferrer" onClick={() => t('link', l.id)}
+                    className="relative group px-5 py-4 flex items-center justify-between chrome-card overflow-hidden"
+                    style={{
+                      borderRadius: s.cardRadius ?? 16,
+                      background: 'rgba(255,255,255,0.06)',
+                      backdropFilter: `blur(${s.blur}px) saturate(180%)`,
+                      WebkitBackdropFilter: `blur(${s.blur}px) saturate(180%)`,
+                      border: '1px solid rgba(255,255,255,0.12)',
+                      boxShadow: `0 ${s.depth}px ${s.depth * 1.5}px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.15)`,
+                      color: text,
+                      transform: `translateZ(0)`,
+                      animationDelay: `${i * 80}ms`,
+                    }}>
+                    {s.highlight && <div className="absolute inset-x-6 top-0 h-px pointer-events-none" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)' }} aria-hidden />}
+                    <span className="relative font-medium">{l.title}</span>
+                    <ChevronRight className="relative w-4 h-4 opacity-60 transition-transform group-hover:translate-x-0.5" />
+                  </a>
+                ))}
+              </div>
+            ) : null,
+            banners: banners?.length > 0 ? (
+              <div key="banners" className="flex flex-col gap-3">
+                {banners.map((b: any) => {
+                  const inner = (
+                    <div className={`rounded-2xl overflow-hidden chrome-card ${BANNER_H[b.size] || BANNER_H.md}`} style={{
+                      border: '1px solid rgba(255,255,255,0.12)',
+                      boxShadow: `0 ${s.depth}px ${s.depth * 1.5}px rgba(0,0,0,0.4)`,
+                    }}>
+                      {b.image_url && <img src={b.image_url} alt="" className="w-full h-full object-cover" />}
+                    </div>
+                  );
+                  return b.link_url ? <a key={b.id} href={b.link_url} target="_blank" rel="noreferrer" onClick={() => t('banner', b.id)}>{inner}</a> : <div key={b.id}>{inner}</div>;
+                })}
+              </div>
+            ) : null,
+            videos: videos.length > 0 ? (
+              <div key="videos" className="flex flex-col gap-3">
+                {videos.map((v: any) => (
+                  <div key={v.id} className="rounded-2xl overflow-hidden chrome-card" style={{
+                    background: 'rgba(0,0,0,0.4)',
+                    border: '1px solid rgba(255,255,255,0.12)',
+                    boxShadow: `0 ${s.depth}px ${s.depth * 1.5}px rgba(0,0,0,0.4)`,
+                    backdropFilter: `blur(${s.blur}px)`,
+                    WebkitBackdropFilter: `blur(${s.blur}px)`,
+                  }}>
+                    <div className="relative aspect-video bg-black">
+                      <VideoEmbed video={v} preview={preview} />
+                    </div>
+                    {v.title && <div className="p-3 text-sm opacity-90">{v.title}</div>}
+                  </div>
+                ))}
+              </div>
+            ) : null,
           })}
-
-          {videos.map((v: any) => (
-            <div key={v.id} className="rounded-2xl overflow-hidden chrome-card" style={{
-              background: 'rgba(0,0,0,0.4)',
-              border: '1px solid rgba(255,255,255,0.12)',
-              boxShadow: `0 ${s.depth}px ${s.depth * 1.5}px rgba(0,0,0,0.4)`,
-              backdropFilter: `blur(${s.blur}px)`,
-              WebkitBackdropFilter: `blur(${s.blur}px)`,
-            }}>
-              <div className="relative aspect-video bg-black">
-                <VideoEmbed video={v} preview={preview} />
-              </div>
-              {v.title && <div className="p-3 text-sm opacity-90">{v.title}</div>}
-            </div>
-          ))}
         </div>
 
         {s.footerText && s.footerText.trim() && (

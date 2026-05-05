@@ -2,7 +2,7 @@
 
 import { SOCIALS_BY_KEY, getSocialHref } from '@/lib/socials';
 import type { BioThemeProps, BioThemeMeta } from '@/themes/types';
-import { getThemeSettings, getFontStack } from '@/themes/types';
+import { getThemeSettings, getFontStack, orderedSections } from '@/themes/types';
 import { BioflowzyBadge } from '@/components/bio/BioflowzyBadge';
 import { VideoEmbed } from '@/components/themes/VideoEmbed';
 import { ChevronRight } from 'lucide-react';
@@ -51,7 +51,7 @@ export const cupertinoMeta: BioThemeMeta = {
 
 const BANNER_H: Record<string, string> = { sm: 'aspect-[6/1]', md: 'aspect-[3/1]', lg: 'aspect-[5/2]' };
 
-export function CupertinoTheme({ profile, links, socials, videos, banners, track, preview }: BioThemeProps) {
+export function CupertinoTheme({ profile, links, socials, videos, banners, sectionOrder, track, preview }: BioThemeProps) {
   const s = getThemeSettings(profile, 'cupertino', cupertinoMeta.controls);
   const isDark = s.appearance === 'dark';
   const bg = profile.bg_color || (isDark ? '#000000' : '#F5F5F7');
@@ -151,160 +151,169 @@ export function CupertinoTheme({ profile, links, socials, videos, banners, track
             </p>
           )}
 
-          {socials?.length > 0 && (
-            <div className="mt-5 flex items-center justify-center gap-2 flex-wrap">
-              {socials.map((soc: any) => {
-                const meta = SOCIALS_BY_KEY[(soc.platform || '').toLowerCase()];
-                const Icon = meta?.icon;
-                return Icon ? (
-                  <a
-                    key={soc.id}
-                    href={getSocialHref(soc.platform, soc.url)}
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={() => t('social', soc.id)}
-                    className="cupertino-chip flex items-center justify-center transition-all"
-                    style={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: 14,
-                      background: s.glass ? glassBg : (isDark ? 'rgba(44,44,46,0.9)' : '#FFFFFF'),
-                      border: `1px solid ${cardBorder}`,
-                      color: text,
-                      backdropFilter: s.glass ? 'blur(20px) saturate(180%)' : undefined,
-                      WebkitBackdropFilter: s.glass ? 'blur(20px) saturate(180%)' : undefined,
-                    }}
-                    aria-label={meta?.label}
-                  >
-                    <Icon className="w-[18px] h-[18px]" />
-                  </a>
-                ) : null;
-              })}
-            </div>
-          )}
         </header>
-
-        {links.length > 0 && (
-          <div className="mb-2 px-1 flex items-center justify-between">
-            <span className="text-[13px] font-semibold tracking-[-0.01em]" style={{ color: subText, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-              {s.sectionLabel || 'Links'}
-            </span>
-            <span className="text-[13px] tabular-nums" style={{ color: subText }}>{String(links.length).padStart(2, '0')}</span>
-          </div>
-        )}
 
         <div
           className="flex flex-col"
           style={{ gap }}
         >
-          {links.map((l: any) => (
-            <a
-              key={l.id}
-              href={l.url}
-              target="_blank"
-              rel="noreferrer"
-              onClick={() => t('link', l.id)}
-              className="cupertino-card group flex items-center justify-between transition-all"
-              style={{
-                padding: `${pad}px ${pad + 2}px`,
-                borderRadius: radius,
-                background: s.glass ? glassBg : (isDark ? 'rgba(28,28,30,0.95)' : '#FFFFFF'),
-                border: `1px solid ${cardBorder}`,
-                backdropFilter: s.glass ? 'blur(20px) saturate(180%)' : undefined,
-                WebkitBackdropFilter: s.glass ? 'blur(20px) saturate(180%)' : undefined,
-                boxShadow: isDark
-                  ? '0 1px 0 rgba(255,255,255,0.04) inset, 0 6px 24px -10px rgba(0,0,0,0.6)'
-                  : '0 1px 0 rgba(255,255,255,0.9) inset, 0 6px 24px -10px rgba(0,0,0,0.12)',
-              }}
-            >
-              <div className="flex items-center gap-3 min-w-0 flex-1">
-                <div
-                  className="flex items-center justify-center shrink-0"
-                  style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: 12,
-                    background: `linear-gradient(135deg, ${accent}, ${accent}AA)`,
-                    color: '#fff',
-                    boxShadow: `0 4px 12px -2px ${accent}66`,
-                  }}
-                  aria-hidden
-                >
-                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.5 1.5" />
-                    <path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.5-1.5" />
-                  </svg>
+          {orderedSections(sectionOrder, {
+            socials: socials?.length > 0 ? (
+              <div key="socials" className="flex items-center justify-center gap-2 flex-wrap">
+                {socials.map((soc: any) => {
+                  const meta = SOCIALS_BY_KEY[(soc.platform || '').toLowerCase()];
+                  const Icon = meta?.icon;
+                  return Icon ? (
+                    <a
+                      key={soc.id}
+                      href={getSocialHref(soc.platform, soc.url)}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => t('social', soc.id)}
+                      className="cupertino-chip flex items-center justify-center transition-all"
+                      style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: 14,
+                        background: s.glass ? glassBg : (isDark ? 'rgba(44,44,46,0.9)' : '#FFFFFF'),
+                        border: `1px solid ${cardBorder}`,
+                        color: text,
+                        backdropFilter: s.glass ? 'blur(20px) saturate(180%)' : undefined,
+                        WebkitBackdropFilter: s.glass ? 'blur(20px) saturate(180%)' : undefined,
+                      }}
+                      aria-label={meta?.label}
+                    >
+                      <Icon className="w-[18px] h-[18px]" />
+                    </a>
+                  ) : null;
+                })}
+              </div>
+            ) : null,
+            links: links.length > 0 ? (
+              <div key="links" className="flex flex-col" style={{ gap }}>
+                <div className="mb-2 px-1 flex items-center justify-between">
+                  <span className="text-[13px] font-semibold tracking-[-0.01em]" style={{ color: subText, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                    {s.sectionLabel || 'Links'}
+                  </span>
+                  <span className="text-[13px] tabular-nums" style={{ color: subText }}>{String(links.length).padStart(2, '0')}</span>
                 </div>
-                <div className="min-w-0 flex-1 text-left">
-                  <div
-                    className="truncate"
+                {links.map((l: any) => (
+                  <a
+                    key={l.id}
+                    href={l.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={() => t('link', l.id)}
+                    className="cupertino-card group flex items-center justify-between transition-all"
                     style={{
-                      fontSize: 16,
-                      fontWeight: 600,
-                      letterSpacing: '-0.01em',
-                      color: text,
-                      fontFamily: titleFamily,
+                      padding: `${pad}px ${pad + 2}px`,
+                      borderRadius: radius,
+                      background: s.glass ? glassBg : (isDark ? 'rgba(28,28,30,0.95)' : '#FFFFFF'),
+                      border: `1px solid ${cardBorder}`,
+                      backdropFilter: s.glass ? 'blur(20px) saturate(180%)' : undefined,
+                      WebkitBackdropFilter: s.glass ? 'blur(20px) saturate(180%)' : undefined,
+                      boxShadow: isDark
+                        ? '0 1px 0 rgba(255,255,255,0.04) inset, 0 6px 24px -10px rgba(0,0,0,0.6)'
+                        : '0 1px 0 rgba(255,255,255,0.9) inset, 0 6px 24px -10px rgba(0,0,0,0.12)',
                     }}
                   >
-                    {l.title}
-                  </div>
-                  {l.subtitle && (
-                    <div className="truncate mt-0.5 text-[13px]" style={{ color: subText }}>{l.subtitle}</div>
-                  )}
-                </div>
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div
+                        className="flex items-center justify-center shrink-0"
+                        style={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: 12,
+                          background: `linear-gradient(135deg, ${accent}, ${accent}AA)`,
+                          color: '#fff',
+                          boxShadow: `0 4px 12px -2px ${accent}66`,
+                        }}
+                        aria-hidden
+                      >
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.5 1.5" />
+                          <path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.5-1.5" />
+                        </svg>
+                      </div>
+                      <div className="min-w-0 flex-1 text-left">
+                        <div
+                          className="truncate"
+                          style={{
+                            fontSize: 16,
+                            fontWeight: 600,
+                            letterSpacing: '-0.01em',
+                            color: text,
+                            fontFamily: titleFamily,
+                          }}
+                        >
+                          {l.title}
+                        </div>
+                        {l.subtitle && (
+                          <div className="truncate mt-0.5 text-[13px]" style={{ color: subText }}>{l.subtitle}</div>
+                        )}
+                      </div>
+                    </div>
+                    <ChevronRight className="shrink-0 transition-transform group-hover:translate-x-0.5" style={{ width: 18, height: 18, color: subText }} />
+                  </a>
+                ))}
               </div>
-              <ChevronRight className="shrink-0 transition-transform group-hover:translate-x-0.5" style={{ width: 18, height: 18, color: subText }} />
-            </a>
-          ))}
-
-          {banners?.map((b: any) => {
-            const inner = (
-              <div
-                className={`overflow-hidden ${BANNER_H[b.size] || BANNER_H.md}`}
-                style={{
-                  borderRadius: radius,
-                  border: `1px solid ${cardBorder}`,
-                  boxShadow: isDark
-                    ? '0 6px 24px -10px rgba(0,0,0,0.6)'
-                    : '0 6px 24px -10px rgba(0,0,0,0.12)',
-                }}
-              >
-                {b.image_url && <img src={b.image_url} alt="" className="w-full h-full object-cover" />}
+            ) : null,
+            banners: banners?.length > 0 ? (
+              <div key="banners" className="flex flex-col" style={{ gap }}>
+                {banners.map((b: any) => {
+                  const inner = (
+                    <div
+                      className={`overflow-hidden ${BANNER_H[b.size] || BANNER_H.md}`}
+                      style={{
+                        borderRadius: radius,
+                        border: `1px solid ${cardBorder}`,
+                        boxShadow: isDark
+                          ? '0 6px 24px -10px rgba(0,0,0,0.6)'
+                          : '0 6px 24px -10px rgba(0,0,0,0.12)',
+                      }}
+                    >
+                      {b.image_url && <img src={b.image_url} alt="" className="w-full h-full object-cover" />}
+                    </div>
+                  );
+                  return b.link_url ? (
+                    <a key={b.id} href={b.link_url} target="_blank" rel="noreferrer" onClick={() => t('banner', b.id)}>{inner}</a>
+                  ) : <div key={b.id}>{inner}</div>;
+                })}
               </div>
-            );
-            return b.link_url ? (
-              <a key={b.id} href={b.link_url} target="_blank" rel="noreferrer" onClick={() => t('banner', b.id)}>{inner}</a>
-            ) : <div key={b.id}>{inner}</div>;
+            ) : null,
+            videos: videos.length > 0 ? (
+              <div key="videos" className="flex flex-col" style={{ gap }}>
+                {videos.map((v: any) => (
+                  <figure
+                    key={v.id}
+                    className="overflow-hidden"
+                    style={{
+                      borderRadius: radius,
+                      background: s.glass ? glassBg : (isDark ? 'rgba(28,28,30,0.95)' : '#FFFFFF'),
+                      border: `1px solid ${cardBorder}`,
+                      backdropFilter: s.glass ? 'blur(20px) saturate(180%)' : undefined,
+                      WebkitBackdropFilter: s.glass ? 'blur(20px) saturate(180%)' : undefined,
+                      boxShadow: isDark
+                        ? '0 6px 24px -10px rgba(0,0,0,0.6)'
+                        : '0 6px 24px -10px rgba(0,0,0,0.12)',
+                    }}
+                  >
+                    <div className="relative aspect-video">
+                      <VideoEmbed video={v} preview={preview} />
+                    </div>
+                    {v.title && (
+                      <figcaption
+                        className="px-4 py-3 text-[14px] font-medium tracking-[-0.01em]"
+                        style={{ color: text, fontFamily: titleFamily }}
+                      >
+                        {v.title}
+                      </figcaption>
+                    )}
+                  </figure>
+                ))}
+              </div>
+            ) : null,
           })}
-
-          {videos.map((v: any) => (
-            <figure
-              key={v.id}
-              className="overflow-hidden"
-              style={{
-                borderRadius: radius,
-                background: s.glass ? glassBg : (isDark ? 'rgba(28,28,30,0.95)' : '#FFFFFF'),
-                border: `1px solid ${cardBorder}`,
-                backdropFilter: s.glass ? 'blur(20px) saturate(180%)' : undefined,
-                WebkitBackdropFilter: s.glass ? 'blur(20px) saturate(180%)' : undefined,
-                boxShadow: isDark
-                  ? '0 6px 24px -10px rgba(0,0,0,0.6)'
-                  : '0 6px 24px -10px rgba(0,0,0,0.12)',
-              }}
-            >
-              <div className="relative aspect-video">
-                <VideoEmbed video={v} preview={preview} />
-              </div>
-              {v.title && (
-                <figcaption
-                  className="px-4 py-3 text-[14px] font-medium tracking-[-0.01em]"
-                  style={{ color: text, fontFamily: titleFamily }}
-                >
-                  {v.title}
-                </figcaption>
-              )}
-            </figure>
-          ))}
         </div>
 
         {s.footerText && s.footerText.trim() && (

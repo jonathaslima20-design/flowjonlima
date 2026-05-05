@@ -2,7 +2,7 @@
 
 import { SOCIALS_BY_KEY, getSocialHref } from '@/lib/socials';
 import type { BioThemeProps, BioThemeMeta } from '@/themes/types';
-import { getThemeSettings, getFontStack } from '@/themes/types';
+import { getThemeSettings, getFontStack, orderedSections } from '@/themes/types';
 import { BioflowzyBadge } from '@/components/bio/BioflowzyBadge';
 import { VideoEmbed } from '@/components/themes/VideoEmbed';
 
@@ -47,7 +47,7 @@ const FILM_FILTERS: Record<string, string> = {
 const TILT_ANGLES = [-3, 2, -1.5, 2.5, -2, 1, -2.5, 1.5, -1, 2];
 const BANNER_H: Record<string, string> = { sm: 'aspect-[6/1]', md: 'aspect-[3/1]', lg: 'aspect-[5/2]' };
 
-export function GrainTheme({ profile, links, socials, videos, banners, track, preview }: BioThemeProps) {
+export function GrainTheme({ profile, links, socials, videos, banners, sectionOrder, track, preview }: BioThemeProps) {
   const s = getThemeSettings(profile, 'grain', grainMeta.controls);
   const bg = profile.bg_color || '#2C2016';
   const text = profile.text_color || '#F0E8D8';
@@ -116,96 +116,108 @@ export function GrainTheme({ profile, links, socials, videos, banners, track, pr
             </p>
           )}
 
-          {socials?.length > 0 && (
-            <div className="mt-5 flex items-center justify-center gap-5">
-              {socials.map((soc: any) => {
-                const meta = SOCIALS_BY_KEY[(soc.platform || '').toLowerCase()];
-                const Icon = meta?.icon;
-                return Icon ? (
-                  <a
-                    key={soc.id}
-                    href={getSocialHref(soc.platform, soc.url)}
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={() => t('social', soc.id)}
-                    className="transition-opacity hover:opacity-50"
-                    style={{ color: `${text}66` }}
-                    aria-label={meta?.label}
-                  >
-                    <Icon className="w-[16px] h-[16px]" />
-                  </a>
-                ) : null;
-              })}
-            </div>
-          )}
         </header>
 
         <div className="flex flex-col gap-3">
-          {links.map((l: any, i: number) => (
-            <a
-              key={l.id}
-              href={l.url}
-              target="_blank"
-              rel="noreferrer"
-              onClick={() => t('link', l.id)}
-              className="group flex items-center gap-4 px-5 py-4 transition-all hover:opacity-80"
-              style={{
-                padding: '12px 14px 28px',
-                backgroundColor: '#F5F0E8',
-                boxShadow: `2px 3px 12px rgba(0,0,0,0.4)`,
-                transform: s.polaroidTilt ? `rotate(${TILT_ANGLES[i % TILT_ANGLES.length]}deg)` : 'none',
-                marginBottom: s.polaroidTilt ? '8px' : '0',
-              }}
-            >
-              <div className="flex-1">
-                <p
-                  className="text-[15px] font-medium"
-                  style={{ fontFamily: titleFamily, color: '#2C2016', fontStyle: 'italic' }}
-                >
-                  {l.title}
-                </p>
+          {orderedSections(sectionOrder, {
+            socials: socials?.length > 0 ? (
+              <div key="socials" className="flex items-center justify-center gap-5">
+                {socials.map((soc: any) => {
+                  const meta = SOCIALS_BY_KEY[(soc.platform || '').toLowerCase()];
+                  const Icon = meta?.icon;
+                  return Icon ? (
+                    <a
+                      key={soc.id}
+                      href={getSocialHref(soc.platform, soc.url)}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => t('social', soc.id)}
+                      className="transition-opacity hover:opacity-50"
+                      style={{ color: `${text}66` }}
+                      aria-label={meta?.label}
+                    >
+                      <Icon className="w-[16px] h-[16px]" />
+                    </a>
+                  ) : null;
+                })}
               </div>
-            </a>
-          ))}
-
-          {banners?.map((b: any) => {
-            const inner = (
-              <div
-                key={b.id}
-                className={`overflow-hidden mt-5 ${BANNER_H[b.size] || BANNER_H.md}`}
-                style={{
-                  padding: '6px 6px 20px',
-                  backgroundColor: '#F5F0E8',
-                  boxShadow: `3px 4px 16px rgba(0,0,0,0.4)`,
-                  transform: s.polaroidTilt ? 'rotate(1deg)' : 'none',
-                }}
-              >
-                {b.image_url && <img src={b.image_url} alt="" className="w-full h-full object-cover" style={{ filter: filmFilter }} />}
+            ) : null,
+            links: links.length > 0 ? (
+              <div key="links" className="flex flex-col gap-3">
+                {links.map((l: any, i: number) => (
+                  <a
+                    key={l.id}
+                    href={l.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={() => t('link', l.id)}
+                    className="group flex items-center gap-4 px-5 py-4 transition-all hover:opacity-80"
+                    style={{
+                      padding: '12px 14px 28px',
+                      backgroundColor: '#F5F0E8',
+                      boxShadow: `2px 3px 12px rgba(0,0,0,0.4)`,
+                      transform: s.polaroidTilt ? `rotate(${TILT_ANGLES[i % TILT_ANGLES.length]}deg)` : 'none',
+                      marginBottom: s.polaroidTilt ? '8px' : '0',
+                    }}
+                  >
+                    <div className="flex-1">
+                      <p
+                        className="text-[15px] font-medium"
+                        style={{ fontFamily: titleFamily, color: '#2C2016', fontStyle: 'italic' }}
+                      >
+                        {l.title}
+                      </p>
+                    </div>
+                  </a>
+                ))}
               </div>
-            );
-            return b.link_url ? (
-              <a key={b.id} href={b.link_url} target="_blank" rel="noreferrer" onClick={() => t('banner', b.id)}>{inner}</a>
-            ) : inner;
+            ) : null,
+            banners: banners?.length > 0 ? (
+              <div key="banners" className="flex flex-col gap-3">
+                {banners.map((b: any) => {
+                  const inner = (
+                    <div
+                      key={b.id}
+                      className={`overflow-hidden mt-5 ${BANNER_H[b.size] || BANNER_H.md}`}
+                      style={{
+                        padding: '6px 6px 20px',
+                        backgroundColor: '#F5F0E8',
+                        boxShadow: `3px 4px 16px rgba(0,0,0,0.4)`,
+                        transform: s.polaroidTilt ? 'rotate(1deg)' : 'none',
+                      }}
+                    >
+                      {b.image_url && <img src={b.image_url} alt="" className="w-full h-full object-cover" style={{ filter: filmFilter }} />}
+                    </div>
+                  );
+                  return b.link_url ? (
+                    <a key={b.id} href={b.link_url} target="_blank" rel="noreferrer" onClick={() => t('banner', b.id)}>{inner}</a>
+                  ) : inner;
+                })}
+              </div>
+            ) : null,
+            videos: videos.length > 0 ? (
+              <div key="videos" className="flex flex-col gap-3">
+                {videos.map((v: any) => (
+                  <div
+                    key={v.id}
+                    className="overflow-hidden mt-5"
+                    style={{
+                      padding: '6px 6px 20px',
+                      backgroundColor: '#F5F0E8',
+                      boxShadow: `3px 4px 16px rgba(0,0,0,0.4)`,
+                    }}
+                  >
+                    <div className="relative aspect-video">
+                      <VideoEmbed video={v} preview={preview} />
+                    </div>
+                    {v.title && (
+                      <div className="px-1 pt-2 text-xs text-center italic" style={{ color: '#6B5A42' }}>{v.title}</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : null,
           })}
-
-          {videos.map((v: any) => (
-            <div
-              key={v.id}
-              className="overflow-hidden mt-5"
-              style={{
-                padding: '6px 6px 20px',
-                backgroundColor: '#F5F0E8',
-                boxShadow: `3px 4px 16px rgba(0,0,0,0.4)`,
-              }}
-            >
-              <div className="relative aspect-video">
-                <VideoEmbed video={v} preview={preview} />
-              </div>
-              {v.title && (
-                <div className="px-1 pt-2 text-xs text-center italic" style={{ color: '#6B5A42' }}>{v.title}</div>
-              )}
-            </div>
-          ))}
         </div>
 
         {s.footerText && s.footerText.trim() && (

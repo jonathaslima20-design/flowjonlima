@@ -2,7 +2,7 @@
 
 import { SOCIALS_BY_KEY, getSocialHref } from '@/lib/socials';
 import type { BioThemeProps, BioThemeMeta } from '@/themes/types';
-import { getThemeSettings, getFontStack } from '@/themes/types';
+import { getThemeSettings, getFontStack, orderedSections } from '@/themes/types';
 import { BioflowzyBadge } from '@/components/bio/BioflowzyBadge';
 import { VideoEmbed } from '@/components/themes/VideoEmbed';
 
@@ -46,7 +46,7 @@ export const consultancyMeta: BioThemeMeta = {
 
 const BANNER_H: Record<string, string> = { sm: 'aspect-[6/1]', md: 'aspect-[3/1]', lg: 'aspect-[5/2]' };
 
-export function ConsultancyTheme({ profile, links, socials, videos, banners, track, preview }: BioThemeProps) {
+export function ConsultancyTheme({ profile, links, socials, videos, banners, sectionOrder, track, preview }: BioThemeProps) {
   const s = getThemeSettings(profile, 'consultancy', consultancyMeta.controls);
   const accent = s.useAccentCustom && s.accentCustom ? s.accentCustom : (s.sealColor || '#E11D22');
   const bg = profile.bg_color || '#FAFAF7';
@@ -90,59 +90,70 @@ export function ConsultancyTheme({ profile, links, socials, videos, banners, tra
             </p>
           )}
 
-          {s.showSocials !== false && socials?.length > 0 && (
-            <div className={`mt-6 flex gap-5 flex-wrap ${s.heroAlign === 'center' ? 'justify-center' : ''}`}>
-              {socials.map((soc: any) => {
-                const meta = SOCIALS_BY_KEY[(soc.platform || '').toLowerCase()];
-                const Icon = meta?.icon;
-                return (
-                  <a key={soc.id} href={getSocialHref(soc.platform, soc.url)} target="_blank" rel="noreferrer" onClick={() => t('social', soc.id)}
-                    className="transition-colors hover:opacity-60" style={{ color: text }}>
-                    {Icon && <Icon className="w-5 h-5" />}
-                  </a>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        <div className="mt-12 flex items-baseline gap-3 pb-2 border-b" style={{ borderColor: text }}>
-          <div className="text-[10px] tracking-[0.5em] uppercase font-bold" style={{ color: accent }}>Section</div>
-          <div className="flex-1 text-xs tracking-[0.4em] uppercase opacity-60">{s.sectionLabel || 'Key Resources'}</div>
-          <div className="text-[10px] opacity-60">{String(links.length).padStart(2, '0')}</div>
         </div>
 
         <div className="mt-2 flex flex-col">
-          {links.map((l: any, i: number) => (
-            <a key={l.id} href={l.url} target="_blank" rel="noreferrer" onClick={() => t('link', l.id)}
-              className="group grid grid-cols-[auto_1fr_auto] items-baseline gap-5 py-5 border-b transition-all hover:bg-black/[0.03]"
-              style={{ borderColor: `${text}33`, color: text }}>
-              <div className="text-xs tracking-widest" style={{ color: accent, fontWeight: 700 }}>{numberOf(i)}</div>
-              <div>
-                <div className="text-xl leading-tight" style={{ fontWeight: 700, letterSpacing: '-0.02em' }}>{l.title}</div>
-                <div className="mt-1 text-[10px] tracking-[0.3em] uppercase opacity-60">Case Study &middot; Open Access</div>
+          {orderedSections(sectionOrder, {
+            socials: s.showSocials !== false && socials?.length > 0 ? (
+              <div key="socials" className={`mt-6 flex gap-5 flex-wrap ${s.heroAlign === 'center' ? 'justify-center' : ''}`}>
+                {socials.map((soc: any) => {
+                  const meta = SOCIALS_BY_KEY[(soc.platform || '').toLowerCase()];
+                  const Icon = meta?.icon;
+                  return (
+                    <a key={soc.id} href={getSocialHref(soc.platform, soc.url)} target="_blank" rel="noreferrer" onClick={() => t('social', soc.id)}
+                      className="transition-colors hover:opacity-60" style={{ color: text }}>
+                      {Icon && <Icon className="w-5 h-5" />}
+                    </a>
+                  );
+                })}
               </div>
-              <span className="text-xs tracking-widest transition-transform group-hover:translate-x-1" style={{ color: accent }}>READ &rarr;</span>
-            </a>
-          ))}
-
-          {banners?.map((b: any) => {
-            const inner = (
-              <div className={`mt-3 overflow-hidden ${BANNER_H[b.size] || BANNER_H.md}`} style={{ border: `2px solid ${text}` }}>
-                {b.image_url && <img src={b.image_url} alt="" className="w-full h-full object-cover" />}
+            ) : null,
+            links: links.length > 0 ? (
+              <div key="links">
+                <div className="mt-12 flex items-baseline gap-3 pb-2 border-b" style={{ borderColor: text }}>
+                  <div className="text-[10px] tracking-[0.5em] uppercase font-bold" style={{ color: accent }}>Section</div>
+                  <div className="flex-1 text-xs tracking-[0.4em] uppercase opacity-60">{s.sectionLabel || 'Key Resources'}</div>
+                  <div className="text-[10px] opacity-60">{String(links.length).padStart(2, '0')}</div>
+                </div>
+                {links.map((l: any, i: number) => (
+                  <a key={l.id} href={l.url} target="_blank" rel="noreferrer" onClick={() => t('link', l.id)}
+                    className="group grid grid-cols-[auto_1fr_auto] items-baseline gap-5 py-5 border-b transition-all hover:bg-black/[0.03]"
+                    style={{ borderColor: `${text}33`, color: text }}>
+                    <div className="text-xs tracking-widest" style={{ color: accent, fontWeight: 700 }}>{numberOf(i)}</div>
+                    <div>
+                      <div className="text-xl leading-tight" style={{ fontWeight: 700, letterSpacing: '-0.02em' }}>{l.title}</div>
+                      <div className="mt-1 text-[10px] tracking-[0.3em] uppercase opacity-60">Case Study &middot; Open Access</div>
+                    </div>
+                    <span className="text-xs tracking-widest transition-transform group-hover:translate-x-1" style={{ color: accent }}>READ &rarr;</span>
+                  </a>
+                ))}
               </div>
-            );
-            return b.link_url ? <a key={b.id} href={b.link_url} target="_blank" rel="noreferrer" onClick={() => t('banner', b.id)}>{inner}</a> : <div key={b.id}>{inner}</div>;
+            ) : null,
+            banners: banners?.length > 0 ? (
+              <div key="banners">
+                {banners.map((b: any) => {
+                  const inner = (
+                    <div className={`mt-3 overflow-hidden ${BANNER_H[b.size] || BANNER_H.md}`} style={{ border: `2px solid ${text}` }}>
+                      {b.image_url && <img src={b.image_url} alt="" className="w-full h-full object-cover" />}
+                    </div>
+                  );
+                  return b.link_url ? <a key={b.id} href={b.link_url} target="_blank" rel="noreferrer" onClick={() => t('banner', b.id)}>{inner}</a> : <div key={b.id}>{inner}</div>;
+                })}
+              </div>
+            ) : null,
+            videos: videos.length > 0 ? (
+              <div key="videos">
+                {videos.map((v: any) => (
+                  <figure key={v.id} className="mt-3">
+                    <div className="relative aspect-video overflow-hidden" style={{ border: `2px solid ${text}` }}>
+                      <VideoEmbed video={v} preview={preview} />
+                    </div>
+                    {v.title && <figcaption className="mt-2 text-[10px] tracking-[0.4em] uppercase opacity-70"><span style={{ color: accent, fontWeight: 700 }}>Exhibit &mdash;</span> {v.title}</figcaption>}
+                  </figure>
+                ))}
+              </div>
+            ) : null,
           })}
-
-          {videos.map((v: any) => (
-            <figure key={v.id} className="mt-3">
-              <div className="relative aspect-video overflow-hidden" style={{ border: `2px solid ${text}` }}>
-                <VideoEmbed video={v} preview={preview} />
-              </div>
-              {v.title && <figcaption className="mt-2 text-[10px] tracking-[0.4em] uppercase opacity-70"><span style={{ color: accent, fontWeight: 700 }}>Exhibit &mdash;</span> {v.title}</figcaption>}
-            </figure>
-          ))}
         </div>
 
         <div className="mt-12 pt-6 border-t-2 text-[10px] tracking-[0.4em] uppercase opacity-60 flex justify-between" style={{ borderColor: text }}>

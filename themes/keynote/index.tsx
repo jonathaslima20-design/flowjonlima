@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Calendar, MapPin } from 'lucide-react';
 import { SOCIALS_BY_KEY, getSocialHref } from '@/lib/socials';
 import type { BioThemeProps, BioThemeMeta } from '@/themes/types';
-import { getThemeSettings, getFontStack } from '@/themes/types';
+import { getThemeSettings, getFontStack, orderedSections } from '@/themes/types';
 import { BioflowzyBadge } from '@/components/bio/BioflowzyBadge';
 import { VideoEmbed } from '@/components/themes/VideoEmbed';
 
@@ -72,7 +72,7 @@ function useCountdown(target: string) {
   return delta;
 }
 
-export function KeynoteTheme({ profile, links, socials, videos, banners, track, preview }: BioThemeProps) {
+export function KeynoteTheme({ profile, links, socials, videos, banners, sectionOrder, track, preview }: BioThemeProps) {
   const s = getThemeSettings(profile, 'keynote', keynoteMeta.controls);
   const accent = s.useAccentCustom && s.accentCustom ? s.accentCustom : (s.bandColor || '#EF4444');
   const bg = profile.bg_color || '#0D0D0D';
@@ -148,66 +148,77 @@ export function KeynoteTheme({ profile, links, socials, videos, banners, track, 
             <div className="text-[10px] tracking-[0.4em] uppercase opacity-70">Speaker</div>
             <div className="font-semibold">{profile.display_name}</div>
           </div>
-          {s.showSocials !== false && socials?.length > 0 && (
-            <div className="ml-auto flex gap-2">
-              {socials.slice(0, 3).map((soc: any) => {
-                const meta = SOCIALS_BY_KEY[(soc.platform || '').toLowerCase()];
-                const Icon = meta?.icon;
-                return (
-                  <a key={soc.id} href={getSocialHref(soc.platform, soc.url)} target="_blank" rel="noreferrer" onClick={() => t('social', soc.id)}
-                    className="w-8 h-8 flex items-center justify-center transition-transform hover:scale-110"
-                    style={{ border: `1px solid ${text}22`, color: text }}>
-                    {Icon && <Icon className="w-3.5 h-3.5" />}
-                  </a>
-                );
-              })}
-            </div>
-          )}
         </div>
 
-        <div className="mt-8 flex items-center gap-3 text-[10px] tracking-[0.4em] uppercase opacity-70">
-          <span>{s.sessionsLabel || 'Sessions'}</span>
-          <div className="flex-1 h-px" style={{ background: accent }} />
-          <span>{String(links.length).padStart(2, '0')}</span>
-        </div>
-
-        <div className="mt-4 flex flex-col gap-0">
-          {links.map((l: any, i: number) => {
-            const alt = i % 2 === 1;
-            return (
-              <a key={l.id} href={l.url} target="_blank" rel="noreferrer" onClick={() => t('link', l.id)}
-                className="group relative block px-5 py-5 overflow-hidden keynote-band"
-                style={{ background: alt ? `${text}05` : 'transparent', borderTop: `1px solid ${text}10` }}>
-                <div className="flex items-baseline gap-4">
-                  <div className="text-3xl tabular-nums opacity-50" style={{ color: accent, fontWeight: 700 }}>{String(i + 1).padStart(2, '0')}</div>
-                  <div className="flex-1">
-                    <div className="text-[10px] tracking-[0.4em] uppercase opacity-60">Session</div>
-                    <div className="text-xl tracking-tight" style={{ fontWeight: 700 }}>{l.title}</div>
-                  </div>
-                  <span className="text-xs tracking-[0.3em] uppercase transition-transform group-hover:translate-x-1" style={{ color: accent }}>Join &rarr;</span>
+        <div className="mt-8 flex flex-col gap-0">
+          {orderedSections(sectionOrder, {
+            socials: s.showSocials !== false && socials?.length > 0 ? (
+              <div key="socials" className="flex gap-2 mb-4">
+                {socials.slice(0, 3).map((soc: any) => {
+                  const meta = SOCIALS_BY_KEY[(soc.platform || '').toLowerCase()];
+                  const Icon = meta?.icon;
+                  return (
+                    <a key={soc.id} href={getSocialHref(soc.platform, soc.url)} target="_blank" rel="noreferrer" onClick={() => t('social', soc.id)}
+                      className="w-8 h-8 flex items-center justify-center transition-transform hover:scale-110"
+                      style={{ border: `1px solid ${text}22`, color: text }}>
+                      {Icon && <Icon className="w-3.5 h-3.5" />}
+                    </a>
+                  );
+                })}
+              </div>
+            ) : null,
+            links: links.length > 0 ? (
+              <div key="links">
+                <div className="flex items-center gap-3 text-[10px] tracking-[0.4em] uppercase opacity-70 mb-4">
+                  <span>{s.sessionsLabel || 'Sessions'}</span>
+                  <div className="flex-1 h-px" style={{ background: accent }} />
+                  <span>{String(links.length).padStart(2, '0')}</span>
                 </div>
-                <div className="absolute left-0 top-0 bottom-0 w-0 keynote-fill" style={{ background: accent, opacity: 0.08 }} aria-hidden />
-              </a>
-            );
-          })}
-
-          {banners?.map((b: any) => {
-            const inner = (
-              <div className={`mt-3 overflow-hidden relative ${BANNER_H[b.size] || BANNER_H.md}`} style={{ border: `1px solid ${accent}55` }}>
-                {b.image_url && <img src={b.image_url} alt="" className="w-full h-full object-cover" />}
+                {links.map((l: any, i: number) => {
+                  const alt = i % 2 === 1;
+                  return (
+                    <a key={l.id} href={l.url} target="_blank" rel="noreferrer" onClick={() => t('link', l.id)}
+                      className="group relative block px-5 py-5 overflow-hidden keynote-band"
+                      style={{ background: alt ? `${text}05` : 'transparent', borderTop: `1px solid ${text}10` }}>
+                      <div className="flex items-baseline gap-4">
+                        <div className="text-3xl tabular-nums opacity-50" style={{ color: accent, fontWeight: 700 }}>{String(i + 1).padStart(2, '0')}</div>
+                        <div className="flex-1">
+                          <div className="text-[10px] tracking-[0.4em] uppercase opacity-60">Session</div>
+                          <div className="text-xl tracking-tight" style={{ fontWeight: 700 }}>{l.title}</div>
+                        </div>
+                        <span className="text-xs tracking-[0.3em] uppercase transition-transform group-hover:translate-x-1" style={{ color: accent }}>Join &rarr;</span>
+                      </div>
+                      <div className="absolute left-0 top-0 bottom-0 w-0 keynote-fill" style={{ background: accent, opacity: 0.08 }} aria-hidden />
+                    </a>
+                  );
+                })}
               </div>
-            );
-            return b.link_url ? <a key={b.id} href={b.link_url} target="_blank" rel="noreferrer" onClick={() => t('banner', b.id)}>{inner}</a> : <div key={b.id}>{inner}</div>;
-          })}
-
-          {videos.map((v: any) => (
-            <figure key={v.id} className="mt-3">
-              <div className="relative aspect-video overflow-hidden" style={{ border: `1px solid ${accent}55` }}>
-                <VideoEmbed video={v} preview={preview} />
+            ) : null,
+            banners: banners?.length > 0 ? (
+              <div key="banners">
+                {banners.map((b: any) => {
+                  const inner = (
+                    <div className={`mt-3 overflow-hidden relative ${BANNER_H[b.size] || BANNER_H.md}`} style={{ border: `1px solid ${accent}55` }}>
+                      {b.image_url && <img src={b.image_url} alt="" className="w-full h-full object-cover" />}
+                    </div>
+                  );
+                  return b.link_url ? <a key={b.id} href={b.link_url} target="_blank" rel="noreferrer" onClick={() => t('banner', b.id)}>{inner}</a> : <div key={b.id}>{inner}</div>;
+                })}
               </div>
-              {v.title && <figcaption className="mt-2 text-[10px] tracking-[0.4em] uppercase"><span style={{ color: accent }}>Replay &mdash;</span> <span style={{ color: text, opacity: 0.9 }}>{v.title}</span></figcaption>}
-            </figure>
-          ))}
+            ) : null,
+            videos: videos.length > 0 ? (
+              <div key="videos">
+                {videos.map((v: any) => (
+                  <figure key={v.id} className="mt-3">
+                    <div className="relative aspect-video overflow-hidden" style={{ border: `1px solid ${accent}55` }}>
+                      <VideoEmbed video={v} preview={preview} />
+                    </div>
+                    {v.title && <figcaption className="mt-2 text-[10px] tracking-[0.4em] uppercase"><span style={{ color: accent }}>Replay &mdash;</span> <span style={{ color: text, opacity: 0.9 }}>{v.title}</span></figcaption>}
+                  </figure>
+                ))}
+              </div>
+            ) : null,
+          })}
         </div>
 
         {s.footerText && s.footerText.trim() && (

@@ -2,7 +2,7 @@
 
 import { SOCIALS_BY_KEY, getSocialHref } from '@/lib/socials';
 import type { BioThemeProps, BioThemeMeta } from '@/themes/types';
-import { getThemeSettings, getFontStack } from '@/themes/types';
+import { getThemeSettings, getFontStack, orderedSections } from '@/themes/types';
 import { BioflowzyBadge } from '@/components/bio/BioflowzyBadge';
 import { VideoEmbed } from '@/components/themes/VideoEmbed';
 
@@ -46,7 +46,7 @@ const GRADIENTS: Record<string, string> = {
 
 const BANNER_H: Record<string, string> = { sm: 'aspect-[6/1]', md: 'aspect-[3/1]', lg: 'aspect-[5/2]' };
 
-export function SunsetTheme({ profile, links, socials, videos, banners, track, preview }: BioThemeProps) {
+export function SunsetTheme({ profile, links, socials, videos, banners, sectionOrder, track, preview }: BioThemeProps) {
   const s = getThemeSettings(profile, 'sunset', sunsetMeta.controls);
   const bg = profile.bg_color || '#FF6B35';
   const text = profile.text_color || '#FFFFFF';
@@ -102,89 +102,101 @@ export function SunsetTheme({ profile, links, socials, videos, banners, track, p
               {profile.bio}
             </p>
           )}
-          {socials?.length > 0 && (
-            <div className="mt-5 flex items-center justify-center gap-4">
-              {socials.map((soc: any) => {
-                const meta = SOCIALS_BY_KEY[(soc.platform || '').toLowerCase()];
-                const Icon = meta?.icon;
-                return Icon ? (
-                  <a
-                    key={soc.id}
-                    href={getSocialHref(soc.platform, soc.url)}
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={() => t('social', soc.id)}
-                    className="w-9 h-9 rounded-full flex items-center justify-center transition-all hover:scale-110"
-                    style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: `blur(${blur}px)`, color: text }}
-                    aria-label={meta?.label}
-                  >
-                    <Icon className="w-[16px] h-[16px]" />
-                  </a>
-                ) : null;
-              })}
-            </div>
-          )}
         </header>
 
         <div className="flex flex-col gap-3">
-          {links.map((l: any) => (
-            <a
-              key={l.id}
-              href={l.url}
-              target="_blank"
-              rel="noreferrer"
-              onClick={() => t('link', l.id)}
-              className="group flex items-center gap-4 px-5 py-4 transition-all hover:scale-[1.02]"
-              style={{
-                background: 'rgba(255,255,255,0.18)',
-                backdropFilter: `blur(${blur}px)`,
-                border: '1px solid rgba(255,255,255,0.3)',
-                borderRadius: '16px',
-              }}
-            >
-              <div className="flex-1 min-w-0">
-                <p className="text-[15px] font-semibold truncate" style={{ color: text, fontFamily: titleFamily }}>
-                  {l.title}
-                </p>
+          {orderedSections(sectionOrder, {
+            socials: socials?.length > 0 ? (
+              <div key="socials" className="flex items-center justify-center gap-4">
+                {socials.map((soc: any) => {
+                  const meta = SOCIALS_BY_KEY[(soc.platform || '').toLowerCase()];
+                  const Icon = meta?.icon;
+                  return Icon ? (
+                    <a
+                      key={soc.id}
+                      href={getSocialHref(soc.platform, soc.url)}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => t('social', soc.id)}
+                      className="w-9 h-9 rounded-full flex items-center justify-center transition-all hover:scale-110"
+                      style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: `blur(${blur}px)`, color: text }}
+                      aria-label={meta?.label}
+                    >
+                      <Icon className="w-[16px] h-[16px]" />
+                    </a>
+                  ) : null;
+                })}
               </div>
-              <div
-                className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
-                style={{ backgroundColor: accent }}
-              >
-                <span style={{ fontSize: '12px', color: '#000' }}>→</span>
+            ) : null,
+            links: links.length > 0 ? (
+              <div key="links" className="flex flex-col gap-3">
+                {links.map((l: any) => (
+                  <a
+                    key={l.id}
+                    href={l.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={() => t('link', l.id)}
+                    className="group flex items-center gap-4 px-5 py-4 transition-all hover:scale-[1.02]"
+                    style={{
+                      background: 'rgba(255,255,255,0.18)',
+                      backdropFilter: `blur(${blur}px)`,
+                      border: '1px solid rgba(255,255,255,0.3)',
+                      borderRadius: '16px',
+                    }}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[15px] font-semibold truncate" style={{ color: text, fontFamily: titleFamily }}>
+                        {l.title}
+                      </p>
+                    </div>
+                    <div
+                      className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
+                      style={{ backgroundColor: accent }}
+                    >
+                      <span style={{ fontSize: '12px', color: '#000' }}>→</span>
+                    </div>
+                  </a>
+                ))}
               </div>
-            </a>
-          ))}
-
-          {banners?.map((b: any) => {
-            const inner = (
-              <div
-                key={b.id}
-                className={`overflow-hidden mt-2 ${BANNER_H[b.size] || BANNER_H.md}`}
-                style={{ borderRadius: '16px', border: '1px solid rgba(255,255,255,0.25)' }}
-              >
-                {b.image_url && <img src={b.image_url} alt="" className="w-full h-full object-cover" />}
+            ) : null,
+            banners: banners?.length > 0 ? (
+              <div key="banners" className="flex flex-col gap-3">
+                {banners.map((b: any) => {
+                  const inner = (
+                    <div
+                      key={b.id}
+                      className={`overflow-hidden ${BANNER_H[b.size] || BANNER_H.md}`}
+                      style={{ borderRadius: '16px', border: '1px solid rgba(255,255,255,0.25)' }}
+                    >
+                      {b.image_url && <img src={b.image_url} alt="" className="w-full h-full object-cover" />}
+                    </div>
+                  );
+                  return b.link_url ? (
+                    <a key={b.id} href={b.link_url} target="_blank" rel="noreferrer" onClick={() => t('banner', b.id)}>{inner}</a>
+                  ) : inner;
+                })}
               </div>
-            );
-            return b.link_url ? (
-              <a key={b.id} href={b.link_url} target="_blank" rel="noreferrer" onClick={() => t('banner', b.id)}>{inner}</a>
-            ) : inner;
+            ) : null,
+            videos: videos.length > 0 ? (
+              <div key="videos" className="flex flex-col gap-3">
+                {videos.map((v: any) => (
+                  <div
+                    key={v.id}
+                    className="overflow-hidden"
+                    style={{ borderRadius: '16px', border: '1px solid rgba(255,255,255,0.2)' }}
+                  >
+                    <div className="relative aspect-video">
+                      <VideoEmbed video={v} preview={preview} />
+                    </div>
+                    {v.title && (
+                      <div className="px-4 py-3 text-sm font-medium" style={{ color: `${text}CC` }}>{v.title}</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : null,
           })}
-
-          {videos.map((v: any) => (
-            <div
-              key={v.id}
-              className="overflow-hidden mt-2"
-              style={{ borderRadius: '16px', border: '1px solid rgba(255,255,255,0.2)' }}
-            >
-              <div className="relative aspect-video">
-                <VideoEmbed video={v} preview={preview} />
-              </div>
-              {v.title && (
-                <div className="px-4 py-3 text-sm font-medium" style={{ color: `${text}CC` }}>{v.title}</div>
-              )}
-            </div>
-          ))}
         </div>
 
         {s.footerText && s.footerText.trim() && (

@@ -68,6 +68,7 @@ export function BioPreview({
             socials={socials || []}
             videos={videos || []}
             banners={banners || []}
+            sectionOrder={profile.section_order || ['socials', 'links', 'banners', 'videos']}
             track={noop}
             preview
           />

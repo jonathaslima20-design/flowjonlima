@@ -3,7 +3,7 @@
 import { ArrowRight } from 'lucide-react';
 import { SOCIALS_BY_KEY, getSocialHref } from '@/lib/socials';
 import type { BioThemeProps, BioThemeMeta } from '@/themes/types';
-import { getThemeSettings, getFontStack } from '@/themes/types';
+import { getThemeSettings, getFontStack, orderedSections } from '@/themes/types';
 import { BioflowzyBadge } from '@/components/bio/BioflowzyBadge';
 import { VideoEmbed } from '@/components/themes/VideoEmbed';
 
@@ -57,7 +57,7 @@ const SPACINGS: Record<string, { gap: string; pad: string }> = {
 };
 const BANNER_H: Record<string, string> = { sm: 'aspect-[6/1]', md: 'aspect-[3/1]', lg: 'aspect-[5/2]' };
 
-export function SlateTheme({ profile, links, socials, videos, banners, track, preview }: BioThemeProps) {
+export function SlateTheme({ profile, links, socials, videos, banners, sectionOrder, track, preview }: BioThemeProps) {
   const s = getThemeSettings(profile, 'slate', slateMeta.controls);
   const bg = profile.bg_color || '#FAFAFA';
   const text = profile.text_color || '#0D0D0D';
@@ -150,62 +150,74 @@ export function SlateTheme({ profile, links, socials, videos, banners, track, pr
               {profile.bio}
             </p>
           )}
-          {socials?.length > 0 && (
-            <div className="mt-5 flex items-center gap-4">
-              {socials.map((soc: any) => {
-                const meta = SOCIALS_BY_KEY[(soc.platform || '').toLowerCase()];
-                const Icon = meta?.icon;
-                return Icon ? (
-                  <a
-                    key={soc.id}
-                    href={getSocialHref(soc.platform, soc.url)}
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={() => t('social', soc.id)}
-                    className="transition-opacity hover:opacity-50"
-                    style={{ color: `${text}88` }}
-                    aria-label={meta?.label}
-                  >
-                    <Icon className="w-[18px] h-[18px]" />
-                  </a>
-                ) : null;
-              })}
-            </div>
-          )}
         </div>
 
         {s.showDivider && (
           <div className="mb-6" style={{ borderTop: `1px solid ${text}14` }} />
         )}
 
-        <div className="flex flex-col">
-          {links.map((l: any) => linkEl(l))}
-
-          {banners?.map((b: any) => {
-            const inner = (
-              <div
-                key={b.id}
-                className={`overflow-hidden rounded-lg mt-4 ${BANNER_H[b.size] || BANNER_H.md}`}
-                style={{ border: `1px solid ${text}10` }}
-              >
-                {b.image_url && <img src={b.image_url} alt="" className="w-full h-full object-cover" />}
+        <div className="flex flex-col gap-4">
+          {orderedSections(sectionOrder, {
+            socials: socials?.length > 0 ? (
+              <div key="socials" className="flex items-center gap-4">
+                {socials.map((soc: any) => {
+                  const meta = SOCIALS_BY_KEY[(soc.platform || '').toLowerCase()];
+                  const Icon = meta?.icon;
+                  return Icon ? (
+                    <a
+                      key={soc.id}
+                      href={getSocialHref(soc.platform, soc.url)}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => t('social', soc.id)}
+                      className="transition-opacity hover:opacity-50"
+                      style={{ color: `${text}88` }}
+                      aria-label={meta?.label}
+                    >
+                      <Icon className="w-[18px] h-[18px]" />
+                    </a>
+                  ) : null;
+                })}
               </div>
-            );
-            return b.link_url ? (
-              <a key={b.id} href={b.link_url} target="_blank" rel="noreferrer" onClick={() => t('banner', b.id)}>{inner}</a>
-            ) : inner;
+            ) : null,
+            links: links.length > 0 ? (
+              <div key="links" className="flex flex-col">
+                {links.map((l: any) => linkEl(l))}
+              </div>
+            ) : null,
+            banners: banners?.length > 0 ? (
+              <div key="banners">
+                {banners.map((b: any) => {
+                  const inner = (
+                    <div
+                      key={b.id}
+                      className={`overflow-hidden rounded-lg mt-4 ${BANNER_H[b.size] || BANNER_H.md}`}
+                      style={{ border: `1px solid ${text}10` }}
+                    >
+                      {b.image_url && <img src={b.image_url} alt="" className="w-full h-full object-cover" />}
+                    </div>
+                  );
+                  return b.link_url ? (
+                    <a key={b.id} href={b.link_url} target="_blank" rel="noreferrer" onClick={() => t('banner', b.id)}>{inner}</a>
+                  ) : inner;
+                })}
+              </div>
+            ) : null,
+            videos: videos.length > 0 ? (
+              <div key="videos">
+                {videos.map((v: any) => (
+                  <div key={v.id} className="overflow-hidden rounded-lg mt-4" style={{ border: `1px solid ${text}10` }}>
+                    <div className="relative aspect-video">
+                      <VideoEmbed video={v} preview={preview} />
+                    </div>
+                    {v.title && (
+                      <div className="px-4 py-3 text-sm font-medium" style={{ color: `${text}CC` }}>{v.title}</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : null,
           })}
-
-          {videos.map((v: any) => (
-            <div key={v.id} className="overflow-hidden rounded-lg mt-4" style={{ border: `1px solid ${text}10` }}>
-              <div className="relative aspect-video">
-                <VideoEmbed video={v} preview={preview} />
-              </div>
-              {v.title && (
-                <div className="px-4 py-3 text-sm font-medium" style={{ color: `${text}CC` }}>{v.title}</div>
-              )}
-            </div>
-          ))}
         </div>
 
         {s.footerText && s.footerText.trim() && (

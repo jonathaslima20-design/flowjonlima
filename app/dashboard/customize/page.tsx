@@ -6,6 +6,7 @@ import { BioPreview } from '@/components/dashboard/BioPreview';
 import { THEMES, getTheme } from '@/themes/registry';
 import { ThemeMockup } from '@/components/themes/ThemeMockup';
 import { ThemeControls } from '@/components/dashboard/ThemeControls';
+import { SectionOrderControl } from '@/components/dashboard/SectionOrderControl';
 import { Check, Eye, X } from 'lucide-react';
 import { fetchAllShowcasePresets, catalogDemoFor, ShowcasePreset } from '@/lib/theme-showcase';
 
@@ -191,6 +192,16 @@ export default function CustomizePage() {
               );
             })}
           </div>
+        </Section>
+
+        <Section title="Ordem das Seções">
+          <p className="text-xs font-bold text-black/60 mb-3">
+            Arraste para reorganizar a ordem dos elementos na sua página.
+          </p>
+          <SectionOrderControl
+            order={profile.section_order || ['socials', 'links', 'banners', 'videos']}
+            onChange={(next) => update({ section_order: next })}
+          />
         </Section>
 
         {themeControls.length > 0 && (

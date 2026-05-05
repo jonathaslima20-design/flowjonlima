@@ -2,7 +2,7 @@
 
 import { SOCIALS_BY_KEY, getSocialHref } from '@/lib/socials';
 import type { BioThemeProps, BioThemeMeta } from '@/themes/types';
-import { getThemeSettings, getFontStack } from '@/themes/types';
+import { getThemeSettings, getFontStack, orderedSections } from '@/themes/types';
 import { BioflowzyBadge } from '@/components/bio/BioflowzyBadge';
 import { VideoEmbed } from '@/components/themes/VideoEmbed';
 
@@ -39,7 +39,7 @@ export const lavaMeta: BioThemeMeta = {
 
 const BANNER_H: Record<string, string> = { sm: 'aspect-[6/1]', md: 'aspect-[3/1]', lg: 'aspect-[5/2]' };
 
-export function LavaTheme({ profile, links, socials, videos, banners, track, preview }: BioThemeProps) {
+export function LavaTheme({ profile, links, socials, videos, banners, sectionOrder, track, preview }: BioThemeProps) {
   const s = getThemeSettings(profile, 'lava', lavaMeta.controls);
   const bg = profile.bg_color || '#0A0A0A';
   const text = profile.text_color || '#FFFFFF';
@@ -128,80 +128,92 @@ export function LavaTheme({ profile, links, socials, videos, banners, track, pre
             </p>
           )}
 
-          {socials?.length > 0 && (
-            <div className="mt-5 flex items-center justify-center gap-4">
-              {socials.map((soc: any) => {
-                const meta = SOCIALS_BY_KEY[(soc.platform || '').toLowerCase()];
-                const Icon = meta?.icon;
-                return Icon ? (
-                  <a
-                    key={soc.id}
-                    href={getSocialHref(soc.platform, soc.url)}
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={() => t('social', soc.id)}
-                    className="transition-all hover:scale-110"
-                    style={{ color: `${accent}88` }}
-                    aria-label={meta?.label}
-                  >
-                    <Icon className="w-[18px] h-[18px]" />
-                  </a>
-                ) : null;
-              })}
-            </div>
-          )}
         </header>
 
         <div className="flex flex-col gap-3">
-          {links.map((l: any, i: number) => {
-            const cs = cardStyle(i);
-            return (
-              <a
-                key={l.id}
-                href={l.url}
-                target="_blank"
-                rel="noreferrer"
-                onClick={() => t('link', l.id)}
-                className={`group flex items-center gap-4 px-5 py-4 transition-all hover:opacity-90 ${s.borderPulse && s.cardStyle === 'glow' ? 'lava-card' : ''}`}
-                style={{ ...cs, borderRadius: '8px' }}
-              >
-                <span className="text-lg shrink-0">🔥</span>
-                <span className="flex-1 text-[15px] font-bold tracking-tight" style={{ fontFamily: titleFamily, color: cs.color }}>
-                  {l.title}
-                </span>
-              </a>
-            );
-          })}
-
-          {banners?.map((b: any) => {
-            const inner = (
-              <div
-                key={b.id}
-                className={`overflow-hidden mt-2 ${BANNER_H[b.size] || BANNER_H.md}`}
-                style={{ borderRadius: '8px', border: `1px solid ${accent}44` }}
-              >
-                {b.image_url && <img src={b.image_url} alt="" className="w-full h-full object-cover" />}
+          {orderedSections(sectionOrder, {
+            socials: socials?.length > 0 ? (
+              <div key="socials" className="flex items-center justify-center gap-4">
+                {socials.map((soc: any) => {
+                  const meta = SOCIALS_BY_KEY[(soc.platform || '').toLowerCase()];
+                  const Icon = meta?.icon;
+                  return Icon ? (
+                    <a
+                      key={soc.id}
+                      href={getSocialHref(soc.platform, soc.url)}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => t('social', soc.id)}
+                      className="transition-all hover:scale-110"
+                      style={{ color: `${accent}88` }}
+                      aria-label={meta?.label}
+                    >
+                      <Icon className="w-[18px] h-[18px]" />
+                    </a>
+                  ) : null;
+                })}
               </div>
-            );
-            return b.link_url ? (
-              <a key={b.id} href={b.link_url} target="_blank" rel="noreferrer" onClick={() => t('banner', b.id)}>{inner}</a>
-            ) : inner;
-          })}
-
-          {videos.map((v: any) => (
-            <div
-              key={v.id}
-              className="overflow-hidden mt-2"
-              style={{ borderRadius: '8px', border: `1px solid ${accent}44` }}
-            >
-              <div className="relative aspect-video">
-                <VideoEmbed video={v} preview={preview} />
+            ) : null,
+            links: links.length > 0 ? (
+              <div key="links" className="flex flex-col gap-3">
+                {links.map((l: any, i: number) => {
+                  const cs = cardStyle(i);
+                  return (
+                    <a
+                      key={l.id}
+                      href={l.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => t('link', l.id)}
+                      className={`group flex items-center gap-4 px-5 py-4 transition-all hover:opacity-90 ${s.borderPulse && s.cardStyle === 'glow' ? 'lava-card' : ''}`}
+                      style={{ ...cs, borderRadius: '8px' }}
+                    >
+                      <span className="text-lg shrink-0">🔥</span>
+                      <span className="flex-1 text-[15px] font-bold tracking-tight" style={{ fontFamily: titleFamily, color: cs.color }}>
+                        {l.title}
+                      </span>
+                    </a>
+                  );
+                })}
               </div>
-              {v.title && (
-                <div className="px-4 py-3 text-sm font-bold" style={{ fontFamily: titleFamily, color: accent }}>{v.title}</div>
-              )}
-            </div>
-          ))}
+            ) : null,
+            banners: banners?.length > 0 ? (
+              <div key="banners">
+                {banners.map((b: any) => {
+                  const inner = (
+                    <div
+                      key={b.id}
+                      className={`overflow-hidden mt-2 ${BANNER_H[b.size] || BANNER_H.md}`}
+                      style={{ borderRadius: '8px', border: `1px solid ${accent}44` }}
+                    >
+                      {b.image_url && <img src={b.image_url} alt="" className="w-full h-full object-cover" />}
+                    </div>
+                  );
+                  return b.link_url ? (
+                    <a key={b.id} href={b.link_url} target="_blank" rel="noreferrer" onClick={() => t('banner', b.id)}>{inner}</a>
+                  ) : inner;
+                })}
+              </div>
+            ) : null,
+            videos: videos.length > 0 ? (
+              <div key="videos">
+                {videos.map((v: any) => (
+                  <div
+                    key={v.id}
+                    className="overflow-hidden mt-2"
+                    style={{ borderRadius: '8px', border: `1px solid ${accent}44` }}
+                  >
+                    <div className="relative aspect-video">
+                      <VideoEmbed video={v} preview={preview} />
+                    </div>
+                    {v.title && (
+                      <div className="px-4 py-3 text-sm font-bold" style={{ fontFamily: titleFamily, color: accent }}>{v.title}</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : null,
+          })}
         </div>
 
         {s.footerText && s.footerText.trim() && (

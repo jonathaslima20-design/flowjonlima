@@ -3,7 +3,7 @@
 import { Zap } from 'lucide-react';
 import { SOCIALS_BY_KEY, getSocialHref } from '@/lib/socials';
 import type { BioThemeProps, BioThemeMeta } from '@/themes/types';
-import { getThemeSettings, getFontStack } from '@/themes/types';
+import { getThemeSettings, getFontStack, orderedSections } from '@/themes/types';
 import { BioflowzyBadge } from '@/components/bio/BioflowzyBadge';
 import { VideoEmbed } from '@/components/themes/VideoEmbed';
 
@@ -48,7 +48,7 @@ export const neonlabMeta: BioThemeMeta = {
 const FLICKER: Record<string, string> = { off: 'none', slow: '6s', medium: '3s', fast: '1.2s' };
 const BANNER_H: Record<string, string> = { sm: 'aspect-[6/1]', md: 'aspect-[3/1]', lg: 'aspect-[5/2]' };
 
-export function NeonLabTheme({ profile, links, socials, videos, banners, track, preview }: BioThemeProps) {
+export function NeonLabTheme({ profile, links, socials, videos, banners, sectionOrder, track, preview }: BioThemeProps) {
   const s = getThemeSettings(profile, 'neonlab', neonlabMeta.controls);
   const accent = s.useAccentCustom && s.accentCustom ? s.accentCustom : (profile.button_color || '#FF2D95');
   const bg = profile.bg_color || '#050012';
@@ -115,61 +115,73 @@ export function NeonLabTheme({ profile, links, socials, videos, banners, track, 
           </h1>
           {profile.bio && <p className="mt-3 text-sm opacity-90 max-w-xs leading-relaxed whitespace-pre-line">{profile.bio}</p>}
 
-          {s.showSocials !== false && socials?.length > 0 && (
-            <div className="mt-6 flex gap-2 flex-wrap justify-center">
-              {socials.map((soc: any) => {
-                const meta = SOCIALS_BY_KEY[(soc.platform || '').toLowerCase()];
-                const Icon = meta?.icon;
-                return (
-                  <a key={soc.id} href={getSocialHref(soc.platform, soc.url)} target="_blank" rel="noreferrer" onClick={() => t('social', soc.id)}
-                    className="w-10 h-10 flex items-center justify-center transition-all hover:scale-110"
-                    style={{ border: `1px solid ${secondary}`, color: text, boxShadow: `0 0 ${s.glow / 4}px ${secondary}88`, background: '#00000055' }}>
-                    {Icon && <Icon className="w-4 h-4" />}
-                  </a>
-                );
-              })}
-            </div>
-          )}
         </div>
 
         <div className="mt-8 flex flex-col gap-3">
-          {links.map((l: any, i: number) => {
-            const glowColor = i % 2 === 0 ? accent : secondary;
-            return (
-              <a key={l.id} href={l.url} target="_blank" rel="noreferrer" onClick={() => t('link', l.id)}
-                className="relative group px-5 py-4 flex items-center justify-between neonlab-card"
-                style={{
-                  background: '#00000066',
-                  border: `1px solid ${glowColor}`,
-                  boxShadow: `0 0 ${s.glow / 2}px ${glowColor}55, inset 0 0 ${s.glow / 3}px ${glowColor}22`,
-                  color: text,
-                }}>
-                <div className="flex items-center gap-3">
-                  <Zap className="w-4 h-4" style={{ color: glowColor }} />
-                  <span className="font-medium tracking-wide uppercase text-sm" style={{ fontFamily: 'var(--font-space-grotesk), monospace' }}>{l.title}</span>
-                </div>
-                <span className="text-xs opacity-60" style={{ color: glowColor }}>&gt;&gt;</span>
-              </a>
-            );
-          })}
-
-          {banners?.map((b: any) => {
-            const inner = (
-              <div className={`overflow-hidden ${BANNER_H[b.size] || BANNER_H.md}`} style={{ border: `1px solid ${accent}`, boxShadow: `0 0 ${s.glow / 2}px ${accent}55` }}>
-                {b.image_url && <img src={b.image_url} alt="" className="w-full h-full object-cover" />}
+          {orderedSections(sectionOrder, {
+            socials: s.showSocials !== false && socials?.length > 0 ? (
+              <div key="socials" className="flex gap-2 flex-wrap justify-center">
+                {socials.map((soc: any) => {
+                  const meta = SOCIALS_BY_KEY[(soc.platform || '').toLowerCase()];
+                  const Icon = meta?.icon;
+                  return (
+                    <a key={soc.id} href={getSocialHref(soc.platform, soc.url)} target="_blank" rel="noreferrer" onClick={() => t('social', soc.id)}
+                      className="w-10 h-10 flex items-center justify-center transition-all hover:scale-110"
+                      style={{ border: `1px solid ${secondary}`, color: text, boxShadow: `0 0 ${s.glow / 4}px ${secondary}88`, background: '#00000055' }}>
+                      {Icon && <Icon className="w-4 h-4" />}
+                    </a>
+                  );
+                })}
               </div>
-            );
-            return b.link_url ? <a key={b.id} href={b.link_url} target="_blank" rel="noreferrer" onClick={() => t('banner', b.id)}>{inner}</a> : <div key={b.id}>{inner}</div>;
-          })}
-
-          {videos.map((v: any) => (
-            <div key={v.id} className="overflow-hidden" style={{ border: `1px solid ${secondary}`, boxShadow: `0 0 ${s.glow / 2}px ${secondary}55`, background: '#00000088' }}>
-              <div className="relative aspect-video bg-black">
-                <VideoEmbed video={v} preview={preview} />
+            ) : null,
+            links: links.length > 0 ? (
+              <div key="links" className="flex flex-col gap-3">
+                {links.map((l: any, i: number) => {
+                  const glowColor = i % 2 === 0 ? accent : secondary;
+                  return (
+                    <a key={l.id} href={l.url} target="_blank" rel="noreferrer" onClick={() => t('link', l.id)}
+                      className="relative group px-5 py-4 flex items-center justify-between neonlab-card"
+                      style={{
+                        background: '#00000066',
+                        border: `1px solid ${glowColor}`,
+                        boxShadow: `0 0 ${s.glow / 2}px ${glowColor}55, inset 0 0 ${s.glow / 3}px ${glowColor}22`,
+                        color: text,
+                      }}>
+                      <div className="flex items-center gap-3">
+                        <Zap className="w-4 h-4" style={{ color: glowColor }} />
+                        <span className="font-medium tracking-wide uppercase text-sm" style={{ fontFamily: 'var(--font-space-grotesk), monospace' }}>{l.title}</span>
+                      </div>
+                      <span className="text-xs opacity-60" style={{ color: glowColor }}>&gt;&gt;</span>
+                    </a>
+                  );
+                })}
               </div>
-              {v.title && <div className="px-3 py-2 text-xs uppercase tracking-wider" style={{ color: text, fontFamily: 'var(--font-space-grotesk), monospace' }}>&gt; {v.title}</div>}
-            </div>
-          ))}
+            ) : null,
+            banners: banners?.length > 0 ? (
+              <div key="banners">
+                {banners.map((b: any) => {
+                  const inner = (
+                    <div className={`overflow-hidden ${BANNER_H[b.size] || BANNER_H.md}`} style={{ border: `1px solid ${accent}`, boxShadow: `0 0 ${s.glow / 2}px ${accent}55` }}>
+                      {b.image_url && <img src={b.image_url} alt="" className="w-full h-full object-cover" />}
+                    </div>
+                  );
+                  return b.link_url ? <a key={b.id} href={b.link_url} target="_blank" rel="noreferrer" onClick={() => t('banner', b.id)}>{inner}</a> : <div key={b.id}>{inner}</div>;
+                })}
+              </div>
+            ) : null,
+            videos: videos.length > 0 ? (
+              <div key="videos">
+                {videos.map((v: any) => (
+                  <div key={v.id} className="overflow-hidden" style={{ border: `1px solid ${secondary}`, boxShadow: `0 0 ${s.glow / 2}px ${secondary}55`, background: '#00000088' }}>
+                    <div className="relative aspect-video bg-black">
+                      <VideoEmbed video={v} preview={preview} />
+                    </div>
+                    {v.title && <div className="px-3 py-2 text-xs uppercase tracking-wider" style={{ color: text, fontFamily: 'var(--font-space-grotesk), monospace' }}>&gt; {v.title}</div>}
+                  </div>
+                ))}
+              </div>
+            ) : null,
+          })}
         </div>
 
         {s.footerText && s.footerText.trim() && (

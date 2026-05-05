@@ -1,4 +1,4 @@
-import type { ComponentType } from 'react';
+import type { ComponentType, ReactNode } from 'react';
 
 export type BioProfile = {
   id: string;
@@ -23,9 +23,20 @@ export type BioThemeProps = {
   socials: any[];
   videos: any[];
   banners: any[];
+  sectionOrder?: string[];
   track?: (entity_type: string, entity_id: string | null) => void;
   preview?: boolean;
 };
+
+const DEFAULT_SECTION_ORDER = ['socials', 'links', 'banners', 'videos'];
+
+export function orderedSections(
+  sectionOrder: string[] | undefined,
+  sections: Record<string, ReactNode>,
+): ReactNode[] {
+  const order = sectionOrder && sectionOrder.length === 4 ? sectionOrder : DEFAULT_SECTION_ORDER;
+  return order.map((key) => sections[key]).filter(Boolean);
+}
 
 export type BioThemeDefaults = {
   bg_color: string;

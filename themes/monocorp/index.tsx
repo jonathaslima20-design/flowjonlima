@@ -2,7 +2,7 @@
 
 import { SOCIALS_BY_KEY, getSocialHref } from '@/lib/socials';
 import type { BioThemeProps, BioThemeMeta } from '@/themes/types';
-import { getThemeSettings, getFontStack } from '@/themes/types';
+import { getThemeSettings, getFontStack, orderedSections } from '@/themes/types';
 import { BioflowzyBadge } from '@/components/bio/BioflowzyBadge';
 import { VideoEmbed } from '@/components/themes/VideoEmbed';
 
@@ -42,7 +42,7 @@ export const monocorpMeta: BioThemeMeta = {
 
 const BANNER_H: Record<string, string> = { sm: 'aspect-[6/1]', md: 'aspect-[3/1]', lg: 'aspect-[5/2]' };
 
-export function MonocorpTheme({ profile, links, socials, videos, banners, track, preview }: BioThemeProps) {
+export function MonocorpTheme({ profile, links, socials, videos, banners, sectionOrder, track, preview }: BioThemeProps) {
   const s = getThemeSettings(profile, 'monocorp', monocorpMeta.controls);
   const bg = profile.bg_color || '#FFFFFF';
   const text = profile.text_color || '#0D0D0D';
@@ -113,83 +113,96 @@ export function MonocorpTheme({ profile, links, socials, videos, banners, track,
             </div>
           </div>
 
-          {socials?.length > 0 && (
-            <div className="mt-5 flex items-center gap-4 flex-wrap">
-              {socials.map((soc: any) => {
-                const meta = SOCIALS_BY_KEY[(soc.platform || '').toLowerCase()];
-                const Icon = meta?.icon;
-                return Icon ? (
-                  <a
-                    key={soc.id}
-                    href={getSocialHref(soc.platform, soc.url)}
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={() => t('social', soc.id)}
-                    className="flex items-center gap-1.5 transition-opacity hover:opacity-50"
-                    style={{ color: `${text}66` }}
-                  >
-                    <Icon className="w-[14px] h-[14px]" />
-                    <span className="text-[11px]">{meta?.label || soc.platform}</span>
-                  </a>
-                ) : null;
-              })}
-            </div>
-          )}
         </header>
 
-        <div className="mb-2" style={{ borderTop: `1px solid ${text}33` }} />
-        <p className="text-[10px] font-medium uppercase tracking-widest mb-3" style={{ color: `${text}55` }}>
-          LINKS
-        </p>
-
-        <div className="flex flex-col">
-          {links.map((l: any, i: number) => (
-            <a
-              key={l.id}
-              href={l.url}
-              target="_blank"
-              rel="noreferrer"
-              onClick={() => t('link', l.id)}
-              className="group flex items-center gap-3 py-3 transition-opacity hover:opacity-50"
-              style={{ borderBottom: `1px solid ${text}14` }}
-            >
-              {s.showLineNumbers && (
-                <span className="text-[11px] w-6 shrink-0 tabular-nums" style={{ color: `${text}44` }}>
-                  {String(i + 1).padStart(2, '0')}
-                </span>
-              )}
-              {s.showDash && (
-                <span className="text-[13px]" style={{ color: `${text}55` }}>—</span>
-              )}
-              <span className="flex-1 text-[14px] font-medium">{l.title}</span>
-              <span className="text-[11px] uppercase tracking-widest opacity-0 group-hover:opacity-40 transition-opacity">
-                OPEN
-              </span>
-            </a>
-          ))}
+        <div className="flex flex-col gap-4">
+          {orderedSections(sectionOrder, {
+            socials: socials?.length > 0 ? (
+              <div key="socials" className="flex items-center gap-4 flex-wrap">
+                {socials.map((soc: any) => {
+                  const meta = SOCIALS_BY_KEY[(soc.platform || '').toLowerCase()];
+                  const Icon = meta?.icon;
+                  return Icon ? (
+                    <a
+                      key={soc.id}
+                      href={getSocialHref(soc.platform, soc.url)}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => t('social', soc.id)}
+                      className="flex items-center gap-1.5 transition-opacity hover:opacity-50"
+                      style={{ color: `${text}66` }}
+                    >
+                      <Icon className="w-[14px] h-[14px]" />
+                      <span className="text-[11px]">{meta?.label || soc.platform}</span>
+                    </a>
+                  ) : null;
+                })}
+              </div>
+            ) : null,
+            links: links.length > 0 ? (
+              <div key="links">
+                <div className="mb-2" style={{ borderTop: `1px solid ${text}33` }} />
+                <p className="text-[10px] font-medium uppercase tracking-widest mb-3" style={{ color: `${text}55` }}>
+                  LINKS
+                </p>
+                <div className="flex flex-col">
+                  {links.map((l: any, i: number) => (
+                    <a
+                      key={l.id}
+                      href={l.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => t('link', l.id)}
+                      className="group flex items-center gap-3 py-3 transition-opacity hover:opacity-50"
+                      style={{ borderBottom: `1px solid ${text}14` }}
+                    >
+                      {s.showLineNumbers && (
+                        <span className="text-[11px] w-6 shrink-0 tabular-nums" style={{ color: `${text}44` }}>
+                          {String(i + 1).padStart(2, '0')}
+                        </span>
+                      )}
+                      {s.showDash && (
+                        <span className="text-[13px]" style={{ color: `${text}55` }}>—</span>
+                      )}
+                      <span className="flex-1 text-[14px] font-medium">{l.title}</span>
+                      <span className="text-[11px] uppercase tracking-widest opacity-0 group-hover:opacity-40 transition-opacity">
+                        OPEN
+                      </span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            ) : null,
+            banners: banners?.length > 0 ? (
+              <div key="banners">
+                {banners.map((b: any) => {
+                  const inner = (
+                    <div key={b.id} className={`overflow-hidden mt-6 ${BANNER_H[b.size] || BANNER_H.md}`} style={{ border: `1px solid ${text}`, filter: 'grayscale(20%)' }}>
+                      {b.image_url && <img src={b.image_url} alt="" className="w-full h-full object-cover" />}
+                    </div>
+                  );
+                  return b.link_url ? (
+                    <a key={b.id} href={b.link_url} target="_blank" rel="noreferrer" onClick={() => t('banner', b.id)}>{inner}</a>
+                  ) : inner;
+                })}
+              </div>
+            ) : null,
+            videos: videos.length > 0 ? (
+              <div key="videos">
+                {videos.map((v: any) => (
+                  <div key={v.id} className="overflow-hidden mt-6" style={{ border: `1px solid ${text}33` }}>
+                    <div className="relative aspect-video">
+                      <VideoEmbed video={v} preview={preview} />
+                    </div>
+                    {v.title && (
+                      <div className="px-3 py-2 text-xs uppercase tracking-wide" style={{ color: `${text}88`, borderTop: `1px solid ${text}14` }}>{v.title}</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : null,
+          })}
         </div>
-
-        {banners?.map((b: any) => {
-          const inner = (
-            <div key={b.id} className={`overflow-hidden mt-6 ${BANNER_H[b.size] || BANNER_H.md}`} style={{ border: `1px solid ${text}`, filter: 'grayscale(20%)' }}>
-              {b.image_url && <img src={b.image_url} alt="" className="w-full h-full object-cover" />}
-            </div>
-          );
-          return b.link_url ? (
-            <a key={b.id} href={b.link_url} target="_blank" rel="noreferrer" onClick={() => t('banner', b.id)}>{inner}</a>
-          ) : inner;
-        })}
-
-        {videos.map((v: any) => (
-          <div key={v.id} className="overflow-hidden mt-6" style={{ border: `1px solid ${text}33` }}>
-            <div className="relative aspect-video">
-              <VideoEmbed video={v} preview={preview} />
-            </div>
-            {v.title && (
-              <div className="px-3 py-2 text-xs uppercase tracking-wide" style={{ color: `${text}88`, borderTop: `1px solid ${text}14` }}>{v.title}</div>
-            )}
-          </div>
-        ))}
 
         <div className="mt-8" style={{ borderTop: `1px solid ${text}22` }} />
         {s.footerText && s.footerText.trim() && (

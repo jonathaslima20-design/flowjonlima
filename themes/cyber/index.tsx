@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { SOCIALS_BY_KEY, getSocialHref } from '@/lib/socials';
 import type { BioThemeProps, BioThemeMeta } from '@/themes/types';
-import { getThemeSettings, getFontStack } from '@/themes/types';
+import { getThemeSettings, getFontStack, orderedSections } from '@/themes/types';
 import { BioflowzyBadge } from '@/components/bio/BioflowzyBadge';
 import { VideoEmbed } from '@/components/themes/VideoEmbed';
 
@@ -63,7 +63,7 @@ const PROMPT_COLORS: Record<string, string> = {
   cyan: '#22D3EE',
 };
 
-export function CyberTheme({ profile, links, socials, videos, banners, track, preview }: BioThemeProps) {
+export function CyberTheme({ profile, links, socials, videos, banners, sectionOrder, track, preview }: BioThemeProps) {
   const s = getThemeSettings(profile, 'cyber', cyberMeta.controls);
   const accent = s.useAccentCustom && s.accentCustom ? s.accentCustom : (profile.button_color || '#22D3EE');
   const promptColor = s.usePromptCustom && s.promptCustom
@@ -156,98 +156,102 @@ export function CyberTheme({ profile, links, socials, videos, banners, track, pr
           </div>
         </div>
 
-        {s.showSocials !== false && socials?.length > 0 && (
-          <div className="mt-6 flex flex-wrap gap-2 text-[10px]">
-            {socials.map((soc: any) => {
-              const meta = SOCIALS_BY_KEY[(soc.platform || '').toLowerCase()];
-              return (
-                <a
-                  key={soc.id}
-                  href={getSocialHref(soc.platform, soc.url)}
-                  target="_blank"
-                  rel="noreferrer"
-                  onClick={() => t('social', soc.id)}
-                  className="px-2 py-1 tracking-wider transition-colors"
-                  style={{ border: `1px solid ${promptColor}66`, color: promptColor, background: `${promptColor}10` }}
-                >
-                  [{(meta?.label || soc.platform).toUpperCase()}]
-                </a>
-              );
-            })}
-          </div>
-        )}
-
-        <div className="mt-8 flex items-center gap-2 text-xs" style={{ color: promptColor }}>
-          <span style={{ opacity: 0.6 }}>$</span>
-          <span>{s.linksCmd || 'ls ./links --sort=priority'}</span>
-        </div>
-
-        <div className="mt-3 flex flex-col gap-2">
-          {links.map((l: any, i: number) => (
-            <a
-              key={l.id}
-              href={l.url}
-              target="_blank"
-              rel="noreferrer"
-              onClick={() => t('link', l.id)}
-              className="group px-3 py-3 flex items-center gap-3 transition-all"
-              style={{
-                border: `1px solid ${accent}44`,
-                background: `${accent}08`,
-                color: profile.text_color,
-              }}
-            >
-              <span style={{ color: promptColor, fontSize: 11, opacity: 0.8 }}>
-                [{String(i + 1).padStart(2, '0')}]
-              </span>
-              <span
-                className={`flex-1 truncate ${s.glitch > 0 ? 'cyber-hover-glitch' : ''}`}
-                style={{ color: profile.text_color, fontWeight: 500 }}
-                data-text={l.title}
-              >
-                {l.title}
-              </span>
-              <span className="text-[10px] tracking-wider opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: accent }}>
-                EXEC &gt;
-              </span>
-            </a>
-          ))}
-        </div>
-
-        {banners?.length > 0 && (
-          <div className="mt-6 flex flex-col gap-3">
-            {banners.map((b: any) => {
-              const inner = (
-                <div
-                  className={`overflow-hidden ${BANNER_H[b.size] || BANNER_H.md}`}
-                  style={{
-                    border: `1px solid ${promptColor}66`,
-                  }}
-                >
-                  {b.image_url && <img src={b.image_url} alt="" className="w-full h-full object-cover" style={{ filter: 'hue-rotate(-10deg) contrast(1.1)' }} />}
-                </div>
-              );
-              return b.link_url ? (
-                <a key={b.id} href={b.link_url} target="_blank" rel="noreferrer" onClick={() => t('banner', b.id)}>{inner}</a>
-              ) : (
-                <div key={b.id}>{inner}</div>
-              );
-            })}
-          </div>
-        )}
-
-        {videos?.length > 0 && (
-          <div className="mt-6 flex flex-col gap-3">
-            {videos.map((v: any) => (
-              <div key={v.id} style={{ border: `1px solid ${promptColor}66` }}>
-                <div className="relative aspect-video bg-black">
-                  <VideoEmbed video={v} preview={preview} />
-                </div>
-                {v.title && <div className="px-3 py-2 text-xs" style={{ color: profile.text_color }}>&gt; {v.title}</div>}
+        <div className="mt-6 flex flex-col gap-4">
+          {orderedSections(sectionOrder, {
+            socials: s.showSocials !== false && socials?.length > 0 ? (
+              <div key="socials" className="flex flex-wrap gap-2 text-[10px]">
+                {socials.map((soc: any) => {
+                  const meta = SOCIALS_BY_KEY[(soc.platform || '').toLowerCase()];
+                  return (
+                    <a
+                      key={soc.id}
+                      href={getSocialHref(soc.platform, soc.url)}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => t('social', soc.id)}
+                      className="px-2 py-1 tracking-wider transition-colors"
+                      style={{ border: `1px solid ${promptColor}66`, color: promptColor, background: `${promptColor}10` }}
+                    >
+                      [{(meta?.label || soc.platform).toUpperCase()}]
+                    </a>
+                  );
+                })}
               </div>
-            ))}
-          </div>
-        )}
+            ) : null,
+            links: links.length > 0 ? (
+              <div key="links">
+                <div className="flex items-center gap-2 text-xs mb-3" style={{ color: promptColor }}>
+                  <span style={{ opacity: 0.6 }}>$</span>
+                  <span>{s.linksCmd || 'ls ./links --sort=priority'}</span>
+                </div>
+                <div className="flex flex-col gap-2">
+                  {links.map((l: any, i: number) => (
+                    <a
+                      key={l.id}
+                      href={l.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => t('link', l.id)}
+                      className="group px-3 py-3 flex items-center gap-3 transition-all"
+                      style={{
+                        border: `1px solid ${accent}44`,
+                        background: `${accent}08`,
+                        color: profile.text_color,
+                      }}
+                    >
+                      <span style={{ color: promptColor, fontSize: 11, opacity: 0.8 }}>
+                        [{String(i + 1).padStart(2, '0')}]
+                      </span>
+                      <span
+                        className={`flex-1 truncate ${s.glitch > 0 ? 'cyber-hover-glitch' : ''}`}
+                        style={{ color: profile.text_color, fontWeight: 500 }}
+                        data-text={l.title}
+                      >
+                        {l.title}
+                      </span>
+                      <span className="text-[10px] tracking-wider opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: accent }}>
+                        EXEC &gt;
+                      </span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            ) : null,
+            banners: banners?.length > 0 ? (
+              <div key="banners" className="flex flex-col gap-3">
+                {banners.map((b: any) => {
+                  const inner = (
+                    <div
+                      className={`overflow-hidden ${BANNER_H[b.size] || BANNER_H.md}`}
+                      style={{
+                        border: `1px solid ${promptColor}66`,
+                      }}
+                    >
+                      {b.image_url && <img src={b.image_url} alt="" className="w-full h-full object-cover" style={{ filter: 'hue-rotate(-10deg) contrast(1.1)' }} />}
+                    </div>
+                  );
+                  return b.link_url ? (
+                    <a key={b.id} href={b.link_url} target="_blank" rel="noreferrer" onClick={() => t('banner', b.id)}>{inner}</a>
+                  ) : (
+                    <div key={b.id}>{inner}</div>
+                  );
+                })}
+              </div>
+            ) : null,
+            videos: videos?.length > 0 ? (
+              <div key="videos" className="flex flex-col gap-3">
+                {videos.map((v: any) => (
+                  <div key={v.id} style={{ border: `1px solid ${promptColor}66` }}>
+                    <div className="relative aspect-video bg-black">
+                      <VideoEmbed video={v} preview={preview} />
+                    </div>
+                    {v.title && <div className="px-3 py-2 text-xs" style={{ color: profile.text_color }}>&gt; {v.title}</div>}
+                  </div>
+                ))}
+              </div>
+            ) : null,
+          })}
+        </div>
 
         {s.footerText && s.footerText.trim() && (
           <div className="mt-6 text-center text-[10px] tracking-widest" style={{ color: promptColor }}>{s.footerText}</div>

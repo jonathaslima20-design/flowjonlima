@@ -3,7 +3,7 @@
 import { ArrowUpRight } from 'lucide-react';
 import { SOCIALS_BY_KEY, getSocialHref } from '@/lib/socials';
 import type { BioThemeProps, BioThemeMeta } from '@/themes/types';
-import { getThemeSettings, getFontStack } from '@/themes/types';
+import { getThemeSettings, getFontStack, orderedSections } from '@/themes/types';
 import { BioflowzyBadge } from '@/components/bio/BioflowzyBadge';
 import { VideoEmbed } from '@/components/themes/VideoEmbed';
 
@@ -45,7 +45,7 @@ export const nordicMeta: BioThemeMeta = {
 const RADIUS: Record<string, string> = { circle: '50%', square: '8px', squircle: '22%' };
 const BANNER_H: Record<string, string> = { sm: 'aspect-[6/1]', md: 'aspect-[3/1]', lg: 'aspect-[5/2]' };
 
-export function NordicTheme({ profile, links, socials, videos, banners, track, preview }: BioThemeProps) {
+export function NordicTheme({ profile, links, socials, videos, banners, sectionOrder, track, preview }: BioThemeProps) {
   const s = getThemeSettings(profile, 'nordic', nordicMeta.controls);
   const bg = profile.bg_color || '#F4F6F8';
   const text = profile.text_color || '#1C2B3A';
@@ -115,63 +115,75 @@ export function NordicTheme({ profile, links, socials, videos, banners, track, p
             </div>
           </div>
 
-          {socials?.length > 0 && (
-            <div className="mt-5 flex items-center gap-4 pl-0">
-              {socials.map((soc: any) => {
-                const meta = SOCIALS_BY_KEY[(soc.platform || '').toLowerCase()];
-                const Icon = meta?.icon;
-                return Icon ? (
-                  <a
-                    key={soc.id}
-                    href={getSocialHref(soc.platform, soc.url)}
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={() => t('social', soc.id)}
-                    className="transition-opacity hover:opacity-50"
-                    style={{ color: `${text}66` }}
-                    aria-label={meta?.label}
-                  >
-                    <Icon className="w-[17px] h-[17px]" />
-                  </a>
-                ) : null;
-              })}
-            </div>
-          )}
         </header>
 
         <div className="mb-6" style={{ borderTop: `1px solid ${text}14` }} />
 
-        {s.layout === 'grid' ? (
-          <div className="grid grid-cols-2 gap-2">
-            {links.map((l: any) => linkCard(l))}
-          </div>
-        ) : (
-          <div className="flex flex-col gap-2">
-            {links.map((l: any) => linkCard(l))}
-          </div>
-        )}
-
-        {banners?.map((b: any) => {
-          const inner = (
-            <div key={b.id} className={`overflow-hidden rounded mt-4 ${BANNER_H[b.size] || BANNER_H.md}`} style={{ border: `1px solid ${text}10` }}>
-              {b.image_url && <img src={b.image_url} alt="" className="w-full h-full object-cover" />}
-            </div>
-          );
-          return b.link_url ? (
-            <a key={b.id} href={b.link_url} target="_blank" rel="noreferrer" onClick={() => t('banner', b.id)}>{inner}</a>
-          ) : inner;
-        })}
-
-        {videos.map((v: any) => (
-          <div key={v.id} className="overflow-hidden rounded mt-4" style={{ border: `1px solid ${text}12` }}>
-            <div className="relative aspect-video bg-slate-100">
-              <VideoEmbed video={v} preview={preview} />
-            </div>
-            {v.title && (
-              <div className="px-4 py-3 text-sm font-medium" style={{ color: `${text}BB` }}>{v.title}</div>
-            )}
-          </div>
-        ))}
+        <div className="flex flex-col gap-4">
+          {orderedSections(sectionOrder, {
+            socials: socials?.length > 0 ? (
+              <div key="socials" className="flex items-center gap-4 pl-0">
+                {socials.map((soc: any) => {
+                  const meta = SOCIALS_BY_KEY[(soc.platform || '').toLowerCase()];
+                  const Icon = meta?.icon;
+                  return Icon ? (
+                    <a
+                      key={soc.id}
+                      href={getSocialHref(soc.platform, soc.url)}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => t('social', soc.id)}
+                      className="transition-opacity hover:opacity-50"
+                      style={{ color: `${text}66` }}
+                      aria-label={meta?.label}
+                    >
+                      <Icon className="w-[17px] h-[17px]" />
+                    </a>
+                  ) : null;
+                })}
+              </div>
+            ) : null,
+            links: links.length > 0 ? (
+              s.layout === 'grid' ? (
+                <div key="links" className="grid grid-cols-2 gap-2">
+                  {links.map((l: any) => linkCard(l))}
+                </div>
+              ) : (
+                <div key="links" className="flex flex-col gap-2">
+                  {links.map((l: any) => linkCard(l))}
+                </div>
+              )
+            ) : null,
+            banners: banners?.length > 0 ? (
+              <div key="banners">
+                {banners.map((b: any) => {
+                  const inner = (
+                    <div key={b.id} className={`overflow-hidden rounded mt-4 ${BANNER_H[b.size] || BANNER_H.md}`} style={{ border: `1px solid ${text}10` }}>
+                      {b.image_url && <img src={b.image_url} alt="" className="w-full h-full object-cover" />}
+                    </div>
+                  );
+                  return b.link_url ? (
+                    <a key={b.id} href={b.link_url} target="_blank" rel="noreferrer" onClick={() => t('banner', b.id)}>{inner}</a>
+                  ) : inner;
+                })}
+              </div>
+            ) : null,
+            videos: videos.length > 0 ? (
+              <div key="videos">
+                {videos.map((v: any) => (
+                  <div key={v.id} className="overflow-hidden rounded mt-4" style={{ border: `1px solid ${text}12` }}>
+                    <div className="relative aspect-video bg-slate-100">
+                      <VideoEmbed video={v} preview={preview} />
+                    </div>
+                    {v.title && (
+                      <div className="px-4 py-3 text-sm font-medium" style={{ color: `${text}BB` }}>{v.title}</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : null,
+          })}
+        </div>
 
         {s.footerText && s.footerText.trim() && (
           <p className="mt-10 text-xs font-medium uppercase tracking-widest" style={{ color: `${text}44` }}>

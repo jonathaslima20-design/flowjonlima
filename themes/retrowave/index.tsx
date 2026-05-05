@@ -2,7 +2,7 @@
 
 import { SOCIALS_BY_KEY, getSocialHref } from '@/lib/socials';
 import type { BioThemeProps, BioThemeMeta } from '@/themes/types';
-import { getThemeSettings, getFontStack } from '@/themes/types';
+import { getThemeSettings, getFontStack, orderedSections } from '@/themes/types';
 import { BioflowzyBadge } from '@/components/bio/BioflowzyBadge';
 import { VideoEmbed } from '@/components/themes/VideoEmbed';
 
@@ -54,7 +54,7 @@ const PALETTES: Record<string, { a: string; b: string; c: string }> = {
   berlin: { a: '#34D399', b: '#22D3EE', c: '#A78BFA' },
 };
 
-export function RetrowaveTheme({ profile, links, socials, videos, banners, track, preview }: BioThemeProps) {
+export function RetrowaveTheme({ profile, links, socials, videos, banners, sectionOrder, track, preview }: BioThemeProps) {
   const s = getThemeSettings(profile, 'retrowave', retrowaveMeta.controls);
   const pal = PALETTES[s.palette] || PALETTES.miami;
   const accent = s.useAccentCustom && s.accentCustom ? s.accentCustom : (profile.button_color || pal.a);
@@ -173,84 +173,96 @@ export function RetrowaveTheme({ profile, links, socials, videos, banners, track
           </h1>
           {profile.bio && <p className="mt-3 text-sm opacity-95 max-w-xs whitespace-pre-line" style={{ color: profile.text_color, textShadow: '0 0 6px rgba(0,0,0,0.7)' }}>{profile.bio}</p>}
 
-          {s.showSocials !== false && socials?.length > 0 && (
-            <div className="mt-5 flex gap-2 flex-wrap justify-center">
-              {socials.map((soc: any) => {
-                const meta = SOCIALS_BY_KEY[(soc.platform || '').toLowerCase()];
-                const Icon = meta?.icon;
-                return (
-                  <a
-                    key={soc.id}
-                    href={getSocialHref(soc.platform, soc.url)}
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={() => t('social', soc.id)}
-                    className="w-10 h-10 flex items-center justify-center rounded-sm transition-transform hover:-translate-y-0.5"
-                    style={{
-                      background: `linear-gradient(135deg, ${pal.a}, ${pal.b})`,
-                      border: `2px solid ${pal.c}`,
-                      boxShadow: `0 0 12px ${pal.a}88`,
-                      color: '#FFFFFF',
-                    }}
-                    aria-label={meta?.label || soc.platform}
-                  >
-                    {Icon && <Icon className="w-4 h-4" />}
-                  </a>
-                );
-              })}
-            </div>
-          )}
         </div>
 
         <div className="mt-8 flex flex-col gap-3">
-          {links.map((l: any) => (
-            <a
-              key={l.id}
-              href={l.url}
-              target="_blank"
-              rel="noreferrer"
-              onClick={() => t('link', l.id)}
-              className="relative px-4 py-3.5 text-center font-bold tracking-wider uppercase transition-transform hover:-translate-y-0.5"
-              style={{
-                background: `linear-gradient(135deg, ${profile.bg_color || '#0B0324'}dd, ${pal.a}33)`,
-                border: `2px solid ${pal.c}`,
-                boxShadow: `inset 0 0 0 1px ${pal.a}, 0 0 16px ${pal.a}66, 0 4px 0 ${pal.a}`,
-                color: accent,
-                textShadow: `0 0 8px ${accent}`,
-                fontSize: 13,
-              }}
-            >
-              {l.title}
-            </a>
-          ))}
-
-          {banners?.map((b: any) => {
-            const inner = (
-              <div
-                className={`overflow-hidden ${s.bannerTracking ? 'retro-track' : ''} ${BANNER_H[b.size] || BANNER_H.md}`}
-                style={{
-                  border: `2px solid ${pal.c}`,
-                  boxShadow: `0 0 16px ${pal.a}66`,
-                }}
-              >
-                {b.image_url && <img src={b.image_url} alt="" className="w-full h-full object-cover" />}
+          {orderedSections(sectionOrder, {
+            socials: s.showSocials !== false && socials?.length > 0 ? (
+              <div key="socials" className="flex gap-2 flex-wrap justify-center">
+                {socials.map((soc: any) => {
+                  const meta = SOCIALS_BY_KEY[(soc.platform || '').toLowerCase()];
+                  const Icon = meta?.icon;
+                  return (
+                    <a
+                      key={soc.id}
+                      href={getSocialHref(soc.platform, soc.url)}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => t('social', soc.id)}
+                      className="w-10 h-10 flex items-center justify-center rounded-sm transition-transform hover:-translate-y-0.5"
+                      style={{
+                        background: `linear-gradient(135deg, ${pal.a}, ${pal.b})`,
+                        border: `2px solid ${pal.c}`,
+                        boxShadow: `0 0 12px ${pal.a}88`,
+                        color: '#FFFFFF',
+                      }}
+                      aria-label={meta?.label || soc.platform}
+                    >
+                      {Icon && <Icon className="w-4 h-4" />}
+                    </a>
+                  );
+                })}
               </div>
-            );
-            return b.link_url ? (
-              <a key={b.id} href={b.link_url} target="_blank" rel="noreferrer" onClick={() => t('banner', b.id)}>{inner}</a>
-            ) : (
-              <div key={b.id}>{inner}</div>
-            );
+            ) : null,
+            links: links.length > 0 ? (
+              <div key="links" className="flex flex-col gap-3">
+                {links.map((l: any) => (
+                  <a
+                    key={l.id}
+                    href={l.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={() => t('link', l.id)}
+                    className="relative px-4 py-3.5 text-center font-bold tracking-wider uppercase transition-transform hover:-translate-y-0.5"
+                    style={{
+                      background: `linear-gradient(135deg, ${profile.bg_color || '#0B0324'}dd, ${pal.a}33)`,
+                      border: `2px solid ${pal.c}`,
+                      boxShadow: `inset 0 0 0 1px ${pal.a}, 0 0 16px ${pal.a}66, 0 4px 0 ${pal.a}`,
+                      color: accent,
+                      textShadow: `0 0 8px ${accent}`,
+                      fontSize: 13,
+                    }}
+                  >
+                    {l.title}
+                  </a>
+                ))}
+              </div>
+            ) : null,
+            banners: banners?.length > 0 ? (
+              <div key="banners">
+                {banners.map((b: any) => {
+                  const inner = (
+                    <div
+                      className={`overflow-hidden ${s.bannerTracking ? 'retro-track' : ''} ${BANNER_H[b.size] || BANNER_H.md}`}
+                      style={{
+                        border: `2px solid ${pal.c}`,
+                        boxShadow: `0 0 16px ${pal.a}66`,
+                      }}
+                    >
+                      {b.image_url && <img src={b.image_url} alt="" className="w-full h-full object-cover" />}
+                    </div>
+                  );
+                  return b.link_url ? (
+                    <a key={b.id} href={b.link_url} target="_blank" rel="noreferrer" onClick={() => t('banner', b.id)}>{inner}</a>
+                  ) : (
+                    <div key={b.id}>{inner}</div>
+                  );
+                })}
+              </div>
+            ) : null,
+            videos: videos.length > 0 ? (
+              <div key="videos">
+                {videos.map((v: any) => (
+                  <div key={v.id} style={{ border: `2px solid ${pal.c}`, boxShadow: `0 0 16px ${pal.a}66` }}>
+                    <div className="relative aspect-video bg-black">
+                      <VideoEmbed video={v} preview={preview} />
+                    </div>
+                    {v.title && <div className="px-3 py-2 text-sm font-bold" style={{ color: pal.c, background: '#00000099' }}>{v.title}</div>}
+                  </div>
+                ))}
+              </div>
+            ) : null,
           })}
-
-          {videos.map((v: any) => (
-            <div key={v.id} style={{ border: `2px solid ${pal.c}`, boxShadow: `0 0 16px ${pal.a}66` }}>
-              <div className="relative aspect-video bg-black">
-                <VideoEmbed video={v} preview={preview} />
-              </div>
-              {v.title && <div className="px-3 py-2 text-sm font-bold" style={{ color: pal.c, background: '#00000099' }}>{v.title}</div>}
-            </div>
-          ))}
         </div>
 
         {s.footerText && s.footerText.trim() && (

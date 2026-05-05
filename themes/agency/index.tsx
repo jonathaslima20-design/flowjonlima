@@ -3,7 +3,7 @@
 import { ArrowUpRight } from 'lucide-react';
 import { SOCIALS_BY_KEY, getSocialHref } from '@/lib/socials';
 import type { BioThemeProps, BioThemeMeta } from '@/themes/types';
-import { getThemeSettings, getFontStack } from '@/themes/types';
+import { getThemeSettings, getFontStack, orderedSections } from '@/themes/types';
 import { BioflowzyBadge } from '@/components/bio/BioflowzyBadge';
 import { VideoEmbed } from '@/components/themes/VideoEmbed';
 
@@ -99,7 +99,7 @@ const TAG_TEXT: Record<string, string> = {
   projects: 'PROJECTS',
 };
 
-export function AgencyTheme({ profile, links, socials, videos, banners, track, preview }: BioThemeProps) {
+export function AgencyTheme({ profile, links, socials, videos, banners, sectionOrder, track, preview }: BioThemeProps) {
   const s = getThemeSettings(profile, 'agency', agencyMeta.controls);
   const accent = s.useAccentCustom && s.accentCustom ? s.accentCustom : (profile.button_color || '#BEF264');
   const bg = profile.bg_color || '#0A0A0A';
@@ -231,29 +231,6 @@ export function AgencyTheme({ profile, links, socials, videos, banners, track, p
             </p>
           )}
 
-          {s.showSocials !== false && socials?.length > 0 && (
-            <div className="mt-6 flex gap-5 flex-wrap">
-              {socials.map((soc: any) => {
-                const meta = SOCIALS_BY_KEY[(soc.platform || '').toLowerCase()];
-                const Icon = meta?.icon;
-                return (
-                  <a
-                    key={soc.id}
-                    href={getSocialHref(soc.platform, soc.url)}
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={() => t('social', soc.id)}
-                    className="text-xs tracking-[0.15em] uppercase transition-colors hover:opacity-60 flex items-center gap-1.5"
-                    style={{ color: text, fontFamily: monoFamily }}
-                    aria-label={meta?.label || soc.platform}
-                  >
-                    {Icon && <Icon className="w-3.5 h-3.5" />}
-                    <span>{meta?.label || soc.platform}</span>
-                  </a>
-                );
-              })}
-            </div>
-          )}
         </div>
 
         {s.marquee && (
@@ -267,118 +244,150 @@ export function AgencyTheme({ profile, links, socials, videos, banners, track, p
           </div>
         )}
 
-        <div
-          className="flex items-center justify-between text-[10px] tracking-[0.3em] mb-4 opacity-60"
-          style={{ color: text, fontFamily: monoFamily }}
-        >
-          <span>{selectedLabel}</span>
-          <span>/ {String(links.length).padStart(2, '0')}</span>
-        </div>
-
-        <div className="flex flex-col">
-          {links.map((l: any, i: number) => {
-            const idx = formatLinkIndex(i);
-            const baseCls = 'group relative flex items-center gap-4 py-5 border-t transition-colors';
-            const invertCls = s.hoverStyle === 'invert' ? 'agency-invert' : '';
-            return (
-              <a
-                key={l.id}
-                href={l.url}
-                target="_blank"
-                rel="noreferrer"
-                onClick={() => t('link', l.id)}
-                className={`${baseCls} ${invertCls}`}
-                style={{
-                  borderColor: `${text}30`,
-                  color: text,
-                  ['--agency-accent' as any]: accent,
-                  ['--agency-bg' as any]: bg,
-                }}
-              >
-                {idx && (
-                  <span
-                    className="text-[10px] tracking-[0.2em] shrink-0 w-16"
-                    style={{ color: accent, fontFamily: monoFamily }}
-                  >
-                    {idx}
-                  </span>
-                )}
-                <div className="flex-1 min-w-0 relative">
-                  <div
-                    className={`text-xl truncate tracking-tight ${s.hoverStyle === 'slide' ? 'agency-slide' : ''} ${s.hoverStyle === 'underline' ? 'agency-underline' : ''}`}
-                    style={{ fontFamily: titleFamily, fontWeight: s.titleFont === 'serif' ? 500 : 700, letterSpacing: '-0.02em' }}
-                  >
-                    {l.title}
-                  </div>
-                  {l.subtitle && (
-                    <div
-                      className="text-[10px] mt-1 tracking-[0.2em] uppercase opacity-50 truncate"
-                      style={{ fontFamily: monoFamily }}
+        <div className="flex flex-col gap-4">
+          {orderedSections(sectionOrder, {
+            socials: s.showSocials !== false && socials?.length > 0 ? (
+              <div key="socials" className="flex gap-5 flex-wrap">
+                {socials.map((soc: any) => {
+                  const meta = SOCIALS_BY_KEY[(soc.platform || '').toLowerCase()];
+                  const Icon = meta?.icon;
+                  return (
+                    <a
+                      key={soc.id}
+                      href={getSocialHref(soc.platform, soc.url)}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => t('social', soc.id)}
+                      className="text-xs tracking-[0.15em] uppercase transition-colors hover:opacity-60 flex items-center gap-1.5"
+                      style={{ color: text, fontFamily: monoFamily }}
+                      aria-label={meta?.label || soc.platform}
                     >
-                      {l.subtitle}
-                    </div>
-                  )}
-                </div>
-                <ArrowUpRight
-                  className={`w-5 h-5 shrink-0 transition-all ${s.hoverStyle === 'arrow' ? 'group-hover:rotate-45' : 'group-hover:translate-x-1 group-hover:-translate-y-1'}`}
-                  style={{ color: accent }}
-                  strokeWidth={1.5}
-                />
-              </a>
-            );
-          })}
-          <div className="border-t" style={{ borderColor: `${text}30` }} />
-        </div>
-
-        {(banners?.length || videos?.length) ? (
-          <div className="mt-12">
-            <div
-              className="text-[10px] tracking-[0.3em] mb-4 opacity-60"
-              style={{ color: text, fontFamily: monoFamily }}
-            >
-              {worksLabel}
-            </div>
-            <div className="flex flex-col gap-4">
-              {banners?.map((b: any) => {
-                const inner = (
-                  <div
-                    className={`overflow-hidden relative ${BANNER_H[b.size] || BANNER_H.md}`}
-                    style={{
-                      border: `1px solid ${text}30`,
-                    }}
-                  >
-                    {b.image_url && <img src={b.image_url} alt="" className="w-full h-full object-cover transition-transform hover:scale-105" />}
-                  </div>
-                );
-                return b.link_url ? (
-                  <a key={b.id} href={b.link_url} target="_blank" rel="noreferrer" onClick={() => t('banner', b.id)}>{inner}</a>
-                ) : (
-                  <div key={b.id}>{inner}</div>
-                );
-              })}
-
-              {videos.map((v: any) => (
+                      {Icon && <Icon className="w-3.5 h-3.5" />}
+                      <span>{meta?.label || soc.platform}</span>
+                    </a>
+                  );
+                })}
+              </div>
+            ) : null,
+            links: links.length > 0 ? (
+              <div key="links">
                 <div
-                  key={v.id}
-                  className="overflow-hidden"
-                  style={{ border: `1px solid ${text}30` }}
+                  className="flex items-center justify-between text-[10px] tracking-[0.3em] mb-4 opacity-60"
+                  style={{ color: text, fontFamily: monoFamily }}
                 >
-                  <div className="relative aspect-video bg-black">
-                    <VideoEmbed video={v} preview={preview} />
-                  </div>
-                  {v.title && (
-                    <div
-                      className="px-4 py-3 text-[10px] tracking-[0.25em] uppercase"
-                      style={{ color: text, fontFamily: monoFamily, background: `${text}08` }}
-                    >
-                      {v.title}
-                    </div>
-                  )}
+                  <span>{selectedLabel}</span>
+                  <span>/ {String(links.length).padStart(2, '0')}</span>
                 </div>
-              ))}
-            </div>
-          </div>
-        ) : null}
+                <div className="flex flex-col">
+                  {links.map((l: any, i: number) => {
+                    const idx = formatLinkIndex(i);
+                    const baseCls = 'group relative flex items-center gap-4 py-5 border-t transition-colors';
+                    const invertCls = s.hoverStyle === 'invert' ? 'agency-invert' : '';
+                    return (
+                      <a
+                        key={l.id}
+                        href={l.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={() => t('link', l.id)}
+                        className={`${baseCls} ${invertCls}`}
+                        style={{
+                          borderColor: `${text}30`,
+                          color: text,
+                          ['--agency-accent' as any]: accent,
+                          ['--agency-bg' as any]: bg,
+                        }}
+                      >
+                        {idx && (
+                          <span
+                            className="text-[10px] tracking-[0.2em] shrink-0 w-16"
+                            style={{ color: accent, fontFamily: monoFamily }}
+                          >
+                            {idx}
+                          </span>
+                        )}
+                        <div className="flex-1 min-w-0 relative">
+                          <div
+                            className={`text-xl truncate tracking-tight ${s.hoverStyle === 'slide' ? 'agency-slide' : ''} ${s.hoverStyle === 'underline' ? 'agency-underline' : ''}`}
+                            style={{ fontFamily: titleFamily, fontWeight: s.titleFont === 'serif' ? 500 : 700, letterSpacing: '-0.02em' }}
+                          >
+                            {l.title}
+                          </div>
+                          {l.subtitle && (
+                            <div
+                              className="text-[10px] mt-1 tracking-[0.2em] uppercase opacity-50 truncate"
+                              style={{ fontFamily: monoFamily }}
+                            >
+                              {l.subtitle}
+                            </div>
+                          )}
+                        </div>
+                        <ArrowUpRight
+                          className={`w-5 h-5 shrink-0 transition-all ${s.hoverStyle === 'arrow' ? 'group-hover:rotate-45' : 'group-hover:translate-x-1 group-hover:-translate-y-1'}`}
+                          style={{ color: accent }}
+                          strokeWidth={1.5}
+                        />
+                      </a>
+                    );
+                  })}
+                  <div className="border-t" style={{ borderColor: `${text}30` }} />
+                </div>
+              </div>
+            ) : null,
+            banners: banners?.length > 0 ? (
+              <div key="banners">
+                <div
+                  className="text-[10px] tracking-[0.3em] mb-4 opacity-60"
+                  style={{ color: text, fontFamily: monoFamily }}
+                >
+                  {worksLabel}
+                </div>
+                <div className="flex flex-col gap-4">
+                  {banners.map((b: any) => {
+                    const inner = (
+                      <div
+                        className={`overflow-hidden relative ${BANNER_H[b.size] || BANNER_H.md}`}
+                        style={{
+                          border: `1px solid ${text}30`,
+                        }}
+                      >
+                        {b.image_url && <img src={b.image_url} alt="" className="w-full h-full object-cover transition-transform hover:scale-105" />}
+                      </div>
+                    );
+                    return b.link_url ? (
+                      <a key={b.id} href={b.link_url} target="_blank" rel="noreferrer" onClick={() => t('banner', b.id)}>{inner}</a>
+                    ) : (
+                      <div key={b.id}>{inner}</div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : null,
+            videos: videos.length > 0 ? (
+              <div key="videos" className="flex flex-col gap-4">
+                {videos.map((v: any) => (
+                  <div
+                    key={v.id}
+                    className="overflow-hidden"
+                    style={{ border: `1px solid ${text}30` }}
+                  >
+                    <div className="relative aspect-video bg-black">
+                      <VideoEmbed video={v} preview={preview} />
+                    </div>
+                    {v.title && (
+                      <div
+                        className="px-4 py-3 text-[10px] tracking-[0.25em] uppercase"
+                        style={{ color: text, fontFamily: monoFamily, background: `${text}08` }}
+                      >
+                        {v.title}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : null,
+          })}
+        </div>
 
         <div
           className="mt-16 pt-6 border-t flex items-center justify-between text-[10px] tracking-[0.3em] opacity-50"

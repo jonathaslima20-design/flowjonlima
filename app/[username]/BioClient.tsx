@@ -42,6 +42,7 @@ export function BioClient({ profile, links, socials, videos, banners }: any) {
         socials={socials}
         videos={videos}
         banners={banners}
+        sectionOrder={profile?.section_order || ['socials', 'links', 'banners', 'videos']}
         track={track}
       />
     </>

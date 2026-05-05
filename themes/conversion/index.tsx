@@ -3,7 +3,7 @@
 import { ArrowRight, ChevronRight, Star, Zap, Clock, Users, Flame } from 'lucide-react';
 import { SOCIALS_BY_KEY, getSocialHref } from '@/lib/socials';
 import type { BioThemeProps, BioThemeMeta } from '@/themes/types';
-import { getThemeSettings, getFontStack } from '@/themes/types';
+import { getThemeSettings, getFontStack, orderedSections } from '@/themes/types';
 import { BioflowzyBadge } from '@/components/bio/BioflowzyBadge';
 import { VideoEmbed } from '@/components/themes/VideoEmbed';
 
@@ -124,7 +124,7 @@ const CTA_ICONS: Record<string, any> = {
   flame: Flame,
 };
 
-export function ConversionTheme({ profile, links, socials, videos, banners, track, preview }: BioThemeProps) {
+export function ConversionTheme({ profile, links, socials, videos, banners, sectionOrder, track, preview }: BioThemeProps) {
   const s = getThemeSettings(profile, 'conversion', conversionMeta.controls);
   const accent = s.useAccentCustom && s.accentCustom ? s.accentCustom : (profile.button_color || '#EA580C');
   const text = profile.text_color || '#1A0F0A';
@@ -210,145 +210,157 @@ export function ConversionTheme({ profile, links, socials, videos, banners, trac
             </p>
           )}
 
-          {s.showSocials !== false && socials?.length > 0 && (
-            <div className="mt-5 flex gap-2 flex-wrap justify-center">
-              {socials.map((soc: any) => {
-                const meta = SOCIALS_BY_KEY[(soc.platform || '').toLowerCase()];
-                const Icon = meta?.icon;
-                return (
-                  <a
-                    key={soc.id}
-                    href={getSocialHref(soc.platform, soc.url)}
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={() => t('social', soc.id)}
-                    className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110"
-                    style={{
-                      backgroundColor: '#FFFFFF',
-                      color: text,
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                      border: `2px solid ${text}14`,
-                    }}
-                    aria-label={meta?.label || soc.platform}
-                  >
-                    {Icon && <Icon className="w-4 h-4" />}
-                  </a>
-                );
-              })}
-            </div>
-          )}
         </div>
 
         <div className="mt-8 flex flex-col gap-3">
-          {links.map((l: any, i: number) => {
-            const isCta = i === 0;
-            if (isCta) {
-              return (
-                <div key={l.id} className="relative">
-                  {s.badge !== 'none' && (
-                    <div
-                      className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 text-[10px] font-black tracking-widest rounded-full z-10"
+          {orderedSections(sectionOrder, {
+            socials: s.showSocials !== false && socials?.length > 0 ? (
+              <div key="socials" className="flex gap-2 flex-wrap justify-center">
+                {socials.map((soc: any) => {
+                  const meta = SOCIALS_BY_KEY[(soc.platform || '').toLowerCase()];
+                  const Icon = meta?.icon;
+                  return (
+                    <a
+                      key={soc.id}
+                      href={getSocialHref(soc.platform, soc.url)}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => t('social', soc.id)}
+                      className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110"
                       style={{
-                        background: '#FACC15',
-                        color: '#0A0A0A',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                        backgroundColor: '#FFFFFF',
+                        color: text,
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                        border: `2px solid ${text}14`,
+                      }}
+                      aria-label={meta?.label || soc.platform}
+                    >
+                      {Icon && <Icon className="w-4 h-4" />}
+                    </a>
+                  );
+                })}
+              </div>
+            ) : null,
+            links: links.length > 0 ? (
+              <div key="links" className="flex flex-col gap-3">
+                {links.map((l: any, i: number) => {
+                  const isCta = i === 0;
+                  if (isCta) {
+                    return (
+                      <div key={l.id} className="relative">
+                        {s.badge !== 'none' && (
+                          <div
+                            className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 text-[10px] font-black tracking-widest rounded-full z-10"
+                            style={{
+                              background: '#FACC15',
+                              color: '#0A0A0A',
+                              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                            }}
+                          >
+                            {(s.badge || 'mais-vendido').replace('-', ' ').toUpperCase()}
+                          </div>
+                        )}
+                        <a
+                          href={l.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          onClick={() => t('link', l.id)}
+                          className={`group flex items-center justify-center gap-2 px-6 py-5 rounded-2xl transition-all hover:-translate-y-0.5 hover:scale-[1.02] ${pulseCls}`}
+                          style={{
+                            background: ctaBg,
+                            color: ctaColor,
+                            border: ctaBorder,
+                            boxShadow: `0 10px 30px ${accent}55, 0 4px 8px rgba(0,0,0,0.1)`,
+                            fontWeight: 800,
+                            fontSize: '17px',
+                            letterSpacing: '-0.01em',
+                          }}
+                        >
+                          <span>{l.title}</span>
+                          <CtaIcon className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+                        </a>
+                      </div>
+                    );
+                  }
+                  return (
+                    <a
+                      key={l.id}
+                      href={l.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => t('link', l.id)}
+                      className="group flex items-center justify-between gap-3 px-5 py-4 rounded-xl transition-all hover:-translate-y-0.5"
+                      style={{
+                        backgroundColor: '#FFFFFF',
+                        color: text,
+                        border: `2px solid ${text}12`,
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
                       }}
                     >
-                      {(s.badge || 'mais-vendido').replace('-', ' ').toUpperCase()}
+                      <div className="flex-1 min-w-0 text-left">
+                        <div className="text-[15px] truncate" style={{ fontWeight: 700 }}>
+                          {l.title}
+                        </div>
+                        {l.subtitle && (
+                          <div className="text-xs mt-0.5 opacity-60 truncate">{l.subtitle}</div>
+                        )}
+                      </div>
+                      <ArrowRight
+                        className="w-4 h-4 shrink-0 transition-transform group-hover:translate-x-1"
+                        style={{ color: accent }}
+                      />
+                    </a>
+                  );
+                })}
+              </div>
+            ) : null,
+            banners: banners?.length > 0 ? (
+              <div key="banners" className="flex flex-col gap-3">
+                {banners.map((b: any) => {
+                  const inner = (
+                    <div
+                      className={`overflow-hidden rounded-xl ${BANNER_H[b.size] || BANNER_H.md}`}
+                      style={{
+                        border: `2px solid ${text}12`,
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                      }}
+                    >
+                      {b.image_url && <img src={b.image_url} alt="" className="w-full h-full object-cover" />}
                     </div>
-                  )}
-                  <a
-                    href={l.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={() => t('link', l.id)}
-                    className={`group flex items-center justify-center gap-2 px-6 py-5 rounded-2xl transition-all hover:-translate-y-0.5 hover:scale-[1.02] ${pulseCls}`}
+                  );
+                  return b.link_url ? (
+                    <a key={b.id} href={b.link_url} target="_blank" rel="noreferrer" onClick={() => t('banner', b.id)}>{inner}</a>
+                  ) : (
+                    <div key={b.id}>{inner}</div>
+                  );
+                })}
+              </div>
+            ) : null,
+            videos: videos.length > 0 ? (
+              <div key="videos" className="flex flex-col gap-3">
+                {videos.map((v: any) => (
+                  <div
+                    key={v.id}
+                    className="overflow-hidden rounded-xl"
                     style={{
-                      background: ctaBg,
-                      color: ctaColor,
-                      border: ctaBorder,
-                      boxShadow: `0 10px 30px ${accent}55, 0 4px 8px rgba(0,0,0,0.1)`,
-                      fontWeight: 800,
-                      fontSize: '17px',
-                      letterSpacing: '-0.01em',
+                      backgroundColor: '#FFFFFF',
+                      border: `2px solid ${text}12`,
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
                     }}
                   >
-                    <span>{l.title}</span>
-                    <CtaIcon className="w-5 h-5 transition-transform group-hover:translate-x-1" />
-                  </a>
-                </div>
-              );
-            }
-            return (
-              <a
-                key={l.id}
-                href={l.url}
-                target="_blank"
-                rel="noreferrer"
-                onClick={() => t('link', l.id)}
-                className="group flex items-center justify-between gap-3 px-5 py-4 rounded-xl transition-all hover:-translate-y-0.5"
-                style={{
-                  backgroundColor: '#FFFFFF',
-                  color: text,
-                  border: `2px solid ${text}12`,
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-                }}
-              >
-                <div className="flex-1 min-w-0 text-left">
-                  <div className="text-[15px] truncate" style={{ fontWeight: 700 }}>
-                    {l.title}
+                    <div className="relative aspect-video bg-black">
+                      <VideoEmbed video={v} preview={preview} />
+                    </div>
+                    {v.title && (
+                      <div className="px-4 py-3 text-sm" style={{ color: text, fontWeight: 700 }}>
+                        {v.title}
+                      </div>
+                    )}
                   </div>
-                  {l.subtitle && (
-                    <div className="text-xs mt-0.5 opacity-60 truncate">{l.subtitle}</div>
-                  )}
-                </div>
-                <ArrowRight
-                  className="w-4 h-4 shrink-0 transition-transform group-hover:translate-x-1"
-                  style={{ color: accent }}
-                />
-              </a>
-            );
-          })}
-
-          {banners?.map((b: any) => {
-            const inner = (
-              <div
-                className={`overflow-hidden rounded-xl ${BANNER_H[b.size] || BANNER_H.md}`}
-                style={{
-                  border: `2px solid ${text}12`,
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                }}
-              >
-                {b.image_url && <img src={b.image_url} alt="" className="w-full h-full object-cover" />}
+                ))}
               </div>
-            );
-            return b.link_url ? (
-              <a key={b.id} href={b.link_url} target="_blank" rel="noreferrer" onClick={() => t('banner', b.id)}>{inner}</a>
-            ) : (
-              <div key={b.id}>{inner}</div>
-            );
+            ) : null,
           })}
-
-          {videos.map((v: any) => (
-            <div
-              key={v.id}
-              className="overflow-hidden rounded-xl"
-              style={{
-                backgroundColor: '#FFFFFF',
-                border: `2px solid ${text}12`,
-                boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-              }}
-            >
-              <div className="relative aspect-video bg-black">
-                <VideoEmbed video={v} preview={preview} />
-              </div>
-              {v.title && (
-                <div className="px-4 py-3 text-sm" style={{ color: text, fontWeight: 700 }}>
-                  {v.title}
-                </div>
-              )}
-            </div>
-          ))}
         </div>
         <BioflowzyBadge profile={profile} bgColor={profile.bg_color} />
       </div>

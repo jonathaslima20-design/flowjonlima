@@ -2,7 +2,7 @@
 
 import { SOCIALS_BY_KEY, getSocialHref } from '@/lib/socials';
 import type { BioThemeProps, BioThemeMeta } from '@/themes/types';
-import { getThemeSettings, getFontStack } from '@/themes/types';
+import { getThemeSettings, getFontStack, orderedSections } from '@/themes/types';
 import { BioflowzyBadge } from '@/components/bio/BioflowzyBadge';
 import { VideoEmbed } from '@/components/themes/VideoEmbed';
 
@@ -38,7 +38,7 @@ export const bloomMeta: BioThemeMeta = {
 
 const BANNER_H: Record<string, string> = { sm: 'aspect-[6/1]', md: 'aspect-[3/1]', lg: 'aspect-[5/2]' };
 
-export function BloomTheme({ profile, links, socials, videos, banners, track, preview }: BioThemeProps) {
+export function BloomTheme({ profile, links, socials, videos, banners, sectionOrder, track, preview }: BioThemeProps) {
   const s = getThemeSettings(profile, 'bloom', bloomMeta.controls);
   const bg = profile.bg_color || '#FFFBF0';
   const text = profile.text_color || '#2C2010';
@@ -114,87 +114,99 @@ export function BloomTheme({ profile, links, socials, videos, banners, track, pr
 
           <div className="mt-5 flex items-center gap-3">
             <div className="h-px flex-1" style={{ background: `${accent}33` }} />
-            <span style={{ color: `${accent}66`, fontSize: '10px' }}>✿</span>
+            <span style={{ color: `${accent}66`, fontSize: '10px' }}>&#10047;</span>
             <div className="h-px flex-1" style={{ background: `${accent}33` }} />
           </div>
-
-          {socials?.length > 0 && (
-            <div className="mt-3 flex items-center justify-center gap-4">
-              {socials.map((soc: any) => {
-                const meta = SOCIALS_BY_KEY[(soc.platform || '').toLowerCase()];
-                const Icon = meta?.icon;
-                return Icon ? (
-                  <a
-                    key={soc.id}
-                    href={getSocialHref(soc.platform, soc.url)}
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={() => t('social', soc.id)}
-                    className="transition-opacity hover:opacity-50"
-                    style={{ color: `${text}66` }}
-                    aria-label={meta?.label}
-                  >
-                    <Icon className="w-[16px] h-[16px]" />
-                  </a>
-                ) : null;
-              })}
-            </div>
-          )}
         </header>
 
         <div className="flex flex-col gap-3">
-          {links.map((l: any) => (
-            <a
-              key={l.id}
-              href={l.url}
-              target="_blank"
-              rel="noreferrer"
-              onClick={() => t('link', l.id)}
-              className="group flex items-center gap-4 px-5 py-4 transition-all hover:opacity-70"
-              style={{
-                border: getBorderStyle(),
-                borderRadius: `${r}px`,
-                backgroundColor: `${accent}08`,
-              }}
-            >
-              <span className="text-[16px]">🌿</span>
-              <span className="flex-1 text-[15px] font-medium" style={{ fontFamily: titleFamily, fontStyle: 'italic', color: text }}>
-                {l.title}
-              </span>
-            </a>
-          ))}
-
-          {banners?.map((b: any) => {
-            const inner = (
-              <div
-                key={b.id}
-                className={`overflow-hidden mt-2 ${BANNER_H[b.size] || BANNER_H.md}`}
-                style={{ borderRadius: `${r}px`, border: getBorderStyle() }}
-              >
-                {b.image_url && <img src={b.image_url} alt="" className="w-full h-full object-cover" />}
+          {orderedSections(sectionOrder, {
+            socials: socials?.length > 0 ? (
+              <div key="socials" className="flex items-center justify-center gap-4">
+                {socials.map((soc: any) => {
+                  const meta = SOCIALS_BY_KEY[(soc.platform || '').toLowerCase()];
+                  const Icon = meta?.icon;
+                  return Icon ? (
+                    <a
+                      key={soc.id}
+                      href={getSocialHref(soc.platform, soc.url)}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => t('social', soc.id)}
+                      className="transition-opacity hover:opacity-50"
+                      style={{ color: `${text}66` }}
+                      aria-label={meta?.label}
+                    >
+                      <Icon className="w-[16px] h-[16px]" />
+                    </a>
+                  ) : null;
+                })}
               </div>
-            );
-            return b.link_url ? (
-              <a key={b.id} href={b.link_url} target="_blank" rel="noreferrer" onClick={() => t('banner', b.id)}>{inner}</a>
-            ) : inner;
+            ) : null,
+            links: links.length > 0 ? (
+              <div key="links" className="flex flex-col gap-3">
+                {links.map((l: any) => (
+                  <a
+                    key={l.id}
+                    href={l.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={() => t('link', l.id)}
+                    className="group flex items-center gap-4 px-5 py-4 transition-all hover:opacity-70"
+                    style={{
+                      border: getBorderStyle(),
+                      borderRadius: `${r}px`,
+                      backgroundColor: `${accent}08`,
+                    }}
+                  >
+                    <span className="text-[16px]">{'\ud83c\udf3f'}</span>
+                    <span className="flex-1 text-[15px] font-medium" style={{ fontFamily: titleFamily, fontStyle: 'italic', color: text }}>
+                      {l.title}
+                    </span>
+                  </a>
+                ))}
+              </div>
+            ) : null,
+            banners: banners?.length > 0 ? (
+              <div key="banners" className="flex flex-col gap-3">
+                {banners.map((b: any) => {
+                  const inner = (
+                    <div
+                      className={`overflow-hidden ${BANNER_H[b.size] || BANNER_H.md}`}
+                      style={{ borderRadius: `${r}px`, border: getBorderStyle() }}
+                    >
+                      {b.image_url && <img src={b.image_url} alt="" className="w-full h-full object-cover" />}
+                    </div>
+                  );
+                  return b.link_url ? (
+                    <a key={b.id} href={b.link_url} target="_blank" rel="noreferrer" onClick={() => t('banner', b.id)}>{inner}</a>
+                  ) : (
+                    <div key={b.id}>{inner}</div>
+                  );
+                })}
+              </div>
+            ) : null,
+            videos: videos.length > 0 ? (
+              <div key="videos" className="flex flex-col gap-3">
+                {videos.map((v: any) => (
+                  <div
+                    key={v.id}
+                    className="overflow-hidden"
+                    style={{ borderRadius: `${r}px`, border: getBorderStyle() }}
+                  >
+                    <div className="relative aspect-video">
+                      <VideoEmbed video={v} preview={preview} />
+                    </div>
+                    {v.title && (
+                      <div className="px-4 py-3 text-sm" style={{ fontFamily: titleFamily, fontStyle: 'italic', color: `${text}AA` }}>
+                        {v.title}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : null,
           })}
-
-          {videos.map((v: any) => (
-            <div
-              key={v.id}
-              className="overflow-hidden mt-2"
-              style={{ borderRadius: `${r}px`, border: getBorderStyle() }}
-            >
-              <div className="relative aspect-video">
-                <VideoEmbed video={v} preview={preview} />
-              </div>
-              {v.title && (
-                <div className="px-4 py-3 text-sm" style={{ fontFamily: titleFamily, fontStyle: 'italic', color: `${text}AA` }}>
-                  {v.title}
-                </div>
-              )}
-            </div>
-          ))}
         </div>
 
         {s.footerText && s.footerText.trim() && (

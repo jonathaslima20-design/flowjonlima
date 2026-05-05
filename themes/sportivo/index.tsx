@@ -2,7 +2,7 @@
 
 import { SOCIALS_BY_KEY, getSocialHref } from '@/lib/socials';
 import type { BioThemeProps, BioThemeMeta } from '@/themes/types';
-import { getThemeSettings, getFontStack } from '@/themes/types';
+import { getThemeSettings, getFontStack, orderedSections } from '@/themes/types';
 import { BioflowzyBadge } from '@/components/bio/BioflowzyBadge';
 import { VideoEmbed } from '@/components/themes/VideoEmbed';
 
@@ -41,7 +41,7 @@ export const sportivoMeta: BioThemeMeta = {
 
 const BANNER_H: Record<string, string> = { sm: 'aspect-[6/1]', md: 'aspect-[3/1]', lg: 'aspect-[5/2]' };
 
-export function SportivoTheme({ profile, links, socials, videos, banners, track, preview }: BioThemeProps) {
+export function SportivoTheme({ profile, links, socials, videos, banners, sectionOrder, track, preview }: BioThemeProps) {
   const s = getThemeSettings(profile, 'sportivo', sportivoMeta.controls);
   const bg = profile.bg_color || '#0D0D0D';
   const text = profile.text_color || '#FFFFFF';
@@ -209,29 +209,6 @@ export function SportivoTheme({ profile, links, socials, videos, banners, track,
           </div>
         </header>
 
-        {socials?.length > 0 && (
-          <div className="mb-6 flex items-center gap-4">
-            {socials.map((soc: any) => {
-              const meta = SOCIALS_BY_KEY[(soc.platform || '').toLowerCase()];
-              const Icon = meta?.icon;
-              return Icon ? (
-                <a
-                  key={soc.id}
-                  href={getSocialHref(soc.platform, soc.url)}
-                  target="_blank"
-                  rel="noreferrer"
-                  onClick={() => t('social', soc.id)}
-                  className="transition-opacity hover:opacity-50"
-                  style={{ color: `${text}66` }}
-                  aria-label={meta?.label}
-                >
-                  <Icon className="w-[18px] h-[18px]" />
-                </a>
-              ) : null;
-            })}
-          </div>
-        )}
-
         <div
           className="mb-4 pb-2 text-[10px] font-black uppercase tracking-widest"
           style={{ borderBottom: `2px solid ${accent}`, color: `${text}55` }}
@@ -240,35 +217,69 @@ export function SportivoTheme({ profile, links, socials, videos, banners, track,
         </div>
 
         <div className="flex flex-col gap-2">
-          {links.map((l: any, i: number) => linkCard(l, i))}
-
-          {banners?.map((b: any) => {
-            const inner = (
-              <div
-                key={b.id}
-                className={`overflow-hidden mt-3 ${BANNER_H[b.size] || BANNER_H.md}`}
-                style={{ border: `2px solid ${accent}33`, borderRadius: '6px' }}
-              >
-                {b.image_url && <img src={b.image_url} alt="" className="w-full h-full object-cover" />}
+          {orderedSections(sectionOrder, {
+            socials: socials?.length > 0 ? (
+              <div key="socials" className="flex items-center gap-4">
+                {socials.map((soc: any) => {
+                  const meta = SOCIALS_BY_KEY[(soc.platform || '').toLowerCase()];
+                  const Icon = meta?.icon;
+                  return Icon ? (
+                    <a
+                      key={soc.id}
+                      href={getSocialHref(soc.platform, soc.url)}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => t('social', soc.id)}
+                      className="transition-opacity hover:opacity-50"
+                      style={{ color: `${text}66` }}
+                      aria-label={meta?.label}
+                    >
+                      <Icon className="w-[18px] h-[18px]" />
+                    </a>
+                  ) : null;
+                })}
               </div>
-            );
-            return b.link_url ? (
-              <a key={b.id} href={b.link_url} target="_blank" rel="noreferrer" onClick={() => t('banner', b.id)}>{inner}</a>
-            ) : inner;
+            ) : null,
+            links: links.length > 0 ? (
+              <div key="links" className="flex flex-col gap-2">
+                {links.map((l: any, i: number) => linkCard(l, i))}
+              </div>
+            ) : null,
+            banners: banners?.length > 0 ? (
+              <div key="banners">
+                {banners.map((b: any) => {
+                  const inner = (
+                    <div
+                      key={b.id}
+                      className={`overflow-hidden mt-3 ${BANNER_H[b.size] || BANNER_H.md}`}
+                      style={{ border: `2px solid ${accent}33`, borderRadius: '6px' }}
+                    >
+                      {b.image_url && <img src={b.image_url} alt="" className="w-full h-full object-cover" />}
+                    </div>
+                  );
+                  return b.link_url ? (
+                    <a key={b.id} href={b.link_url} target="_blank" rel="noreferrer" onClick={() => t('banner', b.id)}>{inner}</a>
+                  ) : inner;
+                })}
+              </div>
+            ) : null,
+            videos: videos.length > 0 ? (
+              <div key="videos">
+                {videos.map((v: any) => (
+                  <div key={v.id} className="overflow-hidden mt-3" style={{ border: `2px solid ${accent}33`, borderRadius: '6px' }}>
+                    <div className="relative aspect-video">
+                      <VideoEmbed video={v} preview={preview} />
+                    </div>
+                    {v.title && (
+                      <div className="px-3 py-2 text-xs font-bold uppercase tracking-wide" style={{ fontFamily: titleFamily, color: accent }}>
+                        {v.title}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : null,
           })}
-
-          {videos.map((v: any) => (
-            <div key={v.id} className="overflow-hidden mt-3" style={{ border: `2px solid ${accent}33`, borderRadius: '6px' }}>
-              <div className="relative aspect-video">
-                <VideoEmbed video={v} preview={preview} />
-              </div>
-              {v.title && (
-                <div className="px-3 py-2 text-xs font-bold uppercase tracking-wide" style={{ fontFamily: titleFamily, color: accent }}>
-                  {v.title}
-                </div>
-              )}
-            </div>
-          ))}
         </div>
 
         {s.footerText && s.footerText.trim() && (

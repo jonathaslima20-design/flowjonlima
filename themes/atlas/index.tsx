@@ -3,7 +3,7 @@
 import { ArrowRight, Circle, BadgeCheck } from 'lucide-react';
 import { SOCIALS_BY_KEY, getSocialHref } from '@/lib/socials';
 import type { BioThemeProps, BioThemeMeta } from '@/themes/types';
-import { getThemeSettings, getFontStack } from '@/themes/types';
+import { getThemeSettings, getFontStack, orderedSections } from '@/themes/types';
 import { BioflowzyBadge } from '@/components/bio/BioflowzyBadge';
 import { VideoEmbed } from '@/components/themes/VideoEmbed';
 
@@ -86,7 +86,7 @@ const SHADOWS: Record<string, string> = {
   elevated: '0 4px 6px rgba(15,23,42,0.04), 0 10px 15px rgba(15,23,42,0.08)',
 };
 
-export function AtlasTheme({ profile, links, socials, videos, banners, track, preview }: BioThemeProps) {
+export function AtlasTheme({ profile, links, socials, videos, banners, sectionOrder, track, preview }: BioThemeProps) {
   const s = getThemeSettings(profile, 'atlas', atlasMeta.controls);
   const accent = s.useAccentCustom && s.accentCustom ? s.accentCustom : (profile.button_color || '#2563EB');
   const bg = profile.bg_color || '#F7F9FC';
@@ -203,35 +203,6 @@ export function AtlasTheme({ profile, links, socials, videos, banners, track, pr
             </div>
           )}
 
-          {socials?.length > 0 && (
-            <div
-              className="mt-5 inline-flex items-center gap-1 p-1 rounded-full"
-              style={{
-                backgroundColor: '#FFFFFF',
-                border: `1px solid ${text}14`,
-                boxShadow: shadow,
-              }}
-            >
-              {socials.map((soc: any) => {
-                const meta = SOCIALS_BY_KEY[(soc.platform || '').toLowerCase()];
-                const Icon = meta?.icon;
-                return (
-                  <a
-                    key={soc.id}
-                    href={getSocialHref(soc.platform, soc.url)}
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={() => t('social', soc.id)}
-                    className="w-9 h-9 flex items-center justify-center rounded-full transition-colors hover:bg-slate-100"
-                    style={{ color: text }}
-                    aria-label={meta?.label || soc.platform}
-                  >
-                    {Icon && <Icon className="w-[17px] h-[17px]" />}
-                  </a>
-                );
-              })}
-            </div>
-          )}
         </div>
 
         {s.sectionTitle && s.sectionTitle.trim() && (
@@ -240,95 +211,138 @@ export function AtlasTheme({ profile, links, socials, videos, banners, track, pr
           </div>
         )}
         <div className={`flex flex-col ${d.gap} pb-10`}>
-          {links.map((l: any, i: number) => {
-            const isPrimary = i === 0 && s.cardStyle !== 'primary';
-            const style = cardBase(isPrimary);
-            return (
-              <a
-                key={l.id}
-                href={l.url}
-                target="_blank"
-                rel="noreferrer"
-                onClick={() => t('link', l.id)}
-                className={`group flex items-center gap-4 ${d.linkPad} transition-all hover:-translate-y-0.5`}
-                style={{
-                  ...style,
-                  borderRadius: s.radius,
-                  boxShadow: shadow,
-                }}
-              >
+          {orderedSections(sectionOrder, {
+            socials: socials?.length > 0 ? (
+              <div key="socials" className="flex justify-center">
                 <div
-                  className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+                  className="inline-flex items-center gap-1 p-1 rounded-full"
                   style={{
-                    backgroundColor: isPrimary || s.cardStyle === 'primary' ? 'rgba(255,255,255,0.2)' : `${accent}14`,
-                    color: isPrimary || s.cardStyle === 'primary' ? '#FFFFFF' : accent,
+                    backgroundColor: '#FFFFFF',
+                    border: `1px solid ${text}14`,
+                    boxShadow: shadow,
                   }}
                 >
-                  <Circle className="w-3.5 h-3.5" fill="currentColor" strokeWidth={0} />
+                  {socials.map((soc: any) => {
+                    const meta = SOCIALS_BY_KEY[(soc.platform || '').toLowerCase()];
+                    const Icon = meta?.icon;
+                    return (
+                      <a
+                        key={soc.id}
+                        href={getSocialHref(soc.platform, soc.url)}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={() => t('social', soc.id)}
+                        className="w-9 h-9 flex items-center justify-center rounded-full transition-colors hover:bg-slate-100"
+                        style={{ color: text }}
+                        aria-label={meta?.label || soc.platform}
+                      >
+                        {Icon && <Icon className="w-[17px] h-[17px]" />}
+                      </a>
+                    );
+                  })}
                 </div>
-                <div className="flex-1 min-w-0 text-left">
-                  <div className="text-[15px] truncate" style={{ fontWeight: 600, letterSpacing: '-0.01em' }}>
-                    {l.title}
-                  </div>
-                  {l.subtitle && (
-                    <div
-                      className="text-xs mt-0.5 truncate"
-                      style={{ opacity: isPrimary || s.cardStyle === 'primary' ? 0.85 : 0.6 }}
+              </div>
+            ) : null,
+            links: links.length > 0 ? (
+              <div key="links" className={`flex flex-col ${d.gap}`}>
+                {links.map((l: any, i: number) => {
+                  const isPrimary = i === 0 && s.cardStyle !== 'primary';
+                  const style = cardBase(isPrimary);
+                  return (
+                    <a
+                      key={l.id}
+                      href={l.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => t('link', l.id)}
+                      className={`group flex items-center gap-4 ${d.linkPad} transition-all hover:-translate-y-0.5`}
+                      style={{
+                        ...style,
+                        borderRadius: s.radius,
+                        boxShadow: shadow,
+                      }}
                     >
-                      {l.subtitle}
+                      <div
+                        className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+                        style={{
+                          backgroundColor: isPrimary || s.cardStyle === 'primary' ? 'rgba(255,255,255,0.2)' : `${accent}14`,
+                          color: isPrimary || s.cardStyle === 'primary' ? '#FFFFFF' : accent,
+                        }}
+                      >
+                        <Circle className="w-3.5 h-3.5" fill="currentColor" strokeWidth={0} />
+                      </div>
+                      <div className="flex-1 min-w-0 text-left">
+                        <div className="text-[15px] truncate" style={{ fontWeight: 600, letterSpacing: '-0.01em' }}>
+                          {l.title}
+                        </div>
+                        {l.subtitle && (
+                          <div
+                            className="text-xs mt-0.5 truncate"
+                            style={{ opacity: isPrimary || s.cardStyle === 'primary' ? 0.85 : 0.6 }}
+                          >
+                            {l.subtitle}
+                          </div>
+                        )}
+                      </div>
+                      <ArrowRight
+                        className="w-4 h-4 shrink-0 transition-transform group-hover:translate-x-1"
+                        strokeWidth={2}
+                      />
+                    </a>
+                  );
+                })}
+              </div>
+            ) : null,
+            banners: banners?.length > 0 ? (
+              <div key="banners" className={`flex flex-col ${d.gap}`}>
+                {banners.map((b: any) => {
+                  const inner = (
+                    <div
+                      className={`overflow-hidden ${BANNER_H[b.size] || BANNER_H.md}`}
+                      style={{
+                        borderRadius: s.radius,
+                        boxShadow: shadow,
+                        border: `1px solid ${text}14`,
+                        backgroundColor: '#FFFFFF',
+                      }}
+                    >
+                      {b.image_url && <img src={b.image_url} alt="" className="w-full h-full object-cover" />}
                     </div>
-                  )}
-                </div>
-                <ArrowRight
-                  className="w-4 h-4 shrink-0 transition-transform group-hover:translate-x-1"
-                  strokeWidth={2}
-                />
-              </a>
-            );
-          })}
-
-          {banners?.map((b: any) => {
-            const inner = (
-              <div
-                className={`overflow-hidden ${BANNER_H[b.size] || BANNER_H.md}`}
-                style={{
-                  borderRadius: s.radius,
-                  boxShadow: shadow,
-                  border: `1px solid ${text}14`,
-                  backgroundColor: '#FFFFFF',
-                }}
-              >
-                {b.image_url && <img src={b.image_url} alt="" className="w-full h-full object-cover" />}
+                  );
+                  return b.link_url ? (
+                    <a key={b.id} href={b.link_url} target="_blank" rel="noreferrer" onClick={() => t('banner', b.id)}>{inner}</a>
+                  ) : (
+                    <div key={b.id}>{inner}</div>
+                  );
+                })}
               </div>
-            );
-            return b.link_url ? (
-              <a key={b.id} href={b.link_url} target="_blank" rel="noreferrer" onClick={() => t('banner', b.id)}>{inner}</a>
-            ) : (
-              <div key={b.id}>{inner}</div>
-            );
-          })}
-
-          {videos.map((v: any) => (
-            <div
-              key={v.id}
-              className="overflow-hidden"
-              style={{
-                borderRadius: s.radius,
-                boxShadow: shadow,
-                backgroundColor: '#FFFFFF',
-                border: `1px solid ${text}14`,
-              }}
-            >
-              <div className="relative aspect-video bg-slate-100">
-                <VideoEmbed video={v} preview={preview} />
+            ) : null,
+            videos: videos.length > 0 ? (
+              <div key="videos" className={`flex flex-col ${d.gap}`}>
+                {videos.map((v: any) => (
+                  <div
+                    key={v.id}
+                    className="overflow-hidden"
+                    style={{
+                      borderRadius: s.radius,
+                      boxShadow: shadow,
+                      backgroundColor: '#FFFFFF',
+                      border: `1px solid ${text}14`,
+                    }}
+                  >
+                    <div className="relative aspect-video bg-slate-100">
+                      <VideoEmbed video={v} preview={preview} />
+                    </div>
+                    {v.title && (
+                      <div className="px-4 py-3 text-sm" style={{ color: text, fontWeight: 500 }}>
+                        {v.title}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
-              {v.title && (
-                <div className="px-4 py-3 text-sm" style={{ color: text, fontWeight: 500 }}>
-                  {v.title}
-                </div>
-              )}
-            </div>
-          ))}
+            ) : null,
+          })}
         </div>
         {s.footerText && s.footerText.trim() && (
           <div className="mt-2 mb-6 text-center text-xs opacity-60" style={{ color: text }}>{s.footerText}</div>
