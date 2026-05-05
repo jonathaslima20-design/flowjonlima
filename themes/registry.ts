@@ -21,6 +21,7 @@ import { LavaTheme, lavaMeta } from './lava';
 import { NewspaperTheme, newspaperMeta } from './newspaper';
 import { GlitchTheme, glitchMeta } from './glitch';
 import { CosmosTheme, cosmosMeta } from './cosmos';
+import { CupertinoTheme, cupertinoMeta } from './cupertino';
 import type { BioThemeDefaults, BioThemeDefinition, BioThemeMeta, ControlDef } from './types';
 
 function buildCoreControls(meta: BioThemeMeta): ControlDef[] {
@@ -45,6 +46,7 @@ function withCoreControls(meta: BioThemeMeta): BioThemeMeta {
 }
 
 export const THEMES: Record<string, BioThemeDefinition> = {
+  cupertino: { meta: withCoreControls(cupertinoMeta), component: CupertinoTheme },
   brutalist: { meta: withCoreControls(brutalistMeta), component: BrutalistTheme },
   aurora: { meta: withCoreControls(auroraMeta), component: AuroraTheme },
   atlas: { meta: withCoreControls(atlasMeta), component: AtlasTheme },
