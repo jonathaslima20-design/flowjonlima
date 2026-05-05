@@ -1,19 +1,18 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ThemeCarousel } from './ThemeCarousel';
 import { ArrowRight, Sparkles } from 'lucide-react';
-import { fetchSocialProof, DEFAULT_SOCIAL_PROOF, SocialProofConfig } from '@/lib/theme-showcase';
+import { SocialProofConfig } from '@/lib/theme-showcase';
 
-export function Hero() {
+interface HeroProps {
+  socialProof: SocialProofConfig | null;
+}
+
+export function Hero({ socialProof }: HeroProps) {
   const router = useRouter();
   const [username, setUsername] = useState('');
-  const [socialProof, setSocialProof] = useState<SocialProofConfig>(DEFAULT_SOCIAL_PROOF);
-
-  useEffect(() => {
-    fetchSocialProof().then(setSocialProof);
-  }, []);
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -69,19 +68,21 @@ export function Hero() {
             </button>
           </form>
 
-          <div className="mt-8 flex items-center gap-4 text-xs font-bold">
-            <div className="flex -space-x-2">
-              {socialProof.avatars.filter(Boolean).map((url, i) => (
-                <img
-                  key={i}
-                  src={url}
-                  className="w-8 h-8 rounded-full brutal-border object-cover"
-                  alt=""
-                />
-              ))}
+          {socialProof && (
+            <div className="mt-8 flex items-center gap-4 text-xs font-bold">
+              <div className="flex -space-x-2">
+                {socialProof.avatars.filter(Boolean).map((url, i) => (
+                  <img
+                    key={i}
+                    src={url}
+                    className="w-8 h-8 rounded-full brutal-border object-cover"
+                    alt=""
+                  />
+                ))}
+              </div>
+              {socialProof.text}
             </div>
-            {socialProof.text}
-          </div>
+          )}
         </div>
 
         <div className="relative">

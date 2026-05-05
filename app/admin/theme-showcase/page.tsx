@@ -53,7 +53,7 @@ export default function AdminThemeShowcasePage() {
       }
       setPresets(map);
       setCarouselCfg(cfg);
-      setSocialProof(sp);
+      if (sp) setSocialProof(sp);
       setLoading(false);
     })();
   }, []);

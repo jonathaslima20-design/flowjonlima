@@ -182,17 +182,17 @@ export const DEFAULT_SOCIAL_PROOF: SocialProofConfig = {
   ],
 };
 
-export async function fetchSocialProof(): Promise<SocialProofConfig> {
+export async function fetchSocialProof(): Promise<SocialProofConfig | null> {
   const { data } = await supabase
     .from('admin_settings')
     .select('value')
     .eq('key', 'social_proof')
     .maybeSingle();
-  if (!data?.value) return DEFAULT_SOCIAL_PROOF;
-  return {
-    text: data.value.text ?? DEFAULT_SOCIAL_PROOF.text,
-    avatars: Array.isArray(data.value.avatars) ? data.value.avatars : DEFAULT_SOCIAL_PROOF.avatars,
-  };
+  if (!data?.value) return null;
+  const text = data.value.text;
+  const avatars = Array.isArray(data.value.avatars) ? data.value.avatars : [];
+  if (!text && avatars.length === 0) return null;
+  return { text: text ?? '', avatars };
 }
 
 export async function updateSocialProof(config: SocialProofConfig) {
