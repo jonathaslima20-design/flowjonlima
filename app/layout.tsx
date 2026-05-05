@@ -48,11 +48,21 @@ export const metadata: Metadata = {
     locale: 'pt_BR',
     url: siteUrl,
     siteName: 'BioFlowzy',
+    images: [
+      {
+        url: '/og-home.png',
+        width: 989,
+        height: 948,
+        alt: 'BioFlowzy',
+        type: 'image/png',
+      },
+    ],
   },
   twitter: {
-    card: 'summary_large_image',
+    card: 'summary',
     title: 'BioFlowzy — Um link para compartilhar tudo o que importa',
     description: 'Crie uma página de bio link em minutos. Compartilhe tudo em um só lugar.',
+    images: ['/og-home.png'],
   },
 };
 
