@@ -145,12 +145,6 @@ export function CupertinoTheme({ profile, links, socials, videos, banners, track
             )}
           </div>
 
-          {profile.username && (
-            <p className="mt-1 text-[15px]" style={{ color: subText, fontWeight: 400 }}>
-              @{profile.username}
-            </p>
-          )}
-
           {profile.bio && (
             <p className="mt-3.5 text-[15px] leading-[1.45] whitespace-pre-line mx-auto max-w-[340px]" style={{ color: text, opacity: 0.85 }}>
               {profile.bio}
@@ -353,3 +347,6 @@ export function CupertinoTheme({ profile, links, socials, videos, banners, track
 }
 
 export default CupertinoTheme;
+
+
+export { CupertinoTheme, cupertinoMeta }
