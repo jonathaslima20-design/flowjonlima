@@ -6,8 +6,8 @@ publish = ".next"
 package = "@netlify/plugin-nextjs"
 
 [[redirects]]
-  from = "https://bioflowzy.com/*"
-  to = "https://www.bioflowzy.com/:splat"
+  from = "https://www.bioflowzy.com/*"
+  to = "https://bioflowzy.com/:splat"
   status = 301
   force = true
 

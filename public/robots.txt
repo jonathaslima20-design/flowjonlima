@@ -28,4 +28,4 @@ Allow: /
 User-agent: Applebot
 Allow: /
 
-Sitemap: https://www.bioflowzy.com/sitemap.xml
+Sitemap: https://bioflowzy.com/sitemap.xml

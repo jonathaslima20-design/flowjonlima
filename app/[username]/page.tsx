@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: { params: { username: string 
 
   const name = profile.display_name || profile.username;
   const description = profile.bio || `Confira os links de ${name} na BioFlowzy.`;
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.bioflowzy.com';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://bioflowzy.com';
 
   return {
     title: `${name} | BioFlowzy`,
