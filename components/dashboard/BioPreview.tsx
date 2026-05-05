@@ -44,10 +44,10 @@ export function BioPreview({
   const noop = () => {};
   const activeLinks = (links || []).filter((l: any) => l.is_active !== false);
 
-  const SCALE = 0.55;
-  const INNER_WIDTH = 582;
-  const FRAME_WIDTH = Math.round(INNER_WIDTH * SCALE);
+  const INNER_WIDTH = 400;
+  const FRAME_WIDTH = 320;
   const FRAME_HEIGHT = 622;
+  const SCALE = FRAME_WIDTH / INNER_WIDTH;
   const INNER_HEIGHT = Math.round(FRAME_HEIGHT / SCALE);
 
   return (
