@@ -266,22 +266,34 @@ export default function AdminThemeShowcasePage() {
   async function detectLinkIcon(idx: number) {
     const arr = (selected as any)[linksField] || [];
     const link = arr[idx];
-    if (!link?.url || !/^https?:\/\//i.test(link.url)) {
-      setToast('URL inválida para detectar ícone');
-      setTimeout(() => setToast(''), 2000);
-      return;
+    let url: string = link?.url || '';
+    if (!/^https?:\/\//i.test(url)) {
+      const typed = typeof window !== 'undefined'
+        ? window.prompt('URL do site para detectar ícone (ex: https://calendly.com)', 'https://')
+        : '';
+      if (!typed || !/^https?:\/\//i.test(typed)) {
+        setToast('URL inválida para detectar ícone');
+        setTimeout(() => setToast(''), 2000);
+        return;
+      }
+      url = typed;
     }
     try {
       const apiUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/fetch-link-icon`;
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000);
       const res = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+          'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ url: link.url }),
+        body: JSON.stringify({ url }),
+        signal: controller.signal,
       });
-      const data = await res.json();
+      clearTimeout(timeout);
+      const data = await res.json().catch(() => ({}));
       if (data?.icon) {
         mutateArr(linksField as any, (a) => {
           const next = [...a];
@@ -290,12 +302,13 @@ export default function AdminThemeShowcasePage() {
         });
         setToast('Ícone detectado');
       } else {
-        setToast('Nenhum ícone encontrado');
+        setToast(data?.error ? `Falhou: ${data.error}` : 'Nenhum ícone encontrado');
       }
-    } catch {
+    } catch (err) {
+      console.error('detectLinkIcon', err);
       setToast('Erro ao detectar ícone');
     }
-    setTimeout(() => setToast(''), 2000);
+    setTimeout(() => setToast(''), 2500);
   }
   function removeLink(idx: number) {
     mutateArr(linksField as any, (arr) => { const next = [...arr]; next.splice(idx, 1); return next; });

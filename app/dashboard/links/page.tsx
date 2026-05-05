@@ -82,19 +82,27 @@ export default function LinksPage() {
   }
 
   async function fetchAutoIcon(link: Link) {
-    if (!link.url || !/^https?:\/\//i.test(link.url)) return;
+    if (!link.url || !/^https?:\/\//i.test(link.url)) {
+      alert('URL inválida. O link precisa começar com https:// para detectar o ícone.');
+      return;
+    }
     setFetchingIcon(prev => ({ ...prev, [link.id]: true }));
     try {
       const apiUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/fetch-link-icon`;
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000);
       const res = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+          'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ url: link.url }),
+        signal: controller.signal,
       });
-      const data = await res.json();
+      clearTimeout(timeout);
+      const data = await res.json().catch(() => ({}));
       if (data?.icon) {
         await updateLink(link.id, {
           icon: data.icon,
@@ -102,9 +110,12 @@ export default function LinksPage() {
           show_icon: true,
           icon_fetched_at: new Date().toISOString(),
         });
+      } else {
+        alert('Nenhum ícone detectado para este site.');
       }
-    } catch {
-      // silent
+    } catch (err) {
+      console.error('fetch-link-icon error', err);
+      alert('Erro ao detectar ícone. Tente novamente em instantes.');
     } finally {
       setFetchingIcon(prev => ({ ...prev, [link.id]: false }));
     }

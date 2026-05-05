@@ -6,6 +6,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
+const BROWSER_UA =
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
+
 function abs(base: string, path: string): string {
   try {
     return new URL(path, base).toString();
@@ -22,7 +25,13 @@ function pickMeta(html: string, patterns: RegExp[]): string | null {
   return null;
 }
 
-async function detectIcon(targetUrl: string): Promise<string | null> {
+function s2Fallback(hostname: string): string {
+  return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(hostname)}&sz=128`;
+}
+
+type Detection = { icon: string; source: string };
+
+async function detectIcon(targetUrl: string): Promise<Detection | null> {
   let u: URL;
   try {
     u = new URL(targetUrl);
@@ -31,75 +40,83 @@ async function detectIcon(targetUrl: string): Promise<string | null> {
   }
   if (!/^https?:$/.test(u.protocol)) return null;
 
+  const browserHeaders: Record<string, string> = {
+    "User-Agent": BROWSER_UA,
+    "Accept":
+      "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+    "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.8",
+  };
+
   let html = "";
+  let finalUrl = u.toString();
   try {
     const res = await fetch(u.toString(), {
-      headers: {
-        "User-Agent": "Mozilla/5.0 (compatible; BioflowzyBot/1.0; +https://bioflowzy.com)",
-        "Accept": "text/html,application/xhtml+xml",
-      },
+      headers: browserHeaders,
       redirect: "follow",
-      signal: AbortSignal.timeout(6000),
+      signal: AbortSignal.timeout(10000),
     });
+    finalUrl = res.url || finalUrl;
     if (res.ok) {
       const ct = res.headers.get("content-type") || "";
-      if (ct.includes("text/html") || ct.includes("xml")) {
-        html = (await res.text()).slice(0, 200_000);
+      if (ct.includes("text/html") || ct.includes("xml") || ct === "") {
+        html = (await res.text()).slice(0, 300_000);
       }
     }
   } catch {
-    // swallow
+    // continue to fallbacks
   }
-
-  const baseUrl = u.toString();
 
   if (html) {
     const og = pickMeta(html, [
-      /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i,
-      /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i,
+      /<meta[^>]+property=["']og:image(?::secure_url)?["'][^>]+content=["']([^"']+)["']/i,
+      /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image(?::secure_url)?["']/i,
     ]);
     if (og) {
-      const resolved = abs(baseUrl, og);
-      if (resolved) return resolved;
+      const resolved = abs(finalUrl, og);
+      if (resolved) return { icon: resolved, source: "og" };
     }
 
     const tw = pickMeta(html, [
-      /<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i,
-      /<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image["']/i,
+      /<meta[^>]+name=["']twitter:image(?::src)?["'][^>]+content=["']([^"']+)["']/i,
+      /<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image(?::src)?["']/i,
     ]);
     if (tw) {
-      const resolved = abs(baseUrl, tw);
-      if (resolved) return resolved;
+      const resolved = abs(finalUrl, tw);
+      if (resolved) return { icon: resolved, source: "twitter" };
     }
 
     const apple = pickMeta(html, [
-      /<link[^>]+rel=["']apple-touch-icon[^"']*["'][^>]+href=["']([^"']+)["']/i,
-      /<link[^>]+href=["']([^"']+)["'][^>]+rel=["']apple-touch-icon[^"']*["']/i,
+      /<link[^>]+rel=["'](?:apple-touch-icon|apple-touch-icon-precomposed)[^"']*["'][^>]+href=["']([^"']+)["']/i,
+      /<link[^>]+href=["']([^"']+)["'][^>]+rel=["'](?:apple-touch-icon|apple-touch-icon-precomposed)[^"']*["']/i,
     ]);
     if (apple) {
-      const resolved = abs(baseUrl, apple);
-      if (resolved) return resolved;
+      const resolved = abs(finalUrl, apple);
+      if (resolved) return { icon: resolved, source: "apple" };
     }
 
     const icon = pickMeta(html, [
-      /<link[^>]+rel=["'](?:shortcut icon|icon)["'][^>]+href=["']([^"']+)["']/i,
-      /<link[^>]+href=["']([^"']+)["'][^>]+rel=["'](?:shortcut icon|icon)["']/i,
+      /<link[^>]+rel=["'](?:shortcut icon|icon|mask-icon|fluid-icon)["'][^>]+href=["']([^"']+)["']/i,
+      /<link[^>]+href=["']([^"']+)["'][^>]+rel=["'](?:shortcut icon|icon|mask-icon|fluid-icon)["']/i,
     ]);
     if (icon) {
-      const resolved = abs(baseUrl, icon);
-      if (resolved) return resolved;
+      const resolved = abs(finalUrl, icon);
+      if (resolved) return { icon: resolved, source: "icon" };
     }
   }
 
   const favicon = `${u.origin}/favicon.ico`;
   try {
-    const headRes = await fetch(favicon, { method: "HEAD", signal: AbortSignal.timeout(3000) });
-    if (headRes.ok) return favicon;
+    const headRes = await fetch(favicon, {
+      method: "HEAD",
+      headers: { "User-Agent": BROWSER_UA },
+      signal: AbortSignal.timeout(4000),
+    });
+    if (headRes.ok) return { icon: favicon, source: "favicon" };
   } catch {
     // fallthrough
   }
 
-  return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(u.hostname)}&sz=128`;
+  return { icon: s2Fallback(u.hostname), source: "s2" };
 }
 
 Deno.serve(async (req: Request) => {
@@ -123,8 +140,14 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const icon = await detectIcon(url);
-    return new Response(JSON.stringify({ icon }), {
+    const result = await detectIcon(url);
+    if (!result) {
+      return new Response(
+        JSON.stringify({ icon: null, source: null, error: "invalid url" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+    return new Response(JSON.stringify(result), {
       headers: {
         ...corsHeaders,
         "Content-Type": "application/json",
