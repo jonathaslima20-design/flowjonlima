@@ -23,6 +23,13 @@ export async function generateMetadata({ params }: { params: { username: string 
   const description = profile.bio || `Confira os links de ${name} na BioFlowzy.`;
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://bioflowzy.com';
 
+  const avatar = profile.avatar_url;
+  const hasAvatar = typeof avatar === 'string' && avatar.length > 0;
+  const imageType = hasAvatar && avatar.toLowerCase().includes('.png') ? 'image/png' : 'image/jpeg';
+  const images = hasAvatar
+    ? [{ url: avatar as string, width: 1080, height: 1080, alt: name, type: imageType }]
+    : [{ url: `${siteUrl}/og-home.png`, width: 989, height: 948, alt: 'BioFlowzy', type: 'image/png' }];
+
   return {
     title: `${name} | BioFlowzy`,
     description,
@@ -33,11 +40,13 @@ export async function generateMetadata({ params }: { params: { username: string 
       locale: 'pt_BR',
       url: `${siteUrl}/${profile.username}`,
       siteName: 'BioFlowzy',
+      images,
     },
     twitter: {
-      card: 'summary_large_image',
+      card: hasAvatar ? 'summary_large_image' : 'summary',
       title: name,
       description,
+      images: images.map((i) => i.url),
     },
   };
 }
