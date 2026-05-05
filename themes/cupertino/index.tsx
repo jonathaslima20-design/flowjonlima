@@ -347,6 +347,3 @@ export function CupertinoTheme({ profile, links, socials, videos, banners, track
 }
 
 export default CupertinoTheme;
-
-
-export { CupertinoTheme, cupertinoMeta }
