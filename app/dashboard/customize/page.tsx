@@ -80,9 +80,18 @@ export default function CustomizePage() {
     const current = (profile?.theme_settings && typeof profile.theme_settings === 'object') ? profile.theme_settings : {};
     const nextSettings = { ...current };
     delete nextSettings[themeKey];
-    const next = { ...profile, theme_settings: nextSettings };
+    const defaults = getTheme(themeKey).meta.defaults;
+    const patch: any = {
+      theme_settings: nextSettings,
+      bg_color: defaults.bg_color,
+      button_color: defaults.button_color,
+      text_color: defaults.text_color,
+      border_width: defaults.border_width ?? 2,
+      shadow_offset: defaults.shadow_offset ?? 4,
+    };
+    const next = { ...profile, ...patch };
     setProfile(next);
-    await supabase.from('profiles').update({ theme_settings: nextSettings }).eq('id', profileId);
+    await supabase.from('profiles').update(patch).eq('id', profileId);
     setSaved(true);
     setTimeout(() => setSaved(false), 1500);
   }
@@ -96,6 +105,8 @@ export default function CustomizePage() {
     for (const c of groupControls) {
       if (c.type === 'coreColor' || c.type === 'coreNumber') {
         corePatch[c.field] = (c as any).default;
+        const coreKey = `_core_${c.field}`;
+        delete themeSet[coreKey];
       } else {
         delete themeSet[c.key];
       }
@@ -110,24 +121,51 @@ export default function CustomizePage() {
   }
 
   function updateCoreField(field: string, value: any) {
-    setProfile((prev: any) => ({ ...prev, [field]: value }));
+    const coreKey = `_core_${field}`;
+    setProfile((prev: any) => {
+      const activeKey = prev?.theme || 'brutalist';
+      const current = (prev?.theme_settings && typeof prev.theme_settings === 'object') ? prev.theme_settings : {};
+      const nextSettings = { ...current, [activeKey]: { ...(current[activeKey] || {}), [coreKey]: value } };
+      return { ...prev, [field]: value, theme_settings: nextSettings };
+    });
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(async () => {
-      await supabase.from('profiles').update({ [field]: value }).eq('id', profileId);
+      const current = (profile?.theme_settings && typeof profile.theme_settings === 'object') ? profile.theme_settings : {};
+      const activeKey = profile?.theme || 'brutalist';
+      const nextSettings = { ...current, [activeKey]: { ...(current[activeKey] || {}), [coreKey]: value } };
+      await supabase.from('profiles').update({ [field]: value, theme_settings: nextSettings }).eq('id', profileId);
       setSaved(true);
       setTimeout(() => setSaved(false), 1500);
     }, 300);
   }
 
   async function applyTheme(themeKey: string) {
+    const currentKey = profile?.theme || 'brutalist';
+    const currentSettings = (profile?.theme_settings && typeof profile.theme_settings === 'object') ? profile.theme_settings : {};
+
+    const savedCore: Record<string, any> = {};
+    if (profile?.bg_color != null) savedCore._core_bg_color = profile.bg_color;
+    if (profile?.button_color != null) savedCore._core_button_color = profile.button_color;
+    if (profile?.text_color != null) savedCore._core_text_color = profile.text_color;
+    if (profile?.border_width != null) savedCore._core_border_width = profile.border_width;
+    if (profile?.shadow_offset != null) savedCore._core_shadow_offset = profile.shadow_offset;
+
+    const nextSettings = {
+      ...currentSettings,
+      [currentKey]: { ...(currentSettings[currentKey] || {}), ...savedCore },
+    };
+
+    const stored = nextSettings[themeKey] || {};
     const defaults = getTheme(themeKey).meta.defaults;
+
     await update({
       theme: themeKey,
-      bg_color: defaults.bg_color,
-      button_color: defaults.button_color,
-      text_color: defaults.text_color,
-      ...(defaults.border_width !== undefined ? { border_width: defaults.border_width } : {}),
-      ...(defaults.shadow_offset !== undefined ? { shadow_offset: defaults.shadow_offset } : {}),
+      bg_color: stored._core_bg_color ?? defaults.bg_color,
+      button_color: stored._core_button_color ?? defaults.button_color,
+      text_color: stored._core_text_color ?? defaults.text_color,
+      border_width: stored._core_border_width ?? defaults.border_width ?? 2,
+      shadow_offset: stored._core_shadow_offset ?? defaults.shadow_offset ?? 4,
+      theme_settings: nextSettings,
     });
   }
 
