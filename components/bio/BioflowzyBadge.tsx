@@ -2,10 +2,10 @@ import Link from 'next/link';
 import { isLightColor } from '@/lib/color';
 import { can } from '@/lib/plans';
 
-type BadgeProfile = { plan?: string | null; plan_expires_at?: string | null; is_pro?: boolean | null } | null | undefined;
+type BadgeProfile = { plan?: string | null; plan_expires_at?: string | null; is_pro?: boolean | null; hide_branding?: boolean | null } | null | undefined;
 
 export function BioflowzyBadge({ bgColor, className = '', profile }: { bgColor?: string; className?: string; profile?: BadgeProfile }) {
-  if (profile && can(profile, 'remove_logo')) return null;
+  if (profile && can(profile, 'remove_logo') && profile.hide_branding) return null;
 
   const light = isLightColor(bgColor);
   const textColor = light ? '#000000' : '#FFFFFF';

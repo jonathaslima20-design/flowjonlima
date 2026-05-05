@@ -6,6 +6,7 @@ import { Upload, User } from 'lucide-react';
 import { ProFeatureCard } from '@/components/dashboard/ProFeatureCard';
 import { AvatarCropModal } from '@/components/dashboard/AvatarCropModal';
 import { CustomDomainSection } from '@/components/dashboard/CustomDomainSection';
+import { can } from '@/lib/plans';
 
 export default function SettingsPage() {
   const [profile, setProfile] = useState<any>(null);
@@ -75,7 +76,15 @@ export default function SettingsPage() {
     if (oldPath) await supabase.storage.from('avatars').remove([oldPath]);
   }
 
+  async function toggleBranding(next: boolean) {
+    if (!profile) return;
+    setProfile({ ...profile, hide_branding: next });
+    await supabase.from('profiles').update({ hide_branding: next }).eq('id', profile.id);
+  }
+
   if (!profile) return <div>Carregando...</div>;
+
+  const canHideBranding = can(profile, 'remove_logo');
 
   return (
     <div className="max-w-2xl flex flex-col gap-10">
@@ -157,6 +166,29 @@ export default function SettingsPage() {
           <CustomDomainSection />
         </ProFeatureCard>
       </section>
+
+      {canHideBranding && (
+        <section>
+          <h2 className="font-display text-2xl mb-4">Marca Bioflowzy</h2>
+          <div className="brutal-card p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <p className="font-bold">Ocultar &quot;Feito com Bioflowzy&quot;</p>
+              <p className="text-xs text-black/60 mt-1">Disponível exclusivamente no plano Pro Anual. Ative para remover a marca da sua página pública.</p>
+            </div>
+            <label className="inline-flex items-center gap-3 shrink-0 cursor-pointer">
+              <span className="text-xs font-bold">{profile.hide_branding ? 'Oculta' : 'Visível'}</span>
+              <span
+                onClick={() => toggleBranding(!profile.hide_branding)}
+                role="switch"
+                aria-checked={!!profile.hide_branding}
+                className={`relative inline-block w-11 h-6 brutal-border transition-colors ${profile.hide_branding ? 'bg-black' : 'bg-white'}`}
+              >
+                <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white brutal-border transition-transform ${profile.hide_branding ? 'translate-x-5 bg-bioyellow' : ''}`} />
+              </span>
+            </label>
+          </div>
+        </section>
+      )}
 
       {/* Integracoes */}
       <section>
