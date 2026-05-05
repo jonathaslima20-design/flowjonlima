@@ -118,7 +118,7 @@ export function CyberTheme({ profile, links, socials, videos, banners, sectionOr
         />
       )}
 
-      <div className="relative max-w-md mx-auto px-5 pt-[72px] pb-24 text-sm">
+      <div className={`relative max-w-md mx-auto px-5 ${preview ? 'pt-6' : 'pt-[72px]'} pb-24 text-sm`}>
         <div className="flex items-center gap-2 mb-6 text-xs" style={{ color: promptColor }}>
           <span style={{ opacity: 0.7 }}>$</span>
           <span className={s.typewriter ? 'cyber-typewriter' : ''}>{s.bootCmd || './boot --init'}</span>

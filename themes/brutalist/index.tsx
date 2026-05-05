@@ -48,7 +48,7 @@ export function BrutalistTheme({ profile, links, socials, videos, banners, secti
   const t = (a: string, b: string | null) => track?.(a, b);
 
   return (
-    <div className="min-h-screen pt-[72px] pb-24 px-4" style={{ backgroundColor: profile.bg_color || '#FFFFFF', fontFamily: bodyFF }}>
+    <div className={`min-h-screen ${preview ? 'pt-6' : 'pt-[72px]'} pb-24 px-4`} style={{ backgroundColor: profile.bg_color || '#FFFFFF', fontFamily: bodyFF }}>
       <div className="max-w-md mx-auto">
         <div className="flex flex-col items-center text-center">
           <div

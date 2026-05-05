@@ -66,9 +66,9 @@ export const atlasMeta: BioThemeMeta = {
 };
 
 const DENSITY: Record<string, { headerPad: string; gap: string; linkPad: string; maxW: string }> = {
-  compact: { headerPad: 'pt-[72px] pb-6', gap: 'gap-2', linkPad: 'px-4 py-3', maxW: 'max-w-md' },
-  default: { headerPad: 'pt-[72px] pb-8', gap: 'gap-3', linkPad: 'px-5 py-4', maxW: 'max-w-md' },
-  comfortable: { headerPad: 'pt-[72px] pb-10', gap: 'gap-4', linkPad: 'px-6 py-5', maxW: 'max-w-lg' },
+  compact: { headerPad: 'pb-6', gap: 'gap-2', linkPad: 'px-4 py-3', maxW: 'max-w-md' },
+  default: { headerPad: 'pb-8', gap: 'gap-3', linkPad: 'px-5 py-4', maxW: 'max-w-md' },
+  comfortable: { headerPad: 'pb-10', gap: 'gap-4', linkPad: 'px-6 py-5', maxW: 'max-w-lg' },
 };
 
 const STATUS_MAP: Record<string, { text: string; color: string }> = {
@@ -137,7 +137,7 @@ export function AtlasTheme({ profile, links, socials, videos, banners, sectionOr
       }}
     >
       <div className={`relative mx-auto px-5 ${d.maxW}`}>
-        <div className={`flex flex-col items-center text-center ${d.headerPad}`}>
+        <div className={`flex flex-col items-center text-center ${preview ? 'pt-6' : 'pt-[72px]'} ${d.headerPad}`}>
           <div
             className="relative overflow-hidden rounded-full"
             style={{

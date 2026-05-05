@@ -81,7 +81,7 @@ export function AuroraTheme({ profile, links, socials, videos, banners, sectionO
         aria-hidden
       />
 
-      <div className="relative max-w-md mx-auto px-5 pt-[72px] pb-24" style={{ fontFamily: getFontStack(s.bodyFont, 'var(--font-inter), system-ui') }}>
+      <div className={`relative max-w-md mx-auto px-5 ${preview ? 'pt-6' : 'pt-[72px]'} pb-24`} style={{ fontFamily: getFontStack(s.bodyFont, 'var(--font-inter), system-ui') }}>
         <div className="flex flex-col items-center text-center">
           <div className="relative" style={{ width: profile.avatar_size ?? 110, height: profile.avatar_size ?? 110 }}>
             <div
