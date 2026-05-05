@@ -6,6 +6,7 @@ import type { BioThemeProps, BioThemeMeta } from '@/themes/types';
 import { getThemeSettings, getFontStack, orderedSections } from '@/themes/types';
 import { BioflowzyBadge } from '@/components/bio/BioflowzyBadge';
 import { VideoEmbed } from '@/components/themes/VideoEmbed';
+import { LinkIcon } from '@/components/themes/LinkIcon';
 
 const BANNER_HEIGHT: Record<string, string> = { sm: 'aspect-[6/1]', md: 'aspect-[3/1]', lg: 'aspect-[5/2]' };
 
@@ -99,11 +100,20 @@ export function BrutalistTheme({ profile, links, socials, videos, banners, secti
                     target="_blank"
                     rel="noreferrer"
                     onClick={() => t('link', l.id)}
-                    className="px-4 py-4 flex items-center justify-between font-bold active:translate-x-[2px] active:translate-y-[2px] transition-transform"
+                    className="px-4 py-4 flex items-center gap-3 font-bold active:translate-x-[2px] active:translate-y-[2px] transition-transform"
                     style={{ ...borderStyle, ...shadowStyle, borderRadius: radius, backgroundColor: profile.button_color || '#FACC15', color: profile.text_color }}
                   >
-                    <span>{l.title}</span>
-                    <ExternalLink className="w-4 h-4" />
+                    {l.show_icon && l.icon && (
+                      <LinkIcon
+                        link={l}
+                        size={36}
+                        radius={radius}
+                        containerStyle={{ border: `${profile.border_width || 2}px solid ${borderColor}`, background: '#fff' }}
+                        fallback={null}
+                      />
+                    )}
+                    <span className="flex-1 text-left">{l.title}</span>
+                    <ExternalLink className="w-4 h-4 shrink-0" />
                   </a>
                 ))}
               </div>

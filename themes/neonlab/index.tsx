@@ -147,9 +147,13 @@ export function NeonLabTheme({ profile, links, socials, videos, banners, section
                         boxShadow: `0 0 ${s.glow / 2}px ${glowColor}55, inset 0 0 ${s.glow / 3}px ${glowColor}22`,
                         color: text,
                       }}>
-                      <div className="flex items-center gap-3">
-                        <Zap className="w-4 h-4" style={{ color: glowColor }} />
-                        <span className="font-medium tracking-wide uppercase text-sm" style={{ fontFamily: 'var(--font-space-grotesk), monospace' }}>{l.title}</span>
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        {l.show_icon && l.icon ? (
+                          <img src={l.icon} alt="" className="w-7 h-7 object-cover shrink-0" style={{ border: `1px solid ${glowColor}` }} referrerPolicy="no-referrer" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                        ) : (
+                          <Zap className="w-4 h-4" style={{ color: glowColor }} />
+                        )}
+                        <span className="font-medium tracking-wide uppercase text-sm truncate" style={{ fontFamily: 'var(--font-space-grotesk), monospace' }}>{l.title}</span>
                       </div>
                       <span className="text-xs opacity-60" style={{ color: glowColor }}>&gt;&gt;</span>
                     </a>

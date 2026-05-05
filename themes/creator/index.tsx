@@ -284,6 +284,9 @@ export function CreatorTheme({ profile, links, socials, videos, banners, section
                       }}
                     >
                       <div className="flex items-center justify-between gap-3">
+                        {l.show_icon && l.icon && (
+                          <img src={l.icon} alt="" className="w-9 h-9 object-cover shrink-0" style={{ borderRadius: shape, border: `2px solid ${text}` }} referrerPolicy="no-referrer" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                        )}
                         <div className="flex-1 min-w-0 text-left">
                           <div className="text-[16px] truncate" style={{ fontWeight: 800 }}>
                             {l.title}

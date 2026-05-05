@@ -131,6 +131,9 @@ export function GraphiteTheme({ profile, links, socials, videos, banners, sectio
                       backdropFilter: 'blur(8px)',
                     }}
                   >
+                    {l.show_icon && l.icon && (
+                      <img src={l.icon} alt="" className="w-8 h-8 object-cover shrink-0" style={{ borderRadius: `${s.radius}px`, border: '1px solid rgba(255,255,255,0.12)' }} referrerPolicy="no-referrer" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                    )}
                     <div className="flex-1 min-w-0">
                       <p className="text-[15px] font-medium truncate" style={{ color: text, letterSpacing: '-0.01em' }}>
                         {l.title}

@@ -172,12 +172,16 @@ export function MangaTheme({ profile, links, socials, videos, banners, sectionOr
                     className={`group flex items-center gap-3 px-4 py-3.5 relative overflow-hidden transition-all ${s.showSpeedLines ? 'manga-link' : 'hover:opacity-70'}`}
                     style={{ border: `2.5px solid ${borderColor}`, backgroundColor: bg }}
                   >
-                    <span
-                      className="w-6 h-6 flex items-center justify-center shrink-0 text-[11px] font-black"
-                      style={{ backgroundColor: accent, color: bg, fontFamily: titleFamily }}
-                    >
-                      {String(i + 1).padStart(2, '0')}
-                    </span>
+                    {l.show_icon && l.icon ? (
+                      <img src={l.icon} alt="" className="w-6 h-6 object-cover shrink-0" style={{ border: `2px solid ${borderColor}` }} referrerPolicy="no-referrer" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                    ) : (
+                      <span
+                        className="w-6 h-6 flex items-center justify-center shrink-0 text-[11px] font-black"
+                        style={{ backgroundColor: accent, color: bg, fontFamily: titleFamily }}
+                      >
+                        {String(i + 1).padStart(2, '0')}
+                      </span>
+                    )}
                     <span className="flex-1 text-[15px] font-bold" style={{ fontFamily: titleFamily, color: text }}>
                       {l.title}
                     </span>

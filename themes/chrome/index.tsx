@@ -119,8 +119,13 @@ export function ChromeTheme({ profile, links, socials, videos, banners, sectionO
                       animationDelay: `${i * 80}ms`,
                     }}>
                     {s.highlight && <div className="absolute inset-x-6 top-0 h-px pointer-events-none" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)' }} aria-hidden />}
-                    <span className="relative font-medium">{l.title}</span>
-                    <ChevronRight className="relative w-4 h-4 opacity-60 transition-transform group-hover:translate-x-0.5" />
+                    <div className="relative flex items-center gap-3 min-w-0 flex-1">
+                      {l.show_icon && l.icon && (
+                        <img src={l.icon} alt="" className="w-8 h-8 rounded-md object-cover shrink-0" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }} referrerPolicy="no-referrer" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                      )}
+                      <span className="font-medium truncate">{l.title}</span>
+                    </div>
+                    <ChevronRight className="relative w-4 h-4 opacity-60 transition-transform group-hover:translate-x-0.5 shrink-0" />
                   </a>
                 ))}
               </div>

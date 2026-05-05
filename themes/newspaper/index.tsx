@@ -173,6 +173,9 @@ export function NewspaperTheme({ profile, links, socials, videos, banners, secti
                         >
                           {String.fromCharCode(65 + i)}.
                         </span>
+                        {l.show_icon && l.icon && (
+                          <img src={l.icon} alt="" className="w-6 h-6 object-cover shrink-0 grayscale" style={{ border: `1px solid ${text}22` }} referrerPolicy="no-referrer" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                        )}
                         <span className="flex-1 text-[15px] leading-tight" style={{ fontFamily: titleFamily, color: text, fontWeight: 600 }}>
                           {l.title}
                         </span>

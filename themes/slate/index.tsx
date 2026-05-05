@@ -81,7 +81,12 @@ export function SlateTheme({ profile, links, socials, videos, banners, sectionOr
           className={`group flex items-center justify-between w-full ${sp.pad} px-5 rounded-full transition-all hover:opacity-70`}
           style={{ border: `1px solid ${text}18`, backgroundColor: `${text}06`, color: text }}
         >
-          <span className="text-[15px] font-medium tracking-tight">{l.title}</span>
+          <span className="flex items-center gap-3 min-w-0 flex-1 text-[15px] font-medium tracking-tight">
+            {l.show_icon && l.icon && (
+              <img src={l.icon} alt="" className="w-7 h-7 rounded-md object-cover shrink-0" style={{ border: `1px solid ${text}18` }} referrerPolicy="no-referrer" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+            )}
+            <span className="truncate">{l.title}</span>
+          </span>
           <ArrowRight className="w-4 h-4 opacity-40 group-hover:translate-x-0.5 transition-transform" strokeWidth={1.5} />
         </a>
       );
@@ -97,7 +102,12 @@ export function SlateTheme({ profile, links, socials, videos, banners, sectionOr
           className={`group flex items-center justify-between w-full ${sp.pad} px-5 rounded-lg transition-all hover:opacity-70`}
           style={{ backgroundColor: accent, color: bg }}
         >
-          <span className="text-[15px] font-medium tracking-tight">{l.title}</span>
+          <span className="flex items-center gap-3 min-w-0 flex-1 text-[15px] font-medium tracking-tight">
+            {l.show_icon && l.icon && (
+              <img src={l.icon} alt="" className="w-7 h-7 rounded-md object-cover shrink-0" style={{ border: `1px solid ${text}18` }} referrerPolicy="no-referrer" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+            )}
+            <span className="truncate">{l.title}</span>
+          </span>
           <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform" strokeWidth={1.5} />
         </a>
       );

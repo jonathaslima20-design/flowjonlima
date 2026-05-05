@@ -207,10 +207,14 @@ export function CosmosTheme({ profile, links, socials, videos, banners, sectionO
                     >
                       <div className="absolute inset-0 rounded-xl" style={{ backgroundColor: bg, opacity: 0.85, borderRadius: '11px' }} />
                     </div>
-                    <div
-                      className="w-2 h-2 rounded-full shrink-0"
-                      style={{ background: auroraBorder }}
-                    />
+                    {l.show_icon && l.icon ? (
+                      <img src={l.icon} alt="" className="w-7 h-7 rounded-full object-cover shrink-0" style={{ border: '1px solid rgba(255,255,255,0.2)' }} referrerPolicy="no-referrer" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                    ) : (
+                      <div
+                        className="w-2 h-2 rounded-full shrink-0"
+                        style={{ background: auroraBorder }}
+                      />
+                    )}
                     <span className="flex-1 text-[15px] font-medium" style={{ color: text }}>{l.title}</span>
                     <span className="text-sm opacity-0 group-hover:opacity-60 transition-opacity" style={{ color: accent }}>→</span>
                   </a>

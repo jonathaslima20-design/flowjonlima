@@ -6,6 +6,7 @@ import type { BioThemeProps, BioThemeMeta } from '@/themes/types';
 import { getThemeSettings, getFontStack, orderedSections } from '@/themes/types';
 import { BioflowzyBadge } from '@/components/bio/BioflowzyBadge';
 import { VideoEmbed } from '@/components/themes/VideoEmbed';
+import { LinkIcon } from '@/components/themes/LinkIcon';
 
 export const auroraMeta: BioThemeMeta = {
   key: 'aurora',
@@ -152,8 +153,13 @@ export function AuroraTheme({ profile, links, socials, videos, banners, sectionO
                       color: profile.text_color,
                     }}
                   >
-                    <span className="font-medium">{l.title}</span>
-                    <ExternalLink className="w-4 h-4 opacity-60" />
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      {l.show_icon && l.icon && (
+                        <LinkIcon link={l} size={32} radius={10} containerStyle={{ background: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.2)' }} fallback={null} />
+                      )}
+                      <span className="font-medium truncate">{l.title}</span>
+                    </div>
+                    <ExternalLink className="w-4 h-4 opacity-60 shrink-0" />
                     <span
                       className="absolute inset-0 rounded-[var(--aurora-radius)] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
                       style={{ background: `linear-gradient(135deg, ${accent}22, transparent 60%)` }}

@@ -5,6 +5,7 @@ import type { BioThemeProps, BioThemeMeta } from '@/themes/types';
 import { getThemeSettings, getFontStack, orderedSections } from '@/themes/types';
 import { BioflowzyBadge } from '@/components/bio/BioflowzyBadge';
 import { VideoEmbed } from '@/components/themes/VideoEmbed';
+import { LinkIcon } from '@/components/themes/LinkIcon';
 import { ChevronRight } from 'lucide-react';
 
 export const cupertinoMeta: BioThemeMeta = {
@@ -218,23 +219,23 @@ export function CupertinoTheme({ profile, links, socials, videos, banners, secti
                     }}
                   >
                     <div className="flex items-center gap-3 min-w-0 flex-1">
-                      <div
+                      <LinkIcon
+                        link={l}
+                        size={36}
+                        radius={12}
                         className="flex items-center justify-center shrink-0"
-                        style={{
-                          width: 36,
-                          height: 36,
-                          borderRadius: 12,
+                        containerStyle={{
                           background: `linear-gradient(135deg, ${accent}, ${accent}AA)`,
                           color: '#fff',
                           boxShadow: `0 4px 12px -2px ${accent}66`,
                         }}
-                        aria-hidden
-                      >
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.5 1.5" />
-                          <path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.5-1.5" />
-                        </svg>
-                      </div>
+                        fallback={
+                          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.5 1.5" />
+                            <path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.5-1.5" />
+                          </svg>
+                        }
+                      />
                       <div className="min-w-0 flex-1 text-left">
                         <div
                           className="truncate"

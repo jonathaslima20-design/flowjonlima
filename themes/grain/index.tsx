@@ -160,6 +160,9 @@ export function GrainTheme({ profile, links, socials, videos, banners, sectionOr
                       marginBottom: s.polaroidTilt ? '8px' : '0',
                     }}
                   >
+                    {l.show_icon && l.icon && (
+                      <img src={l.icon} alt="" className="w-10 h-10 object-cover shrink-0" style={{ border: '3px solid #F5F0E8', boxShadow: '1px 1px 3px rgba(0,0,0,0.3)' }} referrerPolicy="no-referrer" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                    )}
                     <div className="flex-1">
                       <p
                         className="text-[15px] font-medium"

@@ -61,14 +61,19 @@ export function NordicTheme({ profile, links, socials, videos, banners, sectionO
       target="_blank"
       rel="noreferrer"
       onClick={() => t('link', l.id)}
-      className="group flex items-center justify-between p-4 transition-all hover:opacity-70"
+      className="group flex items-center justify-between gap-3 p-4 transition-all hover:opacity-70"
       style={{
         backgroundColor: '#FFFFFF',
         border: `1px solid ${text}12`,
         borderRadius: '4px',
       }}
     >
-      <span className="text-[14px] font-medium tracking-tight leading-tight">{l.title}</span>
+      <div className="flex items-center gap-3 min-w-0 flex-1">
+        {l.show_icon && l.icon && (
+          <img src={l.icon} alt="" className="w-8 h-8 object-cover shrink-0" style={{ borderRadius: '4px', border: `1px solid ${text}12` }} referrerPolicy="no-referrer" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+        )}
+        <span className="text-[14px] font-medium tracking-tight leading-tight truncate">{l.title}</span>
+      </div>
       <ArrowUpRight className="w-4 h-4 opacity-30 shrink-0 ml-2 group-hover:opacity-70 transition-opacity" strokeWidth={1.5} />
     </a>
   );

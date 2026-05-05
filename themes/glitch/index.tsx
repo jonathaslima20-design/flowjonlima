@@ -184,6 +184,9 @@ export function GlitchTheme({ profile, links, socials, videos, banners, sectionO
                     <span className="text-[12px] font-bold shrink-0 tabular-nums" style={{ color: accent, fontFamily: titleFamily }}>
                       {String(i).padStart(2, '0')}:
                     </span>
+                    {l.show_icon && l.icon && (
+                      <img src={l.icon} alt="" className="w-6 h-6 object-cover shrink-0" style={{ border: `1px solid ${accent}44`, borderRadius: '4px' }} referrerPolicy="no-referrer" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                    )}
                     <span className="flex-1 text-[14px] font-medium" style={{ color: text, fontFamily: titleFamily }}>
                       {l.title}
                     </span>

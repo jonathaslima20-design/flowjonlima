@@ -123,6 +123,9 @@ export function TerminalTheme({ profile, links, socials, videos, banners, sectio
                       className="group flex items-baseline gap-3 px-2 py-2 rounded hover:bg-white/5 transition-colors">
                       <span className="opacity-50 text-xs w-8">{String(i + 1).padStart(3, '0')}</span>
                       <span style={{ color: caret }}>&gt;</span>
+                      {l.show_icon && l.icon && (
+                        <img src={l.icon} alt="" className="w-5 h-5 object-cover shrink-0" style={{ border: `1px solid ${accent}55` }} referrerPolicy="no-referrer" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                      )}
                       <span className="flex-1" style={{ color: text }}>{l.title}</span>
                       <span className="text-xs opacity-50 group-hover:opacity-100 transition-opacity" style={{ color: accent }}>[open]</span>
                     </a>

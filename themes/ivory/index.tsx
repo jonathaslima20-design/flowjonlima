@@ -141,9 +141,11 @@ export function IvoryTheme({ profile, links, socials, videos, banners, sectionOr
                     className="group flex items-center gap-3 py-3.5 transition-opacity hover:opacity-60"
                     style={{ borderBottom: `1px solid ${text}0F` }}
                   >
-                    {s.showDot && (
+                    {l.show_icon && l.icon ? (
+                      <img src={l.icon} alt="" className="w-6 h-6 rounded-sm object-cover shrink-0" style={{ border: `1px solid ${accent}22` }} referrerPolicy="no-referrer" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                    ) : s.showDot ? (
                       <span style={{ color: accent, fontSize: '7px' }}>◆</span>
-                    )}
+                    ) : null}
                     <span
                       className="flex-1 text-[16px]"
                       style={{ fontFamily: titleFamily, fontStyle: 'italic', fontWeight: 400, letterSpacing: '0.01em' }}

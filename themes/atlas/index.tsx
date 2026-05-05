@@ -6,6 +6,7 @@ import type { BioThemeProps, BioThemeMeta } from '@/themes/types';
 import { getThemeSettings, getFontStack, orderedSections } from '@/themes/types';
 import { BioflowzyBadge } from '@/components/bio/BioflowzyBadge';
 import { VideoEmbed } from '@/components/themes/VideoEmbed';
+import { LinkIcon } from '@/components/themes/LinkIcon';
 
 export const atlasMeta: BioThemeMeta = {
   key: 'atlas',
@@ -262,15 +263,17 @@ export function AtlasTheme({ profile, links, socials, videos, banners, sectionOr
                         boxShadow: shadow,
                       }}
                     >
-                      <div
-                        className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
-                        style={{
+                      <LinkIcon
+                        link={l}
+                        size={36}
+                        radius={8}
+                        className="flex items-center justify-center shrink-0"
+                        containerStyle={{
                           backgroundColor: isPrimary || s.cardStyle === 'primary' ? 'rgba(255,255,255,0.2)' : `${accent}14`,
                           color: isPrimary || s.cardStyle === 'primary' ? '#FFFFFF' : accent,
                         }}
-                      >
-                        <Circle className="w-3.5 h-3.5" fill="currentColor" strokeWidth={0} />
-                      </div>
+                        fallback={<Circle className="w-3.5 h-3.5" fill="currentColor" strokeWidth={0} />}
+                      />
                       <div className="flex-1 min-w-0 text-left">
                         <div className="text-[15px] truncate" style={{ fontWeight: 600, letterSpacing: '-0.01em' }}>
                           {l.title}

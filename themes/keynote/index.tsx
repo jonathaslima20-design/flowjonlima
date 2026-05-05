@@ -180,8 +180,11 @@ export function KeynoteTheme({ profile, links, socials, videos, banners, section
                     <a key={l.id} href={l.url} target="_blank" rel="noreferrer" onClick={() => t('link', l.id)}
                       className="group relative block px-5 py-5 overflow-hidden keynote-band"
                       style={{ background: alt ? `${text}05` : 'transparent', borderTop: `1px solid ${text}10` }}>
-                      <div className="flex items-baseline gap-4">
+                      <div className="flex items-center gap-4">
                         <div className="text-3xl tabular-nums opacity-50" style={{ color: accent, fontWeight: 700 }}>{String(i + 1).padStart(2, '0')}</div>
+                        {l.show_icon && l.icon && (
+                          <img src={l.icon} alt="" className="w-10 h-10 object-cover shrink-0" style={{ border: `1px solid ${accent}55` }} referrerPolicy="no-referrer" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                        )}
                         <div className="flex-1">
                           <div className="text-[10px] tracking-[0.4em] uppercase opacity-60">Session</div>
                           <div className="text-xl tracking-tight" style={{ fontWeight: 700 }}>{l.title}</div>

@@ -70,6 +70,9 @@ export function SportivoTheme({ profile, links, socials, videos, banners, sectio
           <span className="text-[13px] font-black tabular-nums shrink-0" style={{ color: `${accent}88`, fontFamily: titleFamily }}>
             {String(i + 1).padStart(2, '0')}
           </span>
+          {l.show_icon && l.icon && (
+            <img src={l.icon} alt="" className="w-7 h-7 object-cover shrink-0" style={{ borderRadius: '6px', border: `1px solid ${accent}44`, transform: 'skewX(2deg)' }} referrerPolicy="no-referrer" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+          )}
           <span className="flex-1 text-[15px] font-bold tracking-tight" style={{ fontFamily: titleFamily, color: text, transform: 'skewX(2deg)', display: 'block' }}>
             {l.title}
           </span>
@@ -87,6 +90,9 @@ export function SportivoTheme({ profile, links, socials, videos, banners, sectio
           className="group flex items-center gap-4 px-5 py-4 transition-all hover:opacity-90"
           style={{ backgroundColor: i === 0 ? accent : `${accent}22`, borderRadius: '6px', color: i === 0 ? bg : text }}
         >
+          {l.show_icon && l.icon && (
+            <img src={l.icon} alt="" className="w-7 h-7 object-cover shrink-0" style={{ borderRadius: '6px', border: `1px solid ${text}22` }} referrerPolicy="no-referrer" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+          )}
           <span className="flex-1 text-[15px] font-bold" style={{ fontFamily: titleFamily }}>
             {l.title}
           </span>
@@ -104,10 +110,14 @@ export function SportivoTheme({ profile, links, socials, videos, banners, sectio
         style={{ backgroundColor: `${text}08`, border: `1px solid ${text}14`, borderRadius: '6px', height: '56px' }}
       >
         <div
-          className="h-full flex items-center justify-center px-4 shrink-0 text-xs font-black"
+          className="h-full flex items-center justify-center px-4 shrink-0 text-xs font-black overflow-hidden"
           style={{ backgroundColor: accent, color: bg, fontFamily: titleFamily, minWidth: '48px' }}
         >
-          {String(i + 1).padStart(2, '0')}
+          {l.show_icon && l.icon ? (
+            <img src={l.icon} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+          ) : (
+            String(i + 1).padStart(2, '0')
+          )}
         </div>
         <span className="flex-1 px-4 text-[15px] font-bold" style={{ fontFamily: titleFamily, color: text }}>
           {l.title}

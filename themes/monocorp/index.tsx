@@ -161,6 +161,9 @@ export function MonocorpTheme({ profile, links, socials, videos, banners, sectio
                           {String(i + 1).padStart(2, '0')}
                         </span>
                       )}
+                      {l.show_icon && l.icon && (
+                        <img src={l.icon} alt="" className="w-5 h-5 object-cover shrink-0" style={{ border: `1px solid ${text}22` }} referrerPolicy="no-referrer" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                      )}
                       {s.showDash && (
                         <span className="text-[13px]" style={{ color: `${text}55` }}>—</span>
                       )}

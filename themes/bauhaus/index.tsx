@@ -164,10 +164,14 @@ export function BauhausTheme({ profile, links, socials, videos, banners, section
                       style={{ height: '56px', border: `3px solid ${text}` }}
                     >
                       <div
-                        className="w-14 h-full flex items-center justify-center shrink-0 text-xs font-black"
+                        className="w-14 h-full flex items-center justify-center shrink-0 text-xs font-black overflow-hidden"
                         style={{ backgroundColor: linkColor, color: bg, fontFamily: titleFamily }}
                       >
-                        {String(i + 1).padStart(2, '0')}
+                        {l.show_icon && l.icon ? (
+                          <img src={l.icon} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                        ) : (
+                          String(i + 1).padStart(2, '0')
+                        )}
                       </div>
                       <div
                         className="flex-1 h-full flex items-center px-4"

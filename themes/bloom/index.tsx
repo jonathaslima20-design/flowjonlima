@@ -159,7 +159,11 @@ export function BloomTheme({ profile, links, socials, videos, banners, sectionOr
                       backgroundColor: `${accent}08`,
                     }}
                   >
-                    <span className="text-[16px]">{'\ud83c\udf3f'}</span>
+                    {l.show_icon && l.icon ? (
+                      <img src={l.icon} alt="" className="w-5 h-5 rounded-full object-cover shrink-0" referrerPolicy="no-referrer" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                    ) : (
+                      <span className="text-[16px]">{'\ud83c\udf3f'}</span>
+                    )}
                     <span className="flex-1 text-[15px] font-medium" style={{ fontFamily: titleFamily, fontStyle: 'italic', color: text }}>
                       {l.title}
                     </span>

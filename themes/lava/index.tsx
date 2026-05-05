@@ -168,7 +168,11 @@ export function LavaTheme({ profile, links, socials, videos, banners, sectionOrd
                       className={`group flex items-center gap-4 px-5 py-4 transition-all hover:opacity-90 ${s.borderPulse && s.cardStyle === 'glow' ? 'lava-card' : ''}`}
                       style={{ ...cs, borderRadius: '8px' }}
                     >
-                      <span className="text-lg shrink-0">🔥</span>
+                      {l.show_icon && l.icon ? (
+                        <img src={l.icon} alt="" className="w-7 h-7 rounded-md object-cover shrink-0" referrerPolicy="no-referrer" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                      ) : (
+                        <span className="text-lg shrink-0">🔥</span>
+                      )}
                       <span className="flex-1 text-[15px] font-bold tracking-tight" style={{ fontFamily: titleFamily, color: cs.color }}>
                         {l.title}
                       </span>

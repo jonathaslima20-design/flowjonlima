@@ -5,6 +5,7 @@ import { SOCIALS_BY_KEY, getSocialHref } from '@/lib/socials';
 import type { BioThemeProps, BioThemeMeta } from '@/themes/types';
 import { getThemeSettings, getFontStack, orderedSections } from '@/themes/types';
 import { BioflowzyBadge } from '@/components/bio/BioflowzyBadge';
+import { LinkIcon } from '@/components/themes/LinkIcon';
 import { VideoEmbed } from '@/components/themes/VideoEmbed';
 
 export const agencyMeta: BioThemeMeta = {
@@ -305,6 +306,9 @@ export function AgencyTheme({ profile, links, socials, videos, banners, sectionO
                           >
                             {idx}
                           </span>
+                        )}
+                        {l.show_icon && l.icon && (
+                          <LinkIcon link={l} size={32} radius={4} fallback={null} />
                         )}
                         <div className="flex-1 min-w-0 relative">
                           <div

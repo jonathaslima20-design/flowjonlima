@@ -144,10 +144,14 @@ export function ForestTheme({ profile, links, socials, videos, banners, sectionO
                       borderRadius: `${r}px`,
                     }}
                   >
-                    <div
-                      className="w-2 h-2 rounded-full shrink-0"
-                      style={{ backgroundColor: accent }}
-                    />
+                    {l.show_icon && l.icon ? (
+                      <img src={l.icon} alt="" className="w-7 h-7 rounded-full object-cover shrink-0" style={{ border: `1px solid ${accent}44` }} referrerPolicy="no-referrer" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                    ) : (
+                      <div
+                        className="w-2 h-2 rounded-full shrink-0"
+                        style={{ backgroundColor: accent }}
+                      />
+                    )}
                     <span className="flex-1 text-[15px] font-medium" style={{ color: text }}>{l.title}</span>
                   </a>
                 ))}

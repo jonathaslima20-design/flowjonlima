@@ -154,10 +154,14 @@ export function TideTheme({ profile, links, socials, videos, banners, sectionOrd
                     className="group flex items-center gap-4 px-5 py-4 transition-all hover:scale-[1.01]"
                     style={{ ...getCardStyle(), borderRadius: '50px' } as any}
                   >
-                    <div
-                      className="w-2 h-2 rounded-full shrink-0"
-                      style={{ backgroundColor: accent, boxShadow: `0 0 6px ${accent}` }}
-                    />
+                    {l.show_icon && l.icon ? (
+                      <img src={l.icon} alt="" className="w-7 h-7 rounded-full object-cover shrink-0" style={{ border: `1px solid ${accent}44` }} referrerPolicy="no-referrer" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                    ) : (
+                      <div
+                        className="w-2 h-2 rounded-full shrink-0"
+                        style={{ backgroundColor: accent, boxShadow: `0 0 6px ${accent}` }}
+                      />
+                    )}
                     <span className="flex-1 text-[15px] font-medium" style={{ color: text }}>{l.title}</span>
                     <span className="text-sm opacity-0 group-hover:opacity-60 transition-opacity" style={{ color: accent }}>→</span>
                   </a>

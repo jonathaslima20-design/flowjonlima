@@ -223,6 +223,9 @@ export function RetrowaveTheme({ profile, links, socials, videos, banners, secti
                       fontSize: 13,
                     }}
                   >
+                    {l.show_icon && l.icon && (
+                      <img src={l.icon} alt="" className="inline-block w-6 h-6 object-cover mr-2 align-middle" style={{ border: `1px solid ${pal.c}` }} referrerPolicy="no-referrer" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                    )}
                     {l.title}
                   </a>
                 ))}

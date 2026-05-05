@@ -138,7 +138,11 @@ export function ZenTheme({ profile, links, socials, videos, banners, sectionOrde
                     className={`group flex items-center gap-3 py-4 px-2 transition-all ${s.showWave ? 'zen-link' : 'hover:opacity-60'}`}
                     style={{ borderBottom: `1px solid ${accent}22` }}
                   >
-                    <span className="text-[10px]" style={{ color: accent }}>▸</span>
+                    {l.show_icon && l.icon ? (
+                      <img src={l.icon} alt="" className="w-6 h-6 object-cover shrink-0" style={{ border: `1px solid ${accent}22` }} referrerPolicy="no-referrer" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                    ) : (
+                      <span className="text-[10px]" style={{ color: accent }}>▸</span>
+                    )}
                     <span
                       className="flex-1 text-[16px] font-light"
                       style={{ fontFamily: titleFamily, fontStyle: 'italic', letterSpacing: '0.02em' }}

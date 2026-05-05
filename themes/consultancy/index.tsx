@@ -120,9 +120,14 @@ export function ConsultancyTheme({ profile, links, socials, videos, banners, sec
                     className="group grid grid-cols-[auto_1fr_auto] items-baseline gap-5 py-5 border-b transition-all hover:bg-black/[0.03]"
                     style={{ borderColor: `${text}33`, color: text }}>
                     <div className="text-xs tracking-widest" style={{ color: accent, fontWeight: 700 }}>{numberOf(i)}</div>
-                    <div>
+                    <div className="flex items-center gap-3 min-w-0">
+                      {l.show_icon && l.icon && (
+                        <img src={l.icon} alt="" className="w-8 h-8 object-cover shrink-0 grayscale" style={{ border: `1px solid ${text}` }} referrerPolicy="no-referrer" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                      )}
+                      <div className="min-w-0">
                       <div className="text-xl leading-tight" style={{ fontWeight: 700, letterSpacing: '-0.02em' }}>{l.title}</div>
                       <div className="mt-1 text-[10px] tracking-[0.3em] uppercase opacity-60">Case Study &middot; Open Access</div>
+                      </div>
                     </div>
                     <span className="text-xs tracking-widest transition-transform group-hover:translate-x-1" style={{ color: accent }}>READ &rarr;</span>
                   </a>

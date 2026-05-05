@@ -111,8 +111,13 @@ export function PrismTheme({ profile, links, socials, videos, banners, sectionOr
                     className="relative group px-5 py-4 flex items-center justify-between prism-card"
                     style={{ borderRadius: radius, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: text, ['--tilt' as any]: `${s.tiltAmount}deg` }}>
                     <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" style={{ borderRadius: radius, background: iridescent, backgroundSize: '200% 200%', animation: 'prism-flow 3s ease infinite', mixBlendMode: 'overlay' }} aria-hidden />
-                    <span className="relative font-medium">{l.title}</span>
-                    <ExternalLink className="relative w-4 h-4 opacity-60" />
+                    <div className="relative flex items-center gap-3 min-w-0 flex-1">
+                      {l.show_icon && l.icon && (
+                        <img src={l.icon} alt="" className="w-8 h-8 object-cover shrink-0" style={{ borderRadius: radius, border: '1px solid rgba(255,255,255,0.15)' }} referrerPolicy="no-referrer" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                      )}
+                      <span className="font-medium truncate">{l.title}</span>
+                    </div>
+                    <ExternalLink className="relative w-4 h-4 opacity-60 shrink-0" />
                   </a>
                 ))}
               </div>

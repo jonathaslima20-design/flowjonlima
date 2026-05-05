@@ -160,7 +160,11 @@ export function SakuraTheme({ profile, links, socials, videos, banners, sectionO
                       boxShadow: `0 2px 12px ${accent}14`,
                     }}
                   >
-                    <span className="text-[14px]" style={{ color: accent }}>🌸</span>
+                    {l.show_icon && l.icon ? (
+                      <img src={l.icon} alt="" className="w-7 h-7 object-cover shrink-0" style={{ borderRadius: `${r}px`, border: `1px solid ${accent}33` }} referrerPolicy="no-referrer" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                    ) : (
+                      <span className="text-[14px]" style={{ color: accent }}>🌸</span>
+                    )}
                     <span className="flex-1 text-[15px] font-medium" style={{ fontFamily: titleFamily, fontStyle: 'italic', color: text }}>
                       {l.title}
                     </span>

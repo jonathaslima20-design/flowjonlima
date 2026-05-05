@@ -178,9 +178,11 @@ export function DecoTheme({ profile, links, socials, videos, banners, sectionOrd
                       backgroundColor: `${accent}08`,
                     }}
                   >
-                    {s.showOrnaments && (
+                    {l.show_icon && l.icon ? (
+                      <img src={l.icon} alt="" className="w-6 h-6 object-cover shrink-0" style={{ border: `1px solid ${accent}44` }} referrerPolicy="no-referrer" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                    ) : s.showOrnaments ? (
                       <span className="text-[8px] shrink-0" style={{ color: accent }}>◆</span>
-                    )}
+                    ) : null}
                     <span
                       className="flex-1 text-[16px] uppercase tracking-wider"
                       style={{ fontFamily: titleFamily, color: text, letterSpacing: '0.1em', fontWeight: 500 }}

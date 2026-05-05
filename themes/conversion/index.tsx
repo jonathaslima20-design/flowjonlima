@@ -276,6 +276,9 @@ export function ConversionTheme({ profile, links, socials, videos, banners, sect
                             letterSpacing: '-0.01em',
                           }}
                         >
+                          {l.show_icon && l.icon && (
+                            <img src={l.icon} alt="" className="w-7 h-7 rounded-lg object-cover" referrerPolicy="no-referrer" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                          )}
                           <span>{l.title}</span>
                           <CtaIcon className="w-5 h-5 transition-transform group-hover:translate-x-1" />
                         </a>
@@ -297,6 +300,9 @@ export function ConversionTheme({ profile, links, socials, videos, banners, sect
                         boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
                       }}
                     >
+                      {l.show_icon && l.icon && (
+                        <img src={l.icon} alt="" className="w-9 h-9 rounded-lg object-cover shrink-0" style={{ border: `1px solid ${text}12` }} referrerPolicy="no-referrer" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                      )}
                       <div className="flex-1 min-w-0 text-left">
                         <div className="text-[15px] truncate" style={{ fontWeight: 700 }}>
                           {l.title}

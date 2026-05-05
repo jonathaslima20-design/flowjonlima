@@ -145,6 +145,9 @@ export function SunsetTheme({ profile, links, socials, videos, banners, sectionO
                       borderRadius: '16px',
                     }}
                   >
+                    {l.show_icon && l.icon && (
+                      <img src={l.icon} alt="" className="w-8 h-8 rounded-2xl object-cover shrink-0" style={{ border: '1px solid rgba(255,255,255,0.3)' }} referrerPolicy="no-referrer" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                    )}
                     <div className="flex-1 min-w-0">
                       <p className="text-[15px] font-semibold truncate" style={{ color: text, fontFamily: titleFamily }}>
                         {l.title}
