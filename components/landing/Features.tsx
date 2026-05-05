@@ -4,8 +4,8 @@ const items = [
   { icon: Link2, bg: 'bg-bioyellow', title: 'Links ilimitados', desc: 'Adicione quantos links quiser, organize por seções e reordene com drag & drop.' },
   { icon: BarChart3, bg: 'bg-biolime', title: 'Analytics claro', desc: 'Veja cliques, origens e picos de tráfego em gráficos sólidos e objetivos.' },
   { icon: Palette, bg: 'bg-bioblue', title: 'Temas personalizáveis', desc: 'Escolha cores, bordas e sombras. De acordo com o seu estilo.' },
-  { icon: Smartphone, bg: 'bg-bioyellow', title: 'Mobile first', desc: 'Sua bio fica perfeita em qualquer tela, com carregamento instantâneo.' },
-  { icon: Globe, bg: 'bg-biolime', title: 'Domínio próprio', desc: 'Conecte seu domínio com um clique. Assinantes Pro sem branding.' },
+  { icon: Smartphone, bg: 'bg-bioyellow', title: 'Layout Responsivo', desc: 'Sua bio fica perfeita em qualquer tela, com carregamento instantâneo.' },
+  { icon: Globe, bg: 'bg-biolime', title: 'Domínio próprio', desc: 'Conecte seu domínio com um clique.' },
   { icon: Shield, bg: 'bg-bioblue', title: 'Seguro por padrão', desc: 'Autenticação Supabase, RLS em todas as tabelas. Seus dados são seus.' },
 ];
 
