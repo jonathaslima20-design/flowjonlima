@@ -13,9 +13,36 @@ export const DEMO_PROFILE: Partial<BioProfile> = {
 };
 
 export const DEMO_LINKS = [
-  { id: 'l1', title: 'Meu novo curso', subtitle: 'Inscricoes abertas', url: '#', is_active: true },
-  { id: 'l2', title: 'Loja oficial', subtitle: 'Frete gratis', url: '#', is_active: true },
-  { id: 'l3', title: 'Newsletter semanal', subtitle: 'Assine gratis', url: '#', is_active: true },
+  {
+    id: 'l1',
+    title: 'Meu novo curso',
+    subtitle: 'Inscricoes abertas',
+    url: '#',
+    is_active: true,
+    show_icon: true,
+    icon_source: 'auto',
+    icon: 'https://www.google.com/s2/favicons?domain=udemy.com&sz=128',
+  },
+  {
+    id: 'l2',
+    title: 'Loja oficial',
+    subtitle: 'Frete gratis',
+    url: '#',
+    is_active: true,
+    show_icon: true,
+    icon_source: 'auto',
+    icon: 'https://www.google.com/s2/favicons?domain=shopify.com&sz=128',
+  },
+  {
+    id: 'l3',
+    title: 'Newsletter semanal',
+    subtitle: 'Assine gratis',
+    url: '#',
+    is_active: true,
+    show_icon: true,
+    icon_source: 'auto',
+    icon: 'https://www.google.com/s2/favicons?domain=substack.com&sz=128',
+  },
 ];
 
 export const DEMO_SOCIALS = [
@@ -46,9 +73,36 @@ export const CYBER_FALLBACK_PRESET = {
     avatar_size: 146,
   },
   links: [
-    { id: 'l1', title: 'Agendamento de Consultoria', subtitle: '', url: '#', is_active: true },
-    { id: 'l2', title: 'Relatórios Públicos/Cases', subtitle: '', url: '#', is_active: true },
-    { id: 'l3', title: 'Certificações e Badges', subtitle: '', url: '#', is_active: true },
+    {
+      id: 'l1',
+      title: 'Agendamento de Consultoria',
+      subtitle: '',
+      url: '#',
+      is_active: true,
+      show_icon: true,
+      icon_source: 'auto',
+      icon: 'https://www.google.com/s2/favicons?domain=calendly.com&sz=128',
+    },
+    {
+      id: 'l2',
+      title: 'Relatórios Públicos/Cases',
+      subtitle: '',
+      url: '#',
+      is_active: true,
+      show_icon: true,
+      icon_source: 'auto',
+      icon: 'https://www.google.com/s2/favicons?domain=github.com&sz=128',
+    },
+    {
+      id: 'l3',
+      title: 'Certificações e Badges',
+      subtitle: '',
+      url: '#',
+      is_active: true,
+      show_icon: true,
+      icon_source: 'auto',
+      icon: 'https://www.google.com/s2/favicons?domain=credly.com&sz=128',
+    },
   ],
   socials: [
     { id: 's1', platform: 'whatsapp', url: '#' },

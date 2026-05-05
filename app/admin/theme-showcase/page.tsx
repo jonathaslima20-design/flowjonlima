@@ -261,7 +261,41 @@ export default function AdminThemeShowcasePage() {
     });
   }
   function addLink() {
-    mutateArr(linksField as any, (arr) => [...arr, { id: `l_${Date.now()}`, title: 'Novo link', subtitle: '', url: '#', is_active: true }]);
+    mutateArr(linksField as any, (arr) => [...arr, { id: `l_${Date.now()}`, title: 'Novo link', subtitle: '', url: '#', is_active: true, show_icon: true, icon_source: 'auto', icon: '' }]);
+  }
+  async function detectLinkIcon(idx: number) {
+    const arr = (selected as any)[linksField] || [];
+    const link = arr[idx];
+    if (!link?.url || !/^https?:\/\//i.test(link.url)) {
+      setToast('URL inválida para detectar ícone');
+      setTimeout(() => setToast(''), 2000);
+      return;
+    }
+    try {
+      const apiUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/fetch-link-icon`;
+      const res = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ url: link.url }),
+      });
+      const data = await res.json();
+      if (data?.icon) {
+        mutateArr(linksField as any, (a) => {
+          const next = [...a];
+          next[idx] = { ...next[idx], icon: data.icon, icon_source: 'auto', show_icon: true };
+          return next;
+        });
+        setToast('Ícone detectado');
+      } else {
+        setToast('Nenhum ícone encontrado');
+      }
+    } catch {
+      setToast('Erro ao detectar ícone');
+    }
+    setTimeout(() => setToast(''), 2000);
   }
   function removeLink(idx: number) {
     mutateArr(linksField as any, (arr) => { const next = [...arr]; next.splice(idx, 1); return next; });
@@ -621,14 +655,46 @@ export default function AdminThemeShowcasePage() {
           <div className="flex flex-col gap-2 mb-5">
             {(linksOverride || []).length === 0 && <p className="text-[11px] text-black/60">Sem links personalizados (usando padrão).</p>}
             {(linksOverride || []).map((l: any, idx: number) => (
-              <div key={idx} className="grid grid-cols-[1fr_1fr_auto] gap-2 items-center">
-                <input type="text" value={l.title ?? ''} placeholder="Título"
-                  onChange={(e) => setLinksField(idx, 'title', e.target.value)}
+              <div key={idx} className="brutal-border bg-[#FAFAFA] p-3 flex flex-col gap-2">
+                <div className="grid grid-cols-[1fr_1fr_auto] gap-2 items-center">
+                  <input type="text" value={l.title ?? ''} placeholder="Título"
+                    onChange={(e) => setLinksField(idx, 'title', e.target.value)}
+                    className="brutal-input py-1.5 px-2 text-xs" />
+                  <input type="text" value={l.subtitle ?? ''} placeholder="Subtítulo"
+                    onChange={(e) => setLinksField(idx, 'subtitle', e.target.value)}
+                    className="brutal-input py-1.5 px-2 text-xs" />
+                  <IconBtn onClick={() => removeLink(idx)} />
+                </div>
+                <input type="text" value={l.url ?? ''} placeholder="URL (https://...)"
+                  onChange={(e) => setLinksField(idx, 'url', e.target.value)}
                   className="brutal-input py-1.5 px-2 text-xs" />
-                <input type="text" value={l.subtitle ?? ''} placeholder="Subtítulo"
-                  onChange={(e) => setLinksField(idx, 'subtitle', e.target.value)}
-                  className="brutal-input py-1.5 px-2 text-xs" />
-                <IconBtn onClick={() => removeLink(idx)} />
+                <div className="grid grid-cols-[auto_auto_1fr_auto] gap-2 items-center">
+                  <label className="flex items-center gap-1 text-[11px]">
+                    <input type="checkbox" checked={!!l.show_icon}
+                      onChange={(e) => setLinksField(idx, 'show_icon', e.target.checked)} />
+                    Ícone
+                  </label>
+                  <select value={l.icon_source ?? 'auto'}
+                    onChange={(e) => setLinksField(idx, 'icon_source', e.target.value)}
+                    className="brutal-input py-1 px-2 text-[11px] bg-white">
+                    <option value="none">Nenhum</option>
+                    <option value="auto">Auto</option>
+                    <option value="custom">Custom</option>
+                  </select>
+                  <input type="text" value={l.icon ?? ''} placeholder="URL do ícone"
+                    onChange={(e) => setLinksField(idx, 'icon', e.target.value)}
+                    className="brutal-input py-1 px-2 text-[11px]" />
+                  <button type="button" onClick={() => detectLinkIcon(idx)}
+                    className="brutal-border bg-white px-2 py-1 text-[11px] font-semibold hover:bg-black hover:text-white transition-colors">
+                    Detectar
+                  </button>
+                </div>
+                {l.icon && (
+                  <div className="flex items-center gap-2 text-[11px] text-black/60">
+                    <img src={l.icon} alt="" className="w-6 h-6 object-cover brutal-border" />
+                    <span className="truncate">{l.icon}</span>
+                  </div>
+                )}
               </div>
             ))}
           </div>
