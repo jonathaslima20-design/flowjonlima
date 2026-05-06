@@ -1,7 +1,7 @@
 export function Marquee() {
   const items = [
-    'CRIE SUA BIO EM 30 SEGUNDOS',
-    'SEM CÓDIGO',
+    'CRIE SUA BIO EM MINUTOS',
+    'REDES SOCIAIS',
     'ANALYTICS EM TEMPO REAL',
     'DOMÍNIO PRÓPRIO',
     'TEMAS PERSONALIZÁVEIS',
