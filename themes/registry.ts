@@ -10,15 +10,10 @@ import { PrismTheme, prismMeta } from './prism';
 import { NeonLabTheme, neonlabMeta } from './neonlab';
 import { ChromeTheme, chromeMeta } from './chrome';
 import { TerminalTheme, terminalMeta } from './terminal';
-import { ConsultancyTheme, consultancyMeta } from './consultancy';
-import { KeynoteTheme, keynoteMeta } from './keynote';
 import { GraphiteTheme, graphiteMeta } from './graphite';
 import { SunsetTheme, sunsetMeta } from './sunset';
 import { ForestTheme, forestMeta } from './forest';
-import { MangaTheme, mangaMeta } from './manga';
-import { BauhausTheme, bauhausMeta } from './bauhaus';
 import { LavaTheme, lavaMeta } from './lava';
-import { NewspaperTheme, newspaperMeta } from './newspaper';
 import { GlitchTheme, glitchMeta } from './glitch';
 import { CosmosTheme, cosmosMeta } from './cosmos';
 import { CupertinoTheme, cupertinoMeta } from './cupertino';
@@ -59,15 +54,10 @@ export const THEMES: Record<string, BioThemeDefinition> = {
   neonlab: { meta: withCoreControls(neonlabMeta), component: NeonLabTheme },
   creator: { meta: withCoreControls(creatorMeta), component: CreatorTheme },
   agency: { meta: withCoreControls(agencyMeta), component: AgencyTheme },
-  consultancy: { meta: withCoreControls(consultancyMeta), component: ConsultancyTheme },
-  keynote: { meta: withCoreControls(keynoteMeta), component: KeynoteTheme },
   graphite: { meta: withCoreControls(graphiteMeta), component: GraphiteTheme },
   sunset: { meta: withCoreControls(sunsetMeta), component: SunsetTheme },
   forest: { meta: withCoreControls(forestMeta), component: ForestTheme },
-  manga: { meta: withCoreControls(mangaMeta), component: MangaTheme },
-  bauhaus: { meta: withCoreControls(bauhausMeta), component: BauhausTheme },
   lava: { meta: withCoreControls(lavaMeta), component: LavaTheme },
-  newspaper: { meta: withCoreControls(newspaperMeta), component: NewspaperTheme },
   glitch: { meta: withCoreControls(glitchMeta), component: GlitchTheme },
   cosmos: { meta: withCoreControls(cosmosMeta), component: CosmosTheme },
 };
