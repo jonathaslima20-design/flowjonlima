@@ -25,7 +25,7 @@ function buildCoreControls(meta: BioThemeMeta): ControlDef[] {
     { key: '__core_bg_color', field: 'bg_color', type: 'coreColor', label: 'Cor de fundo', palette: meta.palettes.bg, default: meta.defaults.bg_color, group: 'Básico', category: 'cores' },
     { key: '__core_button_color', field: 'button_color', type: 'coreColor', label: 'Cor do botão / destaque', palette: meta.palettes.accent, default: meta.defaults.button_color, group: 'Básico', category: 'cores' },
     { key: '__core_text_color', field: 'text_color', type: 'coreColor', label: 'Cor do texto', palette: meta.palettes.text, default: meta.defaults.text_color, group: 'Básico', category: 'cores' },
-    { key: '__core_avatar_size', field: 'avatar_size', type: 'coreNumber', label: 'Tamanho do avatar', min: 60, max: 200, step: 2, suffix: 'px', default: 96, group: 'Básico', category: 'layout' },
+    { key: '__core_avatar_size', field: 'avatar_size', type: 'coreNumber', label: 'Tamanho do avatar', min: 60, max: 200, step: 2, suffix: 'px', default: 200, group: 'Básico', category: 'layout' },
   ];
   if (isBrutalist) {
     core.push(
