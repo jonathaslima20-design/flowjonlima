@@ -20,17 +20,21 @@ export default function CustomizePage() {
   const [saved, setSaved] = useState(false);
   const [showcase, setShowcase] = useState<Record<string, ShowcasePreset>>({});
   const [catalogOrder, setCatalogOrder] = useState<string[]>([]);
+  const [disabledThemes, setDisabledThemes] = useState<string[]>([]);
   const [previewOpen, setPreviewOpen] = useState(false);
   const saveTimer = useRef<any>(null);
 
   useEffect(() => {
     (async () => {
-      const all = await fetchAllShowcasePresets();
+      const [all, { data: settingRow }] = await Promise.all([
+        fetchAllShowcasePresets(),
+        supabase.from('admin_settings').select('value').eq('key', 'disabled_themes').maybeSingle(),
+      ]);
       const map: Record<string, ShowcasePreset> = {};
       for (const p of all) map[p.theme_key] = p;
       setShowcase(map);
-      // all is already sorted by catalog_order from fetchAllShowcasePresets
       setCatalogOrder(all.map(p => p.theme_key));
+      setDisabledThemes(Array.isArray(settingRow?.value) ? (settingRow?.value ?? []) : []);
     })();
   }, []);
 
@@ -192,7 +196,7 @@ export default function CustomizePage() {
             {[
               ...catalogOrder.filter(k => THEMES[k]).map(k => THEMES[k]),
               ...Object.values(THEMES).filter(({ meta }) => !catalogOrder.includes(meta.key)),
-            ].map(({ meta }) => {
+            ].filter(({ meta }) => !disabledThemes.includes(meta.key) || activeKey === meta.key).map(({ meta }) => {
               const active = activeKey === meta.key;
               const preset = showcase[meta.key];
               const hasShowcase = preset?.show_in_catalog;
