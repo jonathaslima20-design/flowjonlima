@@ -13,11 +13,11 @@ export const dynamic = 'force-dynamic';
 export async function generateMetadata({ params }: { params: { username: string } }): Promise<Metadata> {
   const { data: profile } = await supabase
     .from('profiles')
-    .select('display_name, bio, avatar_url, username')
+    .select('display_name, bio, avatar_url, username, suspended_at')
     .eq('username', params.username)
     .maybeSingle();
 
-  if (!profile) return {};
+  if (!profile || profile.suspended_at) return {};
 
   const name = profile.display_name || profile.username;
   const description = profile.bio || `Confira os links de ${name} na BioFlowzy.`;
@@ -58,7 +58,7 @@ export default async function PublicBio({ params }: { params: { username: string
     .eq('username', params.username)
     .maybeSingle();
 
-  if (!profile) return notFound();
+  if (!profile || profile.suspended_at) return notFound();
 
   const [{ data: links }, { data: socials }, { data: videos }, { data: banners }] = await Promise.all([
     supabase.from('links').select('*').eq('profile_id', profile.id).eq('is_active', true).order('position'),

@@ -36,6 +36,9 @@ function RegisterForm() {
     const clean = username.replace(/[^a-z0-9_.-]/gi, '').toLowerCase();
     if (!clean) { setErr('Escolha um @ válido'); setLoading(false); return; }
 
+    const { data: reserved } = await supabase.rpc('is_reserved_username', { p_username: clean });
+    if (reserved) { setErr('Este @ não está disponível.'); setLoading(false); return; }
+
     const { data: taken } = await supabase.from('profiles').select('id').eq('username', clean).maybeSingle();
     if (taken) { setErr('Este @ já está em uso.'); setLoading(false); return; }
 

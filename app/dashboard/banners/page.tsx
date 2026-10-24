@@ -51,9 +51,10 @@ export default function BannersPage() {
 
   async function addBanner() {
     if (atLimit) return;
-    const { data } = await supabase.from('banners').insert({
+    const { data, error } = await supabase.from('banners').insert({
       profile_id: profileId, image_url: '', link_url: '', size: 'md', position: banners.length,
     }).select().single();
+    if (error) { alert(error.message); return; }
     if (data) {
       setBanners([...banners, data as Banner]);
       reloadPlan();

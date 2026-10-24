@@ -21,7 +21,12 @@ export default function LoginPage() {
     setLoading(false);
     if (error) { setErr(error.message); return; }
     if (data.user) {
-      const { data: profile } = await supabase.from('profiles').select('role').eq('id', data.user.id).maybeSingle();
+      const { data: profile } = await supabase.from('profiles').select('role, suspended_at').eq('id', data.user.id).maybeSingle();
+      if (profile?.suspended_at && profile.role !== 'admin') {
+        await supabase.auth.signOut();
+        setErr('Sua conta está suspensa. Entre em contato com o suporte.');
+        return;
+      }
       router.push(profile?.role === 'admin' ? '/admin' : '/dashboard');
     }
   }

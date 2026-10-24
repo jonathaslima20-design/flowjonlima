@@ -24,7 +24,7 @@ const nav = [
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const path = usePathname();
-  const { ready, userId, role, signOut: ctxSignOut } = useAuth();
+  const { ready, userId, role, suspended, signOut: ctxSignOut } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
@@ -42,6 +42,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   if (!ready || !userId) {
     return <div className="min-h-screen flex items-center justify-center font-bold">Carregando...</div>;
+  }
+
+  if (suspended && role !== 'admin') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-biolime/30 p-4">
+        <div className="w-full max-w-md brutal-card p-8 text-center">
+          <h1 className="font-display text-3xl mb-2">Conta suspensa</h1>
+          <p className="text-sm mb-6">Sua conta foi suspensa e sua página está fora do ar. Entre em contato com o suporte para mais informações.</p>
+          <button onClick={signOut} className="brutal-btn bg-bioyellow py-3 w-full">Sair</button>
+        </div>
+      </div>
+    );
   }
 
   const isAdmin = role === 'admin';

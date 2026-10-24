@@ -9,6 +9,7 @@ interface AuthState {
   userId: string | null;
   email: string | null;
   role: Role;
+  suspended: boolean;
   ready: boolean;
 }
 
@@ -24,17 +25,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     userId: null,
     email: null,
     role: null,
+    suspended: false,
     ready: false,
   });
   const loadedForUser = useRef<string | null>(null);
 
-  async function resolveRole(userId: string): Promise<Role> {
+  async function resolveAccess(userId: string): Promise<{ role: Role; suspended: boolean }> {
     const { data } = await supabase
       .from('profiles')
-      .select('role')
+      .select('role, suspended_at')
       .eq('id', userId)
       .maybeSingle();
-    return (data?.role as Role) ?? 'user';
+    return { role: (data?.role as Role) ?? 'user', suspended: !!data?.suspended_at };
   }
 
   async function refresh() {
@@ -42,13 +44,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const user = data.session?.user;
     if (!user) {
       loadedForUser.current = null;
-      setState({ userId: null, email: null, role: null, ready: true });
+      setState({ userId: null, email: null, role: null, suspended: false, ready: true });
       return;
     }
     if (loadedForUser.current === user.id) return;
     loadedForUser.current = user.id;
-    const role = await resolveRole(user.id);
-    setState({ userId: user.id, email: user.email ?? null, role, ready: true });
+    const access = await resolveAccess(user.id);
+    setState({ userId: user.id, email: user.email ?? null, ...access, ready: true });
   }
 
   useEffect(() => {
@@ -58,13 +60,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const user = session?.user;
         if (!user) {
           loadedForUser.current = null;
-          setState({ userId: null, email: null, role: null, ready: true });
+          setState({ userId: null, email: null, role: null, suspended: false, ready: true });
           return;
         }
         if (loadedForUser.current === user.id && event !== 'SIGNED_IN') return;
         loadedForUser.current = user.id;
-        const role = await resolveRole(user.id);
-        setState({ userId: user.id, email: user.email ?? null, role, ready: true });
+        const access = await resolveAccess(user.id);
+        setState({ userId: user.id, email: user.email ?? null, ...access, ready: true });
       })();
     });
     return () => { sub.subscription.unsubscribe(); };
@@ -74,7 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function signOut() {
     await supabase.auth.signOut();
     loadedForUser.current = null;
-    setState({ userId: null, email: null, role: null, ready: true });
+    setState({ userId: null, email: null, role: null, suspended: false, ready: true });
   }
 
   return (

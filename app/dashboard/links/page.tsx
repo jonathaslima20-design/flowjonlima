@@ -46,12 +46,13 @@ export default function LinksPage() {
 
   async function addLink() {
     if (atLimit) return;
-    const { data } = await supabase.from('links').insert({
+    const { data, error } = await supabase.from('links').insert({
       profile_id: profileId,
       title: 'Novo link',
       url: 'https://',
       position: links.length,
     }).select().single();
+    if (error) { alert(error.message); return; }
     if (data) {
       setLinks([...links, data as Link]);
       reloadPlan();

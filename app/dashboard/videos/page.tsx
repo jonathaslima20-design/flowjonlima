@@ -41,9 +41,10 @@ export default function VideosPage() {
 
   async function addVideo() {
     if (atLimit) return;
-    const { data } = await supabase.from('videos').insert({
+    const { data, error } = await supabase.from('videos').insert({
       profile_id: profileId, title: 'Novo vídeo', url: '', position: videos.length,
     }).select().single();
+    if (error) { alert(error.message); return; }
     if (data) {
       setVideos([...videos, data as Video]);
       reloadPlan();

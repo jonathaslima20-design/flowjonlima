@@ -46,9 +46,10 @@ export default function SocialsPage() {
     if (!handleInput.trim()) return alert('Valor inválido.');
     const url = selected === 'location' ? handleInput.trim() : normalizeSocial(selected, handleInput);
     if (!url || isDangerousUrl(url)) return alert('Valor inválido.');
-    const { data } = await supabase.from('social_links').insert({
+    const { data, error } = await supabase.from('social_links').insert({
       profile_id: profileId, platform: selected, url, position: socials.length,
     }).select().single();
+    if (error) { alert(error.message); return; }
     if (data) {
       setSocials([...socials, data as Social]);
       reloadPlan();
