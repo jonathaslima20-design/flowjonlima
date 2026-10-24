@@ -11,6 +11,7 @@ Plataforma de link in bio (bioflowzy.com). Originalmente gerada no Bolt.new (tem
 - `npm run dev` — servidor local em http://localhost:3000
 - `npm run typecheck` — `tsc --noEmit` (o build ignora ESLint)
 - `npm run build`
+- Para checar o build com o `next dev` rodando, use outra pasta: `NEXT_DIST_DIR=.next-build npx next build` (buildar em `.next` derruba o preview local)
 
 ## Variáveis de ambiente (`.env`, não versionado)
 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_SITE_URL`
