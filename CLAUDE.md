@@ -1,0 +1,33 @@
+# BioFlowzy
+
+Plataforma de link in bio (bioflowzy.com). Originalmente gerada no Bolt.new (template `nextjs-shadcn`), agora mantida aqui.
+
+## Stack
+- Next.js 13.5 (App Router), React 18, TypeScript, Tailwind 3 + shadcn/ui (`components/ui`), ícones lucide-react / react-icons
+- Supabase (auth, Postgres, storage, RPCs, edge function `fetch-link-icon`) — cliente único em `lib/supabase.ts` usando apenas a anon key; segurança depende de RLS
+- Deploy: Netlify com `@netlify/plugin-nextjs` (`netlify.toml`), redireciona `www` → apex
+
+## Comandos
+- `npm run dev` — servidor local em http://localhost:3000
+- `npm run typecheck` — `tsc --noEmit` (o build ignora ESLint)
+- `npm run build`
+
+## Variáveis de ambiente (`.env`, não versionado)
+`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_SITE_URL`
+
+## Estrutura
+- `app/[username]` — página pública do bio
+- `app/dashboard/*` — painel do usuário (links, banners, vídeos, socials, customize, analytics, domain, integrations, referral, help, settings)
+- `app/admin/*` — painel admin (users, plans, themes, theme-showcase)
+- `app/api/` — `domains`, `domains/verify` (domínio próprio), `track` (analytics)
+- `middleware.ts` — domínios personalizados: hosts fora de `PRIMARY_SUFFIXES` são resolvidos via RPC `lookup_domain` e reescritos para `/{username}`
+- `themes/<nome>` + `themes/registry.ts` — temas visuais do bio; `components/themes`, `components/bio` renderizam
+- `lib/plans.ts` + `hooks/use-plan.ts` — planos (free / pro_monthly / pro_annual) e limites por recurso
+- `lib/auth-context.tsx` — contexto de autenticação
+- `supabase/migrations` — schema completo (perfis, planos, referral/PIX, help center, domínios, temas)
+
+## Convenções
+- Componentes com hooks precisam de `"use client"`
+- Não adicionar bibliotecas de UI/ícones sem necessidade; usar shadcn/ui e Tailwind
+- Mudanças de banco: nova migration em `supabase/migrations` (formato `YYYYMMDDHHMMSS_descricao.sql`)
+- Push na branch principal publica no Netlify (se o site estiver ligado ao repositório)
