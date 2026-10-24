@@ -1,4 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "npm:@supabase/supabase-js@2.58.0";
+
+// Exige usuário logado: sem isso a função vira um proxy aberto para buscar qualquer URL.
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -29,6 +32,25 @@ function s2Fallback(hostname: string): string {
   return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(hostname)}&sz=128`;
 }
 
+// Bloqueia destinos internos/privados (localhost, IPs privados, metadata de cloud)
+function isBlockedHost(hostname: string): boolean {
+  const h = hostname.toLowerCase().replace(/^\[|\]$/g, "");
+  if (h === "localhost" || h.endsWith(".localhost") || h.endsWith(".local") || h.endsWith(".internal")) return true;
+  if (!h.includes(".") && !h.includes(":")) return true;
+  const v4 = h.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (v4) {
+    const [a, b] = [Number(v4[1]), Number(v4[2])];
+    return a === 0 || a === 10 || a === 127 || (a === 169 && b === 254) ||
+      (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) ||
+      (a === 100 && b >= 64 && b <= 127) || a >= 224;
+  }
+  if (h.includes(":")) {
+    return h === "::1" || h === "::" || h.startsWith("fc") || h.startsWith("fd") ||
+      h.startsWith("fe80") || h.startsWith("::ffff:");
+  }
+  return false;
+}
+
 type Detection = { icon: string; source: string };
 
 async function detectIcon(targetUrl: string): Promise<Detection | null> {
@@ -38,7 +60,7 @@ async function detectIcon(targetUrl: string): Promise<Detection | null> {
   } catch {
     return null;
   }
-  if (!/^https?:$/.test(u.protocol)) return null;
+  if (!/^https?:$/.test(u.protocol) || isBlockedHost(u.hostname)) return null;
 
   const browserHeaders: Record<string, string> = {
     "User-Agent": BROWSER_UA,
@@ -56,7 +78,8 @@ async function detectIcon(targetUrl: string): Promise<Detection | null> {
       signal: AbortSignal.timeout(10000),
     });
     finalUrl = res.url || finalUrl;
-    if (res.ok) {
+    // Um redirect para destino interno não deve ter o conteúdo lido
+    if (res.ok && !isBlockedHost(new URL(finalUrl).hostname)) {
       const ct = res.headers.get("content-type") || "";
       if (ct.includes("text/html") || ct.includes("xml") || ct === "") {
         html = (await res.text()).slice(0, 300_000);
@@ -124,6 +147,17 @@ Deno.serve(async (req: Request) => {
     return new Response(null, { status: 200, headers: corsHeaders });
   }
 
+  const userClient = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
+    global: { headers: { Authorization: req.headers.get("Authorization") ?? "" } },
+  });
+  const { data: { user } } = await userClient.auth.getUser();
+  if (!user) {
+    return new Response(JSON.stringify({ error: "unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   try {
     let url = "";
     if (req.method === "GET") {
@@ -151,7 +185,7 @@ Deno.serve(async (req: Request) => {
       headers: {
         ...corsHeaders,
         "Content-Type": "application/json",
-        "Cache-Control": "public, max-age=3600",
+        "Cache-Control": "private, max-age=3600",
       },
     });
   } catch (err) {

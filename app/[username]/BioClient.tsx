@@ -13,13 +13,18 @@ export function BioClient({ profile, links, socials, videos, banners }: any) {
   const gaId = planAllowsTracking && validateGaId(profile?.ga_measurement_id) ? profile.ga_measurement_id : '';
 
   async function track(entity_type: string, entity_id: string | null) {
-    try {
-      await fetch('/api/track', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ profile_id: profile.id, entity_type, entity_id }),
-      });
-    } catch {}
+    // Chama a RPC direto do navegador para o banco ver o IP real do visitante (limites
+    // por visitante); keepalive garante o envio mesmo quando o clique abre outra página
+    fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/rpc/track_click`, {
+      method: 'POST',
+      keepalive: true,
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string,
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+      },
+      body: JSON.stringify({ p_profile_id: profile.id, p_entity_type: entity_type, p_entity_id: entity_id }),
+    }).catch(() => {});
 
     const known: TrackEntity[] = ['link', 'social', 'banner', 'video'];
     if (known.includes(entity_type as TrackEntity)) {

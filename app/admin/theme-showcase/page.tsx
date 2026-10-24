@@ -23,6 +23,7 @@ import {
 } from '@/lib/theme-showcase';
 import { ArrowUp, ArrowDown, Save, RotateCcw, Copy, Plus, Trash2, CopyPlus } from 'lucide-react';
 import { parseVideoUrl } from '@/lib/embed';
+import { supabase } from '@/lib/supabase';
 
 type Tab = 'catalog' | 'landing';
 
@@ -282,10 +283,12 @@ export default function AdminThemeShowcasePage() {
       const apiUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/fetch-link-icon`;
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 15000);
+      // A função exige usuário logado
+      const { data: { session } } = await supabase.auth.getSession();
       const res = await fetch(apiUrl, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+          'Authorization': `Bearer ${session?.access_token ?? ''}`,
           'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string,
           'Content-Type': 'application/json',
         },
