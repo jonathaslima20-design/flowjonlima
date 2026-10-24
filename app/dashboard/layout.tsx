@@ -7,6 +7,7 @@ import { useAuth } from '@/lib/auth-context';
 import { LayoutDashboard, Link2, ChartBar as BarChart3, Palette, Settings, LogOut, Waypoints, ShieldCheck, Video, Image as ImageIcon, AtSign, Menu, X, Gift, LifeBuoy } from 'lucide-react';
 import { UpgradeModalProvider } from '@/components/dashboard/UpgradeModal';
 import { SidebarPlanCard } from '@/components/dashboard/SidebarPlanCard';
+import { PaymentReturnNotice } from '@/components/dashboard/PaymentReturnNotice';
 
 const nav = [
   { href: '/dashboard', label: 'Visão geral', icon: LayoutDashboard },
@@ -137,7 +138,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       )}
 
-      <main className="md:ml-64 p-6 md:p-10">{children}</main>
+      <main className="md:ml-64 p-6 md:p-10">
+        <PaymentReturnNotice />
+        {children}
+      </main>
     </div>
     </UpgradeModalProvider>
   );

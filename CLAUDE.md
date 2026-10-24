@@ -36,6 +36,13 @@ Plataforma de link in bio (bioflowzy.com). Originalmente gerada no Bolt.new (tem
 - Suspensão (`suspended_at`) bloqueia edição/inserção no banco, a página pública (404) e o domínio próprio
 - Usernames reservados: `is_reserved_username()` no banco (cadastro chama via RPC)
 
+## Pagamentos (Mercado Pago, Checkout Pro)
+- Pagamento por período, sem renovação automática: 1 mês (`pro_monthly`) ou 1 ano (`pro_annual`)
+- `supabase/functions/mp-checkout`: cria linha `pending` em `payments` + preferência (`external_reference = payments.id`); preço lido de `plans.price_cents`
+- `supabase/functions/mp-webhook` (deploy com `verify_jwt = false`): consulta o pagamento na API do MP e chama `grant_paid_plan()` (só service_role; idempotente; estende a partir da expiração vigente)
+- Secrets das edge functions (painel do Supabase): `MP_ACCESS_TOKEN`, `MP_WEBHOOK_SECRET`, `SITE_URL`
+- Sem os secrets, o modal de upgrade cai no `plans.button_url` (links mpago.la cadastrados no admin)
+
 ## Convenções
 - Componentes com hooks precisam de `"use client"`
 - Não adicionar bibliotecas de UI/ícones sem necessidade; usar shadcn/ui e Tailwind

@@ -1,20 +1,20 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
-import Link from 'next/link';
-import { Check, Star, X, Crown } from 'lucide-react';
+import { Check, Star, X, Crown, Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { PLANS } from '@/lib/plans';
+import { startCheckout, type PaidPlan } from '@/lib/checkout';
 import { WhatsAppSupport } from '@/components/shared/WhatsAppSupport';
 
 const ANNUAL_DISCOUNT = Math.round((1 - (PLANS.pro_annual.priceCents / 100) / ((PLANS.pro_monthly.priceCents / 100) * 12)) * 100);
 
-type PlanButtons = { button_label: string | null; button_url: string | null };
-type DbButtons = { pro_monthly: PlanButtons; pro_annual: PlanButtons };
+type PlanButton = { label: string; fallbackUrl: string | null };
+type DbButtons = { pro_monthly: PlanButton; pro_annual: PlanButton };
 
 const DEFAULT_BUTTONS: DbButtons = {
-  pro_monthly: { button_label: 'Assinar Pro Mensal', button_url: null },
-  pro_annual:  { button_label: 'Assinar Pro Anual',  button_url: null },
+  pro_monthly: { label: 'Assinar Pro Mensal', fallbackUrl: null },
+  pro_annual: { label: 'Assinar Pro Anual', fallbackUrl: null },
 };
 
 type ModalCtx = { open: () => void; close: () => void; isOpen: boolean };
@@ -25,6 +25,16 @@ export function UpgradeModalProvider({ children }: { children: ReactNode }) {
   const [isOpen, setOpen] = useState(false);
   const open = useCallback(() => setOpen(true), []);
   const close = useCallback(() => setOpen(false), []);
+
+  // Vindo da página de preços (/register?plan=...) o cadastro redireciona com ?upgrade=1
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('upgrade') !== '1') return;
+    setOpen(true);
+    params.delete('upgrade');
+    const qs = params.toString();
+    window.history.replaceState(null, '', window.location.pathname + (qs ? `?${qs}` : ''));
+  }, []);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -50,6 +60,8 @@ export function useUpgradeModal() {
 
 function UpgradeModal({ onClose }: { onClose: () => void }) {
   const [buttons, setButtons] = useState<DbButtons>(DEFAULT_BUTTONS);
+  const [pending, setPending] = useState<PaidPlan | null>(null);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     supabase
@@ -60,12 +72,31 @@ function UpgradeModal({ onClose }: { onClose: () => void }) {
         if (!data) return;
         const next = { ...DEFAULT_BUTTONS };
         for (const p of data) {
-          if (p.slug === 'pro_monthly') next.pro_monthly = { button_label: p.button_label, button_url: p.button_url };
-          if (p.slug === 'pro_annual')  next.pro_annual  = { button_label: p.button_label, button_url: p.button_url };
+          if (p.slug !== 'pro_monthly' && p.slug !== 'pro_annual') continue;
+          next[p.slug as PaidPlan] = {
+            label: p.button_label || DEFAULT_BUTTONS[p.slug as PaidPlan].label,
+            fallbackUrl: p.button_url?.startsWith('https://') ? p.button_url : null,
+          };
         }
         setButtons(next);
       });
   }, []);
+
+  async function subscribe(plan: PaidPlan) {
+    setError('');
+    setPending(plan);
+    const result = await startCheckout(plan);
+    // Em caso de sucesso a página é redirecionada para o Mercado Pago
+    if (result.ok) return;
+    setPending(null);
+    // Enquanto a integração não está configurada, usa o link de pagamento cadastrado no admin
+    const fallback = buttons[plan].fallbackUrl;
+    if (result.notConfigured && fallback) {
+      window.open(fallback, '_blank', 'noopener,noreferrer');
+      return;
+    }
+    setError(result.message);
+  }
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60" onClick={onClose}>
@@ -97,8 +128,10 @@ function UpgradeModal({ onClose }: { onClose: () => void }) {
             bg="bg-bioyellow"
             ctaBg="bg-blue-600"
             ctaText="text-white"
-            ctaLabel={buttons.pro_monthly.button_label ?? 'Assinar Pro Mensal'}
-            href={buttons.pro_monthly.button_url}
+            ctaLabel={buttons.pro_monthly.label}
+            onSubscribe={() => subscribe('pro_monthly')}
+            loading={pending === 'pro_monthly'}
+            disabled={pending !== null}
             badge={{ label: 'MAIS POPULAR', bg: 'bg-black', text: 'text-white', icon: true }}
           />
           <PlanCardUpgrade
@@ -109,15 +142,23 @@ function UpgradeModal({ onClose }: { onClose: () => void }) {
             bg="bg-biolime"
             ctaBg="bg-black"
             ctaText="text-white"
-            ctaLabel={buttons.pro_annual.button_label ?? 'Assinar Pro Anual'}
-            href={buttons.pro_annual.button_url}
+            ctaLabel={buttons.pro_annual.label}
+            onSubscribe={() => subscribe('pro_annual')}
+            loading={pending === 'pro_annual'}
+            disabled={pending !== null}
             badge={{ label: `ECONOMIZE ${ANNUAL_DISCOUNT}%`, bg: 'bg-blue-600', text: 'text-white' }}
           />
         </div>
 
+        {error && (
+          <div className="px-6 pb-3 -mt-2">
+            <p className="text-center text-sm font-bold text-biored">{error}</p>
+          </div>
+        )}
+
         <div className="px-6 pb-2 -mt-2">
           <p className="text-center text-[11px] text-black/50">
-            Cancele quando quiser. Sem taxas ocultas.
+            Pagamento seguro pelo Mercado Pago: PIX, cartão ou boleto. Sem renovação automática.
           </p>
         </div>
 
@@ -130,10 +171,11 @@ function UpgradeModal({ onClose }: { onClose: () => void }) {
 }
 
 function PlanCardUpgrade({
-  name, price, period, features, bg, ctaBg, ctaText, ctaLabel, href, badge,
+  name, price, period, features, bg, ctaBg, ctaText, ctaLabel, onSubscribe, loading, disabled, badge,
 }: {
   name: string; price: string; period: string; features: string[];
-  bg: string; ctaBg: string; ctaText: string; ctaLabel: string; href: string | null;
+  bg: string; ctaBg: string; ctaText: string; ctaLabel: string;
+  onSubscribe: () => void; loading: boolean; disabled: boolean;
   badge: { label: string; bg: string; text: string; icon?: boolean };
 }) {
   return (
@@ -157,20 +199,14 @@ function PlanCardUpgrade({
           </li>
         ))}
       </ul>
-      {href ? (
-        <Link
-          href={href}
-          target={href.startsWith('http') ? '_blank' : undefined}
-          rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}
-          className={`mt-6 brutal-btn w-full py-3 text-center font-bold ${ctaBg} ${ctaText}`}
-        >
-          {ctaLabel}
-        </Link>
-      ) : (
-        <span className={`mt-6 brutal-btn w-full py-3 text-center font-bold opacity-40 cursor-not-allowed ${ctaBg} ${ctaText}`}>
-          {ctaLabel}
-        </span>
-      )}
+      <button
+        onClick={onSubscribe}
+        disabled={disabled}
+        className={`mt-6 brutal-btn w-full py-3 text-center font-bold gap-2 disabled:opacity-60 disabled:cursor-not-allowed ${ctaBg} ${ctaText}`}
+      >
+        {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+        {loading ? 'Abrindo pagamento...' : ctaLabel}
+      </button>
     </div>
   );
 }

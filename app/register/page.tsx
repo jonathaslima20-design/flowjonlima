@@ -22,6 +22,8 @@ function RegisterForm() {
     .replace(/[^a-z0-9_.-]/gi, '')
     .toLowerCase();
   const refCode = searchParams.get('ref') ?? '';
+  // Vindo da página de preços, abre o modal de assinatura logo após o cadastro
+  const afterSignup = searchParams.get('plan') ? '/dashboard?upgrade=1' : '/dashboard';
   const [username, setUsername] = useState(initialUsername);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -64,7 +66,7 @@ function RegisterForm() {
           setLoading(false);
           return;
         }
-        router.push('/dashboard');
+        router.push(afterSignup);
         return;
       }
       if (msg.includes('rate') || msg.includes('limit')) {
@@ -89,7 +91,7 @@ function RegisterForm() {
     }
 
     setLoading(false);
-    router.push('/dashboard');
+    router.push(afterSignup);
   }
 
   return (
