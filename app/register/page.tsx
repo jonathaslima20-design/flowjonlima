@@ -2,11 +2,20 @@
 
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Waypoints } from 'lucide-react';
 
+// useSearchParams exige um Suspense boundary no build do Next 14
 export default function RegisterPage() {
+  return (
+    <Suspense>
+      <RegisterForm />
+    </Suspense>
+  );
+}
+
+function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialUsername = (searchParams.get('username') ?? '')

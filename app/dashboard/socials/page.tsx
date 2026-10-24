@@ -8,6 +8,7 @@ import { usePlan } from '@/hooks/use-plan';
 import { LimitBadge, UpgradeBanner } from '@/components/dashboard/LimitBadge';
 import { isUnlimited } from '@/lib/plans';
 import { useUpgradeModal } from '@/components/dashboard/UpgradeModal';
+import { isDangerousUrl } from '@/lib/url';
 
 type Social = {
   id: string;
@@ -44,7 +45,7 @@ export default function SocialsPage() {
     if (atLimit) { alert('Limite de redes sociais do plano atingido.'); return; }
     if (!handleInput.trim()) return alert('Valor inválido.');
     const url = selected === 'location' ? handleInput.trim() : normalizeSocial(selected, handleInput);
-    if (!url) return alert('Valor inválido.');
+    if (!url || isDangerousUrl(url)) return alert('Valor inválido.');
     const { data } = await supabase.from('social_links').insert({
       profile_id: profileId, platform: selected, url, position: socials.length,
     }).select().single();
@@ -57,6 +58,7 @@ export default function SocialsPage() {
 
   async function update(id: string, patch: Partial<Social>) {
     setSocials(socials.map(s => s.id === id ? { ...s, ...patch } : s));
+    if (patch.url !== undefined && isDangerousUrl(patch.url)) return;
     await supabase.from('social_links').update(patch).eq('id', id);
   }
 

@@ -71,9 +71,9 @@ export default function ReferralPage() {
     setLoadingData(true);
 
     const { data: prof } = await supabase
-      .from('profiles')
+      .from('profile_private')
       .select('commission_balance, pix_key, pix_full_name')
-      .eq('id', profile.id)
+      .eq('profile_id', profile.id)
       .maybeSingle();
     if (prof) {
       setBalance(prof.commission_balance ?? 0);
@@ -120,7 +120,7 @@ export default function ReferralPage() {
   async function savePix() {
     if (!profile || !pixKey.trim() || !pixFullName.trim()) return;
     setPixSaving(true);
-    await supabase.from('profiles').update({ pix_key: pixKey.trim(), pix_full_name: pixFullName.trim() }).eq('id', profile.id);
+    await supabase.from('profile_private').update({ pix_key: pixKey.trim(), pix_full_name: pixFullName.trim() }).eq('profile_id', profile.id);
     setPixSaving(false);
     setPixSaved(true);
     setTimeout(() => setPixSaved(false), 2000);
@@ -130,15 +130,12 @@ export default function ReferralPage() {
     if (!profile || balance < 5000) return;
     if (!pixKey.trim() || !pixFullName.trim()) { alert('Preencha seu nome completo e chave Pix antes de solicitar o saque.'); return; }
     setWithdrawing(true);
-    const { error } = await supabase.from('payout_requests').insert({
-      user_id: profile.id,
-      amount_cents: balance,
-      pix_key: pixKey.trim(),
-      pix_full_name: pixFullName.trim(),
-      status: 'pending',
-    });
-    if (!error) {
-      await supabase.from('profiles').update({ commission_balance: 0 }).eq('id', profile.id);
+    // O saque usa o Pix salvo no banco, então salva antes o que está no formulário
+    await supabase.from('profile_private').update({ pix_key: pixKey.trim(), pix_full_name: pixFullName.trim() }).eq('profile_id', profile.id);
+    const { error } = await supabase.rpc('request_payout');
+    if (error) {
+      alert(error.message);
+    } else {
       setBalance(0);
       setWithdrawDone(true);
       setTimeout(() => setWithdrawDone(false), 3000);

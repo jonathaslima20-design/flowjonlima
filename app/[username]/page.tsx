@@ -67,9 +67,12 @@ export default async function PublicBio({ params }: { params: { username: string
     supabase.from('banners').select('*').eq('profile_id', profile.id).eq('is_active', true).order('position'),
   ]);
 
+  // Campos internos não vão para o HTML da página pública
+  const { role, referred_by, referral_code, suspended_at, ...publicProfile } = profile;
+
   return (
     <BioClient
-      profile={profile}
+      profile={publicProfile}
       links={links ?? []}
       socials={socials ?? []}
       videos={videos ?? []}

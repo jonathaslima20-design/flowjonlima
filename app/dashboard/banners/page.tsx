@@ -6,6 +6,7 @@ import { GripVertical, Plus, Trash2, Upload, Image as ImageIcon, Info } from 'lu
 import { usePlan } from '@/hooks/use-plan';
 import { LimitBadge, UpgradeBanner } from '@/components/dashboard/LimitBadge';
 import { isUnlimited } from '@/lib/plans';
+import { toSafeUrl } from '@/lib/url';
 
 type Banner = {
   id: string;
@@ -61,7 +62,13 @@ export default function BannersPage() {
 
   async function update(id: string, patch: Partial<Banner>) {
     setBanners(banners.map(b => b.id === id ? { ...b, ...patch } : b));
-    await supabase.from('banners').update(patch).eq('id', id);
+    const dbPatch = { ...patch };
+    if (patch.link_url !== undefined && patch.link_url.trim() !== '') {
+      const safe = toSafeUrl(patch.link_url);
+      if (!safe) return;
+      dbPatch.link_url = safe;
+    }
+    await supabase.from('banners').update(dbPatch).eq('id', id);
   }
 
   async function onFile(id: string, file: File) {

@@ -7,6 +7,7 @@ import { BioPreview } from '@/components/dashboard/BioPreview';
 import { usePlan } from '@/hooks/use-plan';
 import { LimitBadge, UpgradeBanner } from '@/components/dashboard/LimitBadge';
 import { isUnlimited } from '@/lib/plans';
+import { toSafeUrl } from '@/lib/url';
 
 type Link = {
   id: string;
@@ -59,7 +60,13 @@ export default function LinksPage() {
 
   async function updateLink(id: string, patch: Partial<Link>) {
     setLinks(links.map(l => l.id === id ? { ...l, ...patch } : l));
-    await supabase.from('links').update(patch).eq('id', id);
+    const dbPatch = { ...patch };
+    if (patch.url !== undefined) {
+      const safe = toSafeUrl(patch.url);
+      if (!safe) return;
+      dbPatch.url = safe;
+    }
+    await supabase.from('links').update(dbPatch).eq('id', id);
   }
 
   async function removeLink(id: string) {

@@ -26,6 +26,12 @@ Plataforma de link in bio (bioflowzy.com). Originalmente gerada no Bolt.new (tem
 - `lib/auth-context.tsx` — contexto de autenticação
 - `supabase/migrations` — schema completo (perfis, planos, referral/PIX, help center, domínios, temas)
 
+## Segurança do banco
+- `profiles` é legível publicamente: nunca guardar dados sensíveis nela. Pix e saldo de comissão ficam em `profile_private` (só dono/admin)
+- Trigger `trg_protect_profile_columns` bloqueia usuários comuns de alterar `role`, `plan*`, `is_pro`, `suspended_at`, `referred_by`, `referral_code`
+- Saque só via RPC `request_payout()` (valor calculado no servidor)
+- URLs de links/banners precisam de `http(s)://`, `mailto:` ou `tel:` (CHECK no banco + `lib/url.ts` na tela)
+
 ## Convenções
 - Componentes com hooks precisam de `"use client"`
 - Não adicionar bibliotecas de UI/ícones sem necessidade; usar shadcn/ui e Tailwind
