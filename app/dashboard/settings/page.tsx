@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 import { Upload, User } from 'lucide-react';
 import { ProFeatureCard } from '@/components/dashboard/ProFeatureCard';
 import { AvatarCropModal } from '@/components/dashboard/AvatarCropModal';
@@ -41,8 +42,8 @@ export default function SettingsPage() {
   }
 
   function onFileSelected(file: File) {
-    if (!file.type.startsWith('image/')) { alert('Envie um arquivo de imagem.'); return; }
-    if (file.size > 10 * 1024 * 1024) { alert('Máximo 10MB.'); return; }
+    if (!file.type.startsWith('image/')) { toast.error('Envie um arquivo de imagem.'); return; }
+    if (file.size > 10 * 1024 * 1024) { toast.error('Máximo 10MB.'); return; }
     const url = URL.createObjectURL(file);
     setCropSrc(url);
   }
@@ -53,7 +54,7 @@ export default function SettingsPage() {
     setUploading(true);
     const path = `${profile.id}/${crypto.randomUUID()}.jpg`;
     const { error } = await supabase.storage.from('avatars').upload(path, croppedFile, { upsert: false, contentType: 'image/jpeg' });
-    if (error) { setUploading(false); alert('Falha no upload: ' + error.message); return; }
+    if (error) { setUploading(false); toast.error('Falha no upload: ' + error.message); return; }
     const { data: pub } = supabase.storage.from('avatars').getPublicUrl(path);
     const oldPath = profile.avatar_url ? extractPath(profile.avatar_url) : null;
     const newUrl = pub.publicUrl;

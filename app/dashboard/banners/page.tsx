@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 import { GripVertical, Plus, Trash2, Upload, Image as ImageIcon, Info } from 'lucide-react';
 import { usePlan } from '@/hooks/use-plan';
 import { LimitBadge, UpgradeBanner } from '@/components/dashboard/LimitBadge';
@@ -55,7 +56,7 @@ export default function BannersPage() {
     const { data, error } = await supabase.from('banners').insert({
       profile_id: profileId, image_url: '', link_url: '', size: 'md', position: banners.length,
     }).select().single();
-    if (error) { alert(error.message); return; }
+    if (error) { toast.error(error.message); return; }
     if (data) {
       setBanners([...banners, data as Banner]);
       reloadPlan();
@@ -74,14 +75,14 @@ export default function BannersPage() {
   }
 
   async function onFile(id: string, original: File) {
-    if (!original.type.startsWith('image/')) return alert('Envie um arquivo de imagem.');
+    if (!original.type.startsWith('image/')) return toast.error('Envie um arquivo de imagem.');
     setUploading(id);
     const file = await compressImage(original, { maxSize: 1600 });
-    if (file.size > 3 * 1024 * 1024) { setUploading(null); return alert('Máximo 3MB.'); }
+    if (file.size > 3 * 1024 * 1024) { setUploading(null); return toast.error('Máximo 3MB.'); }
     const ext = file.name.split('.').pop() || 'png';
     const path = `${profileId}/${crypto.randomUUID()}.${ext}`;
     const { error } = await supabase.storage.from('banners').upload(path, file, { upsert: false, contentType: file.type });
-    if (error) { setUploading(null); alert('Falha no upload: ' + error.message); return; }
+    if (error) { setUploading(null); toast.error('Falha no upload: ' + error.message); return; }
     const { data: pub } = supabase.storage.from('banners').getPublicUrl(path);
     const current = banners.find(b => b.id === id);
     if (current?.image_url) {

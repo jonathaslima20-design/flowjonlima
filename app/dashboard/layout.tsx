@@ -9,6 +9,7 @@ import { UpgradeModalProvider } from '@/components/dashboard/UpgradeModal';
 import { SidebarPlanCard } from '@/components/dashboard/SidebarPlanCard';
 import { PaymentReturnNotice } from '@/components/dashboard/PaymentReturnNotice';
 import { refreshPublicBio } from '@/lib/revalidate-bio';
+import { Toaster } from '@/components/ui/sonner';
 
 const nav = [
   { href: '/dashboard', label: 'Visão geral', icon: LayoutDashboard },
@@ -157,6 +158,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <PaymentReturnNotice />
         {children}
       </main>
+      <Toaster
+        theme="light"
+        position="top-center"
+        richColors
+        toastOptions={{ className: 'brutal-border font-bold' }}
+      />
     </div>
     </UpgradeModalProvider>
   );

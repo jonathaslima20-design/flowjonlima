@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 import { GripVertical, Plus, Trash2, X } from 'lucide-react';
 import { SOCIALS, SOCIALS_BY_KEY, normalizeSocial, type SocialKey } from '@/lib/socials';
 import { usePlan } from '@/hooks/use-plan';
@@ -42,14 +43,14 @@ export default function SocialsPage() {
 
   async function confirmAdd() {
     if (!selected) return;
-    if (atLimit) { alert('Limite de redes sociais do plano atingido.'); return; }
-    if (!handleInput.trim()) return alert('Valor inválido.');
+    if (atLimit) { toast.error('Limite de redes sociais do plano atingido.'); return; }
+    if (!handleInput.trim()) return toast.error('Valor inválido.');
     const url = selected === 'location' ? handleInput.trim() : normalizeSocial(selected, handleInput);
-    if (!url || isDangerousUrl(url)) return alert('Valor inválido.');
+    if (!url || isDangerousUrl(url)) return toast.error('Valor inválido.');
     const { data, error } = await supabase.from('social_links').insert({
       profile_id: profileId, platform: selected, url, position: socials.length,
     }).select().single();
-    if (error) { alert(error.message); return; }
+    if (error) { toast.error(error.message); return; }
     if (data) {
       setSocials([...socials, data as Social]);
       reloadPlan();

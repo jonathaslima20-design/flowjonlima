@@ -67,7 +67,9 @@ export default function AdminUsersPage() {
       .from('profiles')
       .select('id, username, display_name, bio, avatar_url, is_pro, plan, plan_expires_at, plan_started_at, referral_code, role, suspended_at, created_at, theme', { count: 'exact' });
 
-    if (search) q = q.or(`username.ilike.%${search}%,display_name.ilike.%${search}%`);
+    // Vírgula, parênteses, aspas e barra mudam a sintaxe do filtro `or` do PostgREST
+    const term = search.replace(/[,()"\\]/g, ' ').trim();
+    if (term) q = q.or(`username.ilike.%${term}%,display_name.ilike.%${term}%`);
     if (filterRole !== 'all') q = q.eq('role', filterRole);
     if (filterPlan !== 'all') q = q.eq('plan', filterPlan);
     if (filterStatus === 'active') q = q.is('suspended_at', null);

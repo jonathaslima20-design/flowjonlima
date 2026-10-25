@@ -65,7 +65,8 @@ export async function fetchHelpArticle(categoryId: string, slug: string): Promis
 export async function searchHelpArticles(query: string): Promise<HelpArticle[]> {
   const q = query.trim();
   if (!q) return [];
-  const like = `%${q.replace(/[%_]/g, '')}%`;
+  // Vírgula, parênteses, aspas e barra mudam a sintaxe do filtro `or` do PostgREST
+  const like = `%${q.replace(/[%_]/g, '').replace(/[,()"\\]/g, ' ')}%`;
   const { data } = await supabase
     .from('help_articles')
     .select('*')

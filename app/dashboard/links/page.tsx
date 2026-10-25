@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 import { GripVertical, Plus, Trash2, ExternalLink, Image as ImageIcon, RefreshCw, Upload, X } from 'lucide-react';
 import { BioPreview } from '@/components/dashboard/BioPreview';
 import { usePlan } from '@/hooks/use-plan';
@@ -53,7 +54,7 @@ export default function LinksPage() {
       url: 'https://',
       position: links.length,
     }).select().single();
-    if (error) { alert(error.message); return; }
+    if (error) { toast.error(error.message); return; }
     if (data) {
       setLinks([...links, data as Link]);
       reloadPlan();
@@ -92,7 +93,7 @@ export default function LinksPage() {
 
   async function fetchAutoIcon(link: Link) {
     if (!link.url || !/^https?:\/\//i.test(link.url)) {
-      alert('URL inválida. O link precisa começar com https:// para detectar o ícone.');
+      toast.error('URL inválida. O link precisa começar com https:// para detectar o ícone.');
       return;
     }
     setFetchingIcon(prev => ({ ...prev, [link.id]: true }));
@@ -122,11 +123,11 @@ export default function LinksPage() {
           icon_fetched_at: new Date().toISOString(),
         });
       } else {
-        alert('Nenhum ícone detectado para este site.');
+        toast.info('Nenhum ícone detectado para este site.');
       }
     } catch (err) {
       console.error('fetch-link-icon error', err);
-      alert('Erro ao detectar ícone. Tente novamente em instantes.');
+      toast.error('Erro ao detectar ícone. Tente novamente em instantes.');
     } finally {
       setFetchingIcon(prev => ({ ...prev, [link.id]: false }));
     }
@@ -137,7 +138,7 @@ export default function LinksPage() {
     // Ícone aparece pequeno no botão: 256px é suficiente (PNG no fallback preserva transparência)
     const file = await compressImage(original, { maxSize: 256, fallbackType: 'image/png' });
     if (file.size > 2 * 1024 * 1024) {
-      alert('Imagem muito grande. Tamanho maximo: 2MB.');
+      toast.error('Imagem muito grande. Tamanho maximo: 2MB.');
       return;
     }
     const ext = (file.name.split('.').pop() || 'png').toLowerCase();
@@ -148,7 +149,7 @@ export default function LinksPage() {
       contentType: file.type,
     });
     if (upErr) {
-      alert('Falha no upload: ' + upErr.message);
+      toast.error('Falha no upload: ' + upErr.message);
       return;
     }
     const { data } = supabase.storage.from('link-icons').getPublicUrl(path);

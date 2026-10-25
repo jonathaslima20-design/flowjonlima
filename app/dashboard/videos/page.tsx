@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 import { GripVertical, Plus, Trash2, Video as VideoIcon } from 'lucide-react';
 import { parseVideoUrl } from '@/lib/embed';
 import { usePlan } from '@/hooks/use-plan';
@@ -44,7 +45,7 @@ export default function VideosPage() {
     const { data, error } = await supabase.from('videos').insert({
       profile_id: profileId, title: 'Novo vídeo', url: '', position: videos.length,
     }).select().single();
-    if (error) { alert(error.message); return; }
+    if (error) { toast.error(error.message); return; }
     if (data) {
       setVideos([...videos, data as Video]);
       reloadPlan();

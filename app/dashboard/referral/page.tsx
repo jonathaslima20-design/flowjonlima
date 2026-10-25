@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 import { usePlan } from '@/hooks/use-plan';
 import { useUpgradeModal } from '@/components/dashboard/UpgradeModal';
 import { Copy, Check, Lock, Crown, TrendingUp, DollarSign, Users, Wallet, Clock, CircleCheck as CheckCircle, Circle as XCircle, ChevronRight } from 'lucide-react';
@@ -128,13 +129,13 @@ export default function ReferralPage() {
 
   async function requestWithdraw() {
     if (!profile || balance < 5000) return;
-    if (!pixKey.trim() || !pixFullName.trim()) { alert('Preencha seu nome completo e chave Pix antes de solicitar o saque.'); return; }
+    if (!pixKey.trim() || !pixFullName.trim()) { toast.error('Preencha seu nome completo e chave Pix antes de solicitar o saque.'); return; }
     setWithdrawing(true);
     // O saque usa o Pix salvo no banco, então salva antes o que está no formulário
     await supabase.from('profile_private').update({ pix_key: pixKey.trim(), pix_full_name: pixFullName.trim() }).eq('profile_id', profile.id);
     const { error } = await supabase.rpc('request_payout');
     if (error) {
-      alert(error.message);
+      toast.error(error.message);
     } else {
       setBalance(0);
       setWithdrawDone(true);
