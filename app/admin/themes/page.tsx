@@ -39,8 +39,8 @@ export default function AdminThemesPage() {
       supabase.from('theme_showcase_presets').select('theme_key, catalog_order').order('catalog_order', { ascending: true }),
     ]);
 
-    const disabledThemes: string[] = settingsRows?.find(r => r.key === 'disabled_themes')?.value ?? [];
-    const proOnlyThemes: string[] = settingsRows?.find(r => r.key === 'pro_only_themes')?.value ?? [];
+    const disabledThemes = (settingsRows?.find(r => r.key === 'disabled_themes')?.value as string[] | undefined) ?? [];
+    const proOnlyThemes = (settingsRows?.find(r => r.key === 'pro_only_themes')?.value as string[] | undefined) ?? [];
 
     const themeCounts: Record<string, number> = {};
     (counts ?? []).forEach((r: any) => {

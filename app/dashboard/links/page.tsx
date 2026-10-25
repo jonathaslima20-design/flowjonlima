@@ -187,7 +187,7 @@ export default function LinksPage() {
         <div className="flex flex-col gap-3">
           {links.length === 0 && (
             <div className="brutal-card p-8 text-center">
-              <p className="font-bold">Nenhum link ainda. Clique em "Novo link" para começar.</p>
+              <p className="font-bold">Nenhum link ainda. Clique em “Novo link” para começar.</p>
             </div>
           )}
           {links.map(link => (

@@ -34,7 +34,8 @@ export default function CustomizePage() {
       for (const p of all) map[p.theme_key] = p;
       setShowcase(map);
       setCatalogOrder(all.map(p => p.theme_key));
-      setDisabledThemes(Array.isArray(settingRow?.value) ? (settingRow?.value ?? []) : []);
+      const disabled = settingRow?.value;
+      setDisabledThemes(Array.isArray(disabled) ? (disabled as string[]) : []);
     })();
   }, []);
 

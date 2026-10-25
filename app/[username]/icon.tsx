@@ -51,6 +51,7 @@ export default async function Icon({ params }: { params: { username: string } })
       >
         {avatarBase64 ? (
           <img
+            alt=""
             src={avatarBase64}
             width={128}
             height={128}

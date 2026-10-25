@@ -1,16 +1,17 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from './database.types';
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string;
 
 declare global {
   // eslint-disable-next-line no-var
-  var __bioflowzy_supabase: SupabaseClient | undefined;
+  var __bioflowzy_supabase: SupabaseClient<Database> | undefined;
 }
 
-export const supabase: SupabaseClient =
+export const supabase: SupabaseClient<Database> =
   globalThis.__bioflowzy_supabase ??
-  createClient(url, anon, {
+  createClient<Database>(url, anon, {
     auth: {
       persistSession: true,
       autoRefreshToken: true,

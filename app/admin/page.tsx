@@ -25,16 +25,18 @@ export default function AdminDashboard() {
     (async () => {
       const { data, error } = await supabase.rpc('admin_dashboard_stats');
       if (error || !data) { setLoading(false); return; }
+      // A RPC devolve um JSON livre; o formato é o de Stats
+      const s = data as Record<string, any>;
       setStats({
-        totalUsers: data.totalUsers ?? 0,
-        proUsers: data.proUsers ?? 0,
-        totalClicks: data.totalClicks ?? 0,
-        newUsersLast30: data.newUsersLast30 ?? 0,
-        revenueEstimate: data.revenueEstimate ?? 0,
-        themeUsage: data.themeUsage ?? [],
-        signupsByDay: data.signupsByDay ?? [],
-        recentLeads: data.recentLeads ?? [],
-        recentUsers: data.recentUsers ?? [],
+        totalUsers: s.totalUsers ?? 0,
+        proUsers: s.proUsers ?? 0,
+        totalClicks: s.totalClicks ?? 0,
+        newUsersLast30: s.newUsersLast30 ?? 0,
+        revenueEstimate: s.revenueEstimate ?? 0,
+        themeUsage: s.themeUsage ?? [],
+        signupsByDay: s.signupsByDay ?? [],
+        recentLeads: s.recentLeads ?? [],
+        recentUsers: s.recentUsers ?? [],
       });
       setLoading(false);
     })();

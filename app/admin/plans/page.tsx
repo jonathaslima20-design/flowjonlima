@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
+import type { Json } from '@/lib/database.types';
 import { Plus, Pencil, ToggleLeft, ToggleRight, Trash2, X, Check, TriangleAlert as AlertTriangle, Users, RefreshCw } from 'lucide-react';
 
 interface Plan {
@@ -73,7 +74,7 @@ export default function AdminPlansPage() {
 
   useEffect(() => { fetchPlans(); }, [fetchPlans]);
 
-  async function logAction(action: string, planId: string, details: object = {}) {
+  async function logAction(action: string, planId: string, details: Json = {}) {
     await supabase.from('admin_audit_log').insert({
       admin_id: adminId,
       action,

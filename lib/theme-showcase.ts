@@ -189,8 +189,9 @@ export async function fetchSocialProof(): Promise<SocialProofConfig | null> {
     .eq('key', 'social_proof')
     .maybeSingle();
   if (!data?.value) return null;
-  const text = data.value.text;
-  const avatars = Array.isArray(data.value.avatars) ? data.value.avatars : [];
+  const value = data.value as { text?: string; avatars?: unknown };
+  const text = value.text;
+  const avatars = Array.isArray(value.avatars) ? value.avatars : [];
   if (!text && avatars.length === 0) return null;
   return { text: text ?? '', avatars };
 }

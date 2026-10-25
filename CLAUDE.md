@@ -9,7 +9,10 @@ Plataforma de link in bio (bioflowzy.com). Originalmente gerada no Bolt.new (tem
 
 ## Comandos
 - `npm run dev` — servidor local em http://localhost:3000
-- `npm run typecheck` — `tsc --noEmit` (o build ignora ESLint)
+- `npm run typecheck` — `tsc --noEmit`
+- `npm run lint` — ESLint (`next/core-web-vitals`; `no-img-element` desligada porque as imagens são `unoptimized`). O build do Netlify ignora o lint; quem barra é o CI
+- CI (`.github/workflows/ci.yml`): typecheck + lint + build a cada push/PR na main
+- Tipos do banco em `lib/database.types.ts` (cliente `supabase` é `SupabaseClient<Database>`); regenerar após cada migration
 - `npm run build`
 - Para checar o build com o `next dev` rodando, use outra pasta: `NEXT_DIST_DIR=.next-build npx next build` (buildar em `.next` derruba o preview local)
 

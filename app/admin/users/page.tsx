@@ -2,24 +2,25 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
+import type { Json } from '@/lib/database.types';
 import { Search, Shield, ShieldOff, Ban, CircleCheck as CheckCircle2, ExternalLink, ChevronLeft, ChevronRight, RefreshCw, Filter, X, Eye, Crown } from 'lucide-react';
 import { PLANS, PlanSlug, isPlanSlug, planLabel } from '@/lib/plans';
 
 interface Profile {
   id: string;
   username: string;
-  display_name: string;
-  bio: string;
-  avatar_url: string;
-  is_pro: boolean;
+  display_name: string | null;
+  bio: string | null;
+  avatar_url: string | null;
+  is_pro: boolean | null;
   plan: string | null;
   plan_expires_at: string | null;
   plan_started_at: string | null;
   referral_code: string | null;
-  role: string;
+  role: string | null;
   suspended_at: string | null;
-  created_at: string;
-  theme: string;
+  created_at: string | null;
+  theme: string | null;
 }
 
 interface UserDetail extends Profile {
@@ -85,7 +86,7 @@ export default function AdminUsersPage() {
     fetchProfiles();
   }, [fetchProfiles]);
 
-  async function logAction(action: string, targetId: string, details: object = {}) {
+  async function logAction(action: string, targetId: string, details: Json = {}) {
     await supabase.from('admin_audit_log').insert({
       admin_id: adminId,
       action,
@@ -284,7 +285,7 @@ export default function AdminUsersPage() {
                       )}
                     </td>
                     <td className="px-4 py-3 text-xs text-gray-400 hidden lg:table-cell">
-                      {new Date(p.created_at).toLocaleDateString('pt-BR')}
+                      {p.created_at ? new Date(p.created_at).toLocaleDateString('pt-BR') : '—'}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1.5">
@@ -451,7 +452,7 @@ export default function AdminUsersPage() {
               {detail.referral_code && (
                 <div>Código de indicação: <span className="font-bold text-black font-mono">{detail.referral_code}</span></div>
               )}
-              <div>Cadastro: <span className="font-bold text-black">{new Date(detail.created_at).toLocaleDateString('pt-BR')}</span></div>
+              <div>Cadastro: <span className="font-bold text-black">{detail.created_at ? new Date(detail.created_at).toLocaleDateString('pt-BR') : '—'}</span></div>
               <div>Status: <span className="font-bold text-black">{detail.suspended_at ? 'Suspenso' : 'Ativo'}</span></div>
             </div>
 

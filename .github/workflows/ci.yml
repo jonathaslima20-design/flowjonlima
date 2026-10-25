@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # Valores públicos (a anon key já vai no HTML do site); o build consulta o Supabase
+      NEXT_PUBLIC_SUPABASE_URL: https://ghdytnynplyhugkpmhoy.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdoZHl0bnlucGx5aHVna3BtaG95Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1Njc4ODAsImV4cCI6MjA5MzE0Mzg4MH0.NqMc-Nf6nu0w0Ti-3xo3cvUQKLE5yV1ZaUeh7A0WZKs
+      NEXT_PUBLIC_SITE_URL: https://bioflowzy.com
+      NEXT_TELEMETRY_DISABLED: 1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      - name: Build
+        run: npm run build

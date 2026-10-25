@@ -27,6 +27,7 @@ export function CustomDomainSection() {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { void load(); }, []);
 
   async function authHeader(): Promise<Record<string, string>> {

@@ -75,7 +75,7 @@ export default function HelpIndexPage() {
 
       {results && (
         <div className="mt-6 bg-white brutal-border p-6">
-          <h2 className="font-display text-xl mb-4">Resultados para "{query}"</h2>
+          <h2 className="font-display text-xl mb-4">Resultados para “{query}”</h2>
           {results.length === 0 ? (
             <p className="text-sm text-black/60">Nada encontrado. Tente outros termos.</p>
           ) : (
