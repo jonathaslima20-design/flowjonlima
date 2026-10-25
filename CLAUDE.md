@@ -64,6 +64,12 @@ Plataforma de link in bio (bioflowzy.com). Originalmente gerada no Bolt.new (tem
 - Página pública de página extra só fica no ar se o plano da conta permitir várias páginas (`isPageLive`); domínio próprio vale só para a página principal
 - `profiles.id` não referencia mais `auth.users`: o trigger `on_auth_user_deleted` apaga o perfil principal e as extras caem em cascata
 
+## Equipe / clientes (Business)
+- `page_members` (página × usuário) e `page_invites` (token de uso único, 7 dias). Limite `members` no plano (Business 3, contando convites pendentes)
+- `is_page_owner(id)` = dono da conta; `can_manage_page(id)` = dono ou membro (só enquanto o plano da página tiver `members` ≠ 0). Membro não troca username, não convida nem exclui
+- RPCs `create_page_invite`, `get_page_invite` (anon, para a tela de aceite), `accept_page_invite`; rota `/convite/[token]` (login/cadastro voltam via `?next=`)
+- Painel: páginas compartilhadas entram no seletor com `shared: true` (`isOwner` falso). `usePlan().plan/has/limitOf` seguem a página editada; `profile`/`accountPlan` são da conta logada
+
 ## Domínio próprio
 - Escrita só pela edge function `custom-domain` (`set` / `verify` / `remove`); usuários apenas leem `custom_domains`
 - `verify` confere via DNS-over-HTTPS o TXT `_bioflowzy.<host>` com o token e o roteamento (CNAME para `cname.bioflowzy.com` ou A `75.2.60.5`), adiciona o domínio em `domain_aliases` do site no Netlify e marca `verified` + `netlify_added`

@@ -24,26 +24,30 @@ export type ResourceCounts = {
 
 export function usePlan() {
   const { userId, ready } = useAuth();
-  // Plano é da conta; contagens são da página editada no painel
-  const countsFor = useOptionalCurrentPage()?.pageId ?? userId;
+  // `profile`/`accountPlan` são da conta logada (indicação, renovação, nº de páginas).
+  // `plan`, `has`, `limitOf` e as contagens seguem a página editada: numa página compartilhada
+  // valem o plano e os recursos da conta dona dela
+  const pageId = useOptionalCurrentPage()?.pageId ?? userId;
   const [profile, setProfile] = useState<PlanProfile | null>(null);
+  const [pageProfile, setPageProfile] = useState<PlanProfile | null>(null);
   const [counts, setCounts] = useState<ResourceCounts>({ links: 0, banners: 0, videos: 0, socials: 0 });
   const [loading, setLoading] = useState(true);
 
   const reload = useCallback(async () => {
-    if (!userId) { setProfile(null); setLoading(false); return; }
+    if (!userId) { setProfile(null); setPageProfile(null); setLoading(false); return; }
     setLoading(true);
-    const { data: p } = await supabase.from('profiles')
-      .select('id, plan, plan_expires_at, plan_started_at, referral_code, is_pro')
-      .eq('id', userId).maybeSingle();
-    setProfile(p as PlanProfile | null);
-
-    const [links, banners, videos, socials] = await Promise.all([
-      supabase.from('links').select('id', { count: 'exact', head: true }).eq('profile_id', countsFor ?? userId),
-      supabase.from('banners').select('id', { count: 'exact', head: true }).eq('profile_id', countsFor ?? userId),
-      supabase.from('videos').select('id', { count: 'exact', head: true }).eq('profile_id', countsFor ?? userId),
-      supabase.from('social_links').select('id', { count: 'exact', head: true }).eq('profile_id', countsFor ?? userId),
+    const target = pageId ?? userId;
+    const select = 'id, plan, plan_expires_at, plan_started_at, referral_code, is_pro';
+    const [{ data: p }, { data: pg }, links, banners, videos, socials] = await Promise.all([
+      supabase.from('profiles').select(select).eq('id', userId).maybeSingle(),
+      target === userId ? Promise.resolve({ data: null }) : supabase.from('profiles').select(select).eq('id', target).maybeSingle(),
+      supabase.from('links').select('id', { count: 'exact', head: true }).eq('profile_id', target),
+      supabase.from('banners').select('id', { count: 'exact', head: true }).eq('profile_id', target),
+      supabase.from('videos').select('id', { count: 'exact', head: true }).eq('profile_id', target),
+      supabase.from('social_links').select('id', { count: 'exact', head: true }).eq('profile_id', target),
     ]);
+    setProfile(p as PlanProfile | null);
+    setPageProfile((pg as PlanProfile | null) ?? (p as PlanProfile | null));
     setCounts({
       links: links.count ?? 0,
       banners: banners.count ?? 0,
@@ -51,18 +55,19 @@ export function usePlan() {
       socials: socials.count ?? 0,
     });
     setLoading(false);
-  }, [userId, countsFor]);
+  }, [userId, pageId]);
 
   useEffect(() => {
     if (!ready) return;
     reload();
   }, [ready, reload]);
 
-  const plan: PlanDefinition = profile ? getPlanFor(profile) : PLANS.free;
+  const accountPlan: PlanDefinition = profile ? getPlanFor(profile) : PLANS.free;
+  const plan: PlanDefinition = pageProfile ? getPlanFor(pageProfile) : PLANS.free;
 
-  const canAdd = (resource: ResourceKey): boolean => canAddFn(profile, resource, counts[resource]);
-  const limitOf = (resource: ResourceKey): number => limitForFn(profile, resource);
-  const has = (feature: FeatureFlag): boolean => canFn(profile, feature);
+  const canAdd = (resource: ResourceKey): boolean => canAddFn(pageProfile, resource, counts[resource]);
+  const limitOf = (resource: ResourceKey): number => limitForFn(pageProfile, resource);
+  const has = (feature: FeatureFlag): boolean => canFn(pageProfile, feature);
 
-  return { profile, plan, counts, loading, reload, canAdd, limitOf, has };
+  return { profile, plan, accountPlan, counts, loading, reload, canAdd, limitOf, has };
 }

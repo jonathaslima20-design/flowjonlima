@@ -2,13 +2,14 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ExternalLink, Layers, Lock, Pencil, Plus, Trash2 } from 'lucide-react';
+import { ExternalLink, Layers, Lock, LogOut, Pencil, Plus, Trash2, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { useCurrentPage } from '@/lib/page-context';
 import { usePlan } from '@/hooks/use-plan';
 import { useUpgradeModal } from '@/components/dashboard/UpgradeModal';
 import { PLANS } from '@/lib/plans';
+import { PageTeam } from '@/components/dashboard/PageTeam';
 
 const SITE_HOST = (process.env.NEXT_PUBLIC_SITE_URL || 'https://bioflowzy.com').replace(/^https?:\/\//, '').replace(/\/$/, '');
 
@@ -18,12 +19,19 @@ function slugify(value: string) {
 
 export default function PagesPage() {
   const router = useRouter();
-  const { pages, pageId, setPageId, reloadPages } = useCurrentPage();
-  const { plan, loading } = usePlan();
+  const { pages: allPages, pageId, accountId, setPageId, reloadPages } = useCurrentPage();
+  const { accountPlan: plan, loading } = usePlan();
   const { open: openUpgrade } = useUpgradeModal();
   const [username, setUsername] = useState('');
   const [name, setName] = useState('');
+  // O endereço acompanha o nome até a pessoa editá-lo
+  const [usernameTouched, setUsernameTouched] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [teamOpen, setTeamOpen] = useState<string | null>(null);
+
+  const pages = allPages.filter(p => !p.shared);
+  const sharedPages = allPages.filter(p => p.shared);
+  const teamPlan = plan.limits.members !== 0;
 
   const limit = plan.limits.pages;
   const unlimited = limit < 0;
@@ -43,6 +51,7 @@ export default function PagesPage() {
     toast.success('Página criada! Agora é só montar o conteúdo dela.');
     setUsername('');
     setName('');
+    setUsernameTouched(false);
     await reloadPages();
     if (data) edit(data as string);
   }
@@ -52,7 +61,16 @@ export default function PagesPage() {
     const { error } = await supabase.from('profiles').delete().eq('id', id);
     if (error) { toast.error(error.message); return; }
     toast.success('Página excluída.');
-    if (pageId === id) setPageId(pages[0].id);
+    if (pageId === id && accountId) setPageId(accountId);
+    await reloadPages();
+  }
+
+  async function leave(id: string, handle: string) {
+    if (!confirm(`Sair da página /${handle}? Você perde o acesso de edição.`)) return;
+    const { error } = await supabase.from('page_members').delete().eq('page_id', id).eq('user_id', accountId!);
+    if (error) { toast.error(error.message); return; }
+    toast.success('Você saiu da página.');
+    if (pageId === id && accountId) setPageId(accountId);
     await reloadPages();
   }
 
@@ -86,12 +104,18 @@ export default function PagesPage() {
               <button onClick={() => edit(p.id)} className="brutal-btn bg-white px-3 py-2 text-xs gap-1">
                 <Pencil className="w-3 h-3" /> Editar
               </button>
+              {teamPlan && (
+                <button onClick={() => setTeamOpen(teamOpen === p.id ? null : p.id)} className={`brutal-btn px-3 py-2 text-xs gap-1 ${teamOpen === p.id ? 'bg-black text-white' : 'bg-white'}`}>
+                  <Users className="w-3 h-3" /> Equipe
+                </button>
+              )}
               {p.owner_id && (
                 <button onClick={() => remove(p.id, p.username)} className="brutal-btn bg-white px-3 py-2 text-xs gap-1" aria-label={`Excluir /${p.username}`}>
                   <Trash2 className="w-3 h-3" />
                 </button>
               )}
             </div>
+            {teamOpen === p.id && <PageTeam pageId={p.id} />}
           </div>
         ))}
         {!loading && (
@@ -100,6 +124,37 @@ export default function PagesPage() {
           </p>
         )}
       </section>
+
+      {sharedPages.length > 0 && (
+        <section className="flex flex-col gap-3">
+          <h2 className="font-display text-xl">Compartilhadas com você</h2>
+          {sharedPages.map(p => (
+            <div key={p.id} className={`brutal-card p-4 flex items-center gap-4 flex-wrap ${p.id === pageId ? 'bg-bioyellow/40' : ''}`}>
+              <div className="w-11 h-11 brutal-border bg-white overflow-hidden flex items-center justify-center shrink-0">
+                {p.avatar_url ? <img src={p.avatar_url} alt="" className="w-full h-full object-cover" /> : <Layers className="w-5 h-5" />}
+              </div>
+              <div className="flex-1 min-w-[160px]">
+                <p className="font-bold">
+                  {p.display_name || p.username}
+                  {p.id === pageId && <span className="ml-2 text-[10px] uppercase tracking-wide bg-white brutal-border px-2 py-0.5">Editando</span>}
+                </p>
+                <p className="text-xs text-black/60">{SITE_HOST}/{p.username}</p>
+              </div>
+              <div className="flex gap-2">
+                <a href={`/${p.username}`} target="_blank" rel="noreferrer" className="brutal-btn bg-white px-3 py-2 text-xs gap-1">
+                  <ExternalLink className="w-3 h-3" /> Ver
+                </a>
+                <button onClick={() => edit(p.id)} className="brutal-btn bg-white px-3 py-2 text-xs gap-1">
+                  <Pencil className="w-3 h-3" /> Editar
+                </button>
+                <button onClick={() => leave(p.id, p.username)} className="brutal-btn bg-white px-3 py-2 text-xs gap-1">
+                  <LogOut className="w-3 h-3" /> Sair
+                </button>
+              </div>
+            </div>
+          ))}
+        </section>
+      )}
 
       {!loading && multiPagePlan && (
         <section className="brutal-card p-5">
@@ -110,7 +165,7 @@ export default function PagesPage() {
                 Nome da página
                 <input
                   value={name}
-                  onChange={e => { setName(e.target.value); if (!username) setUsername(slugify(e.target.value)); }}
+                  onChange={e => { setName(e.target.value); if (!usernameTouched) setUsername(slugify(e.target.value)); }}
                   placeholder="Minha loja de verão"
                   maxLength={60}
                   className="brutal-input px-3 py-2 font-normal"
@@ -122,7 +177,7 @@ export default function PagesPage() {
                   <span className="px-3 text-sm text-black/50 font-normal shrink-0">{SITE_HOST}/</span>
                   <input
                     value={username}
-                    onChange={e => setUsername(slugify(e.target.value))}
+                    onChange={e => { setUsernameTouched(true); setUsername(slugify(e.target.value)); }}
                     placeholder="minhaloja-verao"
                     className="flex-1 min-w-0 px-2 py-2 font-normal outline-none"
                   />
@@ -144,7 +199,7 @@ export default function PagesPage() {
           <div className="flex-1">
             <h2 className="font-display text-xl">Várias páginas na mesma conta</h2>
             <p className="text-sm text-black/70 mt-1">
-              Com o plano Business você cria até {PLANS.business.limits.pages} páginas, ideal para quem tem mais de um negócio ou cuida de clientes.
+              Com o plano Business você cria até {PLANS.business.limits.pages} páginas e dá acesso de edição a até {PLANS.business.limits.members} pessoas, ideal para quem tem mais de um negócio ou cuida de clientes.
             </p>
           </div>
           {PLANS.business.available ? (

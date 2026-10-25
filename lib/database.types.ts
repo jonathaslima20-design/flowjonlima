@@ -397,6 +397,47 @@ export type Database = {
           },
         ]
       }
+      page_invites: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          created_at: string
+          created_by: string
+          expires_at: string
+          id: string
+          page_id: string
+          token: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          created_by: string
+          expires_at?: string
+          id?: string
+          page_id: string
+          token?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          created_by?: string
+          expires_at?: string
+          id?: string
+          page_id?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "page_invites_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       page_leads: {
         Row: {
           consent_at: string
@@ -432,6 +473,42 @@ export type Database = {
           {
             foreignKeyName: "page_leads_profile_id_fkey"
             columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      page_members: {
+        Row: {
+          created_at: string
+          id: string
+          page_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          page_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          page_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "page_members_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "page_members_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -1094,6 +1171,10 @@ export type Database = {
       generate_referral_code: { Args: never; Returns: string }
       grant_paid_plan: { Args: { p_payment_id: string }; Returns: string }
       can_manage_page: { Args: { p_profile_id: string }; Returns: boolean }
+      accept_page_invite: { Args: { p_token: string }; Returns: string }
+      create_page_invite: { Args: { p_page_id: string }; Returns: string }
+      get_page_invite: { Args: { p_token: string }; Returns: Json }
+      is_page_owner: { Args: { p_profile_id: string }; Returns: boolean }
       create_page: { Args: { p_display_name: string; p_username: string }; Returns: string }
       is_admin: { Args: never; Returns: boolean }
       is_pro_only_theme: { Args: { p_theme: string }; Returns: boolean }

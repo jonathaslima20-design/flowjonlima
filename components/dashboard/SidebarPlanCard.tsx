@@ -5,7 +5,7 @@ import { usePlan } from '@/hooks/use-plan';
 import { useUpgradeModal } from './UpgradeModal';
 
 export function SidebarPlanCard() {
-  const { plan, profile, loading } = usePlan();
+  const { accountPlan: plan, profile, loading } = usePlan();
   const { open } = useUpgradeModal();
 
   if (loading) return null;

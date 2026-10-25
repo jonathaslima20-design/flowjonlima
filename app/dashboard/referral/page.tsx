@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { usePlan } from '@/hooks/use-plan';
 import { useUpgradeModal } from '@/components/dashboard/UpgradeModal';
-import { PLANS, brl, type BillingPeriod } from '@/lib/plans';
+import { PLANS, brl, can, type BillingPeriod } from '@/lib/plans';
 import { Copy, Check, Lock, Crown, TrendingUp, DollarSign, Users, Wallet, Clock, CircleCheck as CheckCircle, Circle as XCircle, ChevronRight } from 'lucide-react';
 
 type ReferredUser = {
@@ -51,9 +51,9 @@ function fmt(cents: number) {
 }
 
 export default function ReferralPage() {
-  const { profile, has } = usePlan();
+  const { profile } = usePlan();
   const { open: openUpgrade } = useUpgradeModal();
-  const isPro = has('referral');
+  const isPro = can(profile, 'referral');
 
   const [copied, setCopied] = useState(false);
   const [referreds, setReferreds] = useState<ReferredUser[]>([]);

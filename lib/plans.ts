@@ -27,6 +27,8 @@ export type PlanLimits = {
   early_access: boolean;
   leads: number;
   pages: number;
+  /** Pessoas com acesso de edição às páginas da conta (convites pendentes contam) */
+  members: number;
 };
 
 export type PlanDefinition = {
@@ -81,6 +83,7 @@ export const PLANS: Record<PlanSlug, PlanDefinition> = {
       early_access: false,
       leads: 0,
       pages: 1,
+      members: 0,
     },
   },
   pro: {
@@ -122,6 +125,7 @@ export const PLANS: Record<PlanSlug, PlanDefinition> = {
       early_access: false,
       leads: 100,
       pages: 1,
+      members: 0,
     },
   },
   business: {
@@ -157,6 +161,7 @@ export const PLANS: Record<PlanSlug, PlanDefinition> = {
       early_access: true,
       leads: -1,
       pages: 5,
+      members: 3,
     },
   },
 };

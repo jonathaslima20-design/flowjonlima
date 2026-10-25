@@ -23,7 +23,10 @@ function RegisterForm() {
     .toLowerCase();
   const refCode = searchParams.get('ref') ?? '';
   // Vindo da página de preços, abre o modal de assinatura logo após o cadastro
-  const afterSignup = searchParams.get('plan') ? '/dashboard?upgrade=1' : '/dashboard';
+  // Vindo de um convite (?next=/convite/...), volta para ele após o cadastro
+  const rawNext = searchParams.get('next');
+  const next = rawNext && rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : null;
+  const afterSignup = next ?? (searchParams.get('plan') ? '/dashboard?upgrade=1' : '/dashboard');
   const [username, setUsername] = useState(initialUsername);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -85,7 +88,7 @@ function RegisterForm() {
       if (signInErr) {
         setErr('Conta criada. Faça login para continuar.');
         setLoading(false);
-        setTimeout(() => router.push('/login'), 1500);
+        setTimeout(() => router.push(next ? `/login?next=${encodeURIComponent(next)}` : '/login'), 1500);
         return;
       }
     }
@@ -122,7 +125,7 @@ function RegisterForm() {
           </button>
         </form>
         <div className="mt-6 text-center text-sm">
-          Ja tem conta? <Link href="/login" className="font-bold underline">Entrar</Link>
+          Ja tem conta? <Link href={next ? `/login?next=${encodeURIComponent(next)}` : '/login'} className="font-bold underline">Entrar</Link>
         </div>
       </div>
     </div>

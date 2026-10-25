@@ -2,9 +2,10 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Waypoints } from 'lucide-react';
+import { getNextPath } from '@/lib/next-path';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -12,6 +13,9 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [err, setErr] = useState('');
   const [loading, setLoading] = useState(false);
+  const [next, setNext] = useState<string | null>(null);
+
+  useEffect(() => { setNext(getNextPath()); }, []);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -27,7 +31,7 @@ export default function LoginPage() {
         setErr('Sua conta está suspensa. Entre em contato com o suporte.');
         return;
       }
-      router.push(profile?.role === 'admin' ? '/admin' : '/dashboard');
+      router.push(next ?? (profile?.role === 'admin' ? '/admin' : '/dashboard'));
     }
   }
 
@@ -52,7 +56,7 @@ export default function LoginPage() {
         </form>
         <div className="mt-6 flex justify-between text-sm">
           <Link href="/forgot-password" className="font-bold underline">Esqueci a senha</Link>
-          <Link href="/register" className="font-bold underline">Criar conta</Link>
+          <Link href={next ? `/register?next=${encodeURIComponent(next)}` : '/register'} className="font-bold underline">Criar conta</Link>
         </div>
       </div>
     </div>
