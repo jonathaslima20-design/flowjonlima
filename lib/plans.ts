@@ -18,6 +18,7 @@ export type PlanLimits = {
   pro_themes: boolean;
   scheduling: boolean;
   seo: boolean;
+  qr_code: boolean;
   custom_domain: boolean;
   pixel_ga: boolean;
   priority_support: boolean;
@@ -71,6 +72,7 @@ export const PLANS: Record<PlanSlug, PlanDefinition> = {
       pro_themes: false,
       scheduling: false,
       seo: false,
+      qr_code: false,
       custom_domain: false,
       pixel_ga: false,
       priority_support: false,
@@ -93,7 +95,9 @@ export const PLANS: Record<PlanSlug, PlanDefinition> = {
       'Remoção da marca BioFlowzy',
       'Banners e vídeos ilimitados',
       'Analytics completo: visitas, origem e dispositivo',
+      'Captura de leads (até 100 por mês)',
       'Agendamento de links',
+      'QR code da página',
       'SEO e prévia de compartilhamento',
       'Domínio personalizado',
       'Meta Pixel e Google Analytics',
@@ -109,6 +113,7 @@ export const PLANS: Record<PlanSlug, PlanDefinition> = {
       pro_themes: true,
       scheduling: true,
       seo: true,
+      qr_code: true,
       custom_domain: true,
       pixel_ga: true,
       priority_support: false,
@@ -143,6 +148,7 @@ export const PLANS: Record<PlanSlug, PlanDefinition> = {
       pro_themes: true,
       scheduling: true,
       seo: true,
+      qr_code: true,
       custom_domain: true,
       pixel_ga: true,
       priority_support: true,
@@ -209,7 +215,8 @@ export type FeatureFlag =
   | 'early_access'
   | 'pro_themes'
   | 'scheduling'
-  | 'seo';
+  | 'seo'
+  | 'qr_code';
 
 export function can(profile: any, feature: FeatureFlag): boolean {
   const limits = getPlanFor(profile).limits;

@@ -394,6 +394,47 @@ export type Database = {
           },
         ]
       }
+      page_leads: {
+        Row: {
+          consent_at: string
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          profile_id: string
+          visitor_hash: string
+        }
+        Insert: {
+          consent_at?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          profile_id: string
+          visitor_hash: string
+        }
+        Update: {
+          consent_at?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          profile_id?: string
+          visitor_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "page_leads_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       page_views: {
         Row: {
           country: string | null
@@ -1050,6 +1091,7 @@ export type Database = {
       is_pro_only_theme: { Args: { p_theme: string }; Returns: boolean }
       is_reserved_username: { Args: { p_username: string }; Returns: boolean }
       is_suspended: { Args: { p_profile_id: string }; Returns: boolean }
+      lead_usage: { Args: never; Returns: Json }
       lookup_domain: {
         Args: { p_domain: string }
         Returns: {
@@ -1081,6 +1123,16 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      submit_lead: {
+        Args: {
+          p_consent: boolean
+          p_email: string
+          p_name: string
+          p_phone: string
+          p_profile_id: string
+        }
+        Returns: boolean
       }
       theme_usage_counts: {
         Args: never

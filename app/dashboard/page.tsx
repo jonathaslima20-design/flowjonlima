@@ -5,8 +5,10 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { MousePointerClick, Link2, AtSign, Video } from 'lucide-react';
+import { QrCodeCard } from '@/components/dashboard/QrCodeCard';
+import { StarterTemplates } from '@/components/dashboard/StarterTemplates';
 
-type Profile = { id: string; username: string; display_name: string };
+type Profile = { id: string; username: string; display_name: string; bio: string | null };
 
 type Stats = {
   totalClicks: number;
@@ -29,6 +31,9 @@ export default function DashboardHome() {
   const [series, setSeries] = useState<{ day: string; cliques: number }[]>([]);
   const [topLinks, setTopLinks] = useState<TopLink[]>([]);
   const [loading, setLoading] = useState(true);
+  // Página sem nenhum link (ativo ou não) nem rede social: oferece os modelos por nicho
+  const [isEmpty, setIsEmpty] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     (async () => {
@@ -37,7 +42,7 @@ export default function DashboardHome() {
 
       const { data: p } = await supabase
         .from('profiles')
-        .select('id,username,display_name')
+        .select('id,username,display_name,bio')
         .eq('id', u.user.id)
         .maybeSingle();
       setProfile(p as Profile);
@@ -53,6 +58,7 @@ export default function DashboardHome() {
         { count: linkCount },
         { count: socialCount },
         { count: videoCount },
+        { count: allLinksCount },
       ] = await Promise.all([
         supabase.from('clicks').select('*', { count: 'exact', head: true }).eq('profile_id', pid),
         supabase.from('clicks').select('*', { count: 'exact', head: true }).eq('profile_id', pid).eq('entity_type', 'link'),
@@ -61,7 +67,9 @@ export default function DashboardHome() {
         supabase.from('links').select('*', { count: 'exact', head: true }).eq('profile_id', pid).eq('is_active', true),
         supabase.from('social_links').select('*', { count: 'exact', head: true }).eq('profile_id', pid),
         supabase.from('videos').select('*', { count: 'exact', head: true }).eq('profile_id', pid),
+        supabase.from('links').select('*', { count: 'exact', head: true }).eq('profile_id', pid),
       ]);
+      setIsEmpty(!allLinksCount && !socialCount);
 
       setStats({
         totalClicks: totalClicks ?? 0,
@@ -106,7 +114,7 @@ export default function DashboardHome() {
 
       setLoading(false);
     })();
-  }, []);
+  }, [reloadKey]);
 
   return (
     <div className="max-w-5xl mx-auto">
@@ -137,12 +145,22 @@ export default function DashboardHome() {
         </a>
       </div>
 
+      {!loading && isEmpty && profile && (
+        <StarterTemplates profileId={profile.id} currentBio={profile.bio} onApplied={() => setReloadKey(k => k + 1)} />
+      )}
+
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-8">
         <StatCard label="Cliques totais" value={loading ? '...' : stats.totalClicks} icon={MousePointerClick} bg="bg-bioyellow" />
         <StatCard label="Cliques em links" value={loading ? '...' : stats.linkClicks} icon={Link2} bg="bg-biolime" />
         <StatCard label="Links ativos" value={loading ? '...' : stats.linkCount} icon={Link2} bg="bg-bioblue" dark />
         <StatCard label="Cliques em redes" value={loading ? '...' : stats.socialClicks} icon={AtSign} bg="bg-white" />
       </div>
+
+      {profile?.username && (
+        <div className="mt-8">
+          <QrCodeCard username={profile.username} />
+        </div>
+      )}
 
       <div className="mt-8 brutal-card p-6">
         <h2 className="font-display text-2xl mb-4">Cliques por dia (ultimos 7 dias)</h2>

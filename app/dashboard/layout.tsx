@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
-import { LayoutDashboard, Link2, ChartBar as BarChart3, Palette, Settings, LogOut, Waypoints, ShieldCheck, Video, Image as ImageIcon, AtSign, Menu, X, Gift, LifeBuoy } from 'lucide-react';
+import { LayoutDashboard, Link2, ChartBar as BarChart3, Palette, Settings, LogOut, Waypoints, ShieldCheck, Video, Image as ImageIcon, AtSign, Menu, X, Gift, LifeBuoy, Inbox } from 'lucide-react';
 import { UpgradeModalProvider } from '@/components/dashboard/UpgradeModal';
 import { SidebarPlanCard } from '@/components/dashboard/SidebarPlanCard';
 import { PaymentReturnNotice } from '@/components/dashboard/PaymentReturnNotice';
@@ -19,6 +19,7 @@ const nav = [
   { href: '/dashboard/banners', label: 'Banners', icon: ImageIcon },
   { href: '/dashboard/videos', label: 'Vídeos', icon: Video },
   { href: '/dashboard/analytics', label: 'Analytics', icon: BarChart3 },
+  { href: '/dashboard/leads', label: 'Leads', icon: Inbox },
   { href: '/dashboard/customize', label: 'Aparência', icon: Palette },
   { href: '/dashboard/referral', label: 'Indique e ganhe', icon: Gift },
   { href: '/dashboard/help', label: 'Central de Ajuda', icon: LifeBuoy },

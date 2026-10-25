@@ -11,6 +11,7 @@ import { useUpgradeModal } from '@/components/dashboard/UpgradeModal';
 import { isUnlimited } from '@/lib/plans';
 import { toSafeUrl } from '@/lib/url';
 import { compressImage } from '@/lib/compress-image';
+import { isLeadFormUrl } from '@/lib/leads';
 
 type Link = {
   id: string;
@@ -277,6 +278,7 @@ function LinkRow({
   const [expanded, setExpanded] = useState(false);
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const status = scheduleStatus(link);
+  const isLeadForm = isLeadFormUrl(link.url);
   const hasSchedule = !!(link.starts_at || link.ends_at);
   const fileRef = useRef<HTMLInputElement>(null);
   const lastAutoUrl = useRef<string | null>(link.icon_source === 'auto' ? link.url : null);
@@ -323,13 +325,17 @@ function LinkRow({
               className="brutal-input px-3 py-2 font-bold w-full"
               placeholder="Título"
             />
-            <input
-              value={link.url}
-              onChange={e => onUpdate({ url: e.target.value })}
-              onBlur={handleUrlBlur}
-              className="brutal-input px-3 py-2 text-sm w-full"
-              placeholder="https://"
-            />
+            {isLeadForm ? (
+              <p className="text-xs font-bold px-3 py-2 bg-biolime border-2 border-black">Abre o formulário de contato (configure em Leads)</p>
+            ) : (
+              <input
+                value={link.url}
+                onChange={e => onUpdate({ url: e.target.value })}
+                onBlur={handleUrlBlur}
+                className="brutal-input px-3 py-2 text-sm w-full"
+                placeholder="https://"
+              />
+            )}
           </div>
         </div>
         <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3 pl-8 sm:pl-0 shrink-0">

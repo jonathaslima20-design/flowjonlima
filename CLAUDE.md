@@ -51,6 +51,9 @@ Plataforma de link in bio (bioflowzy.com). Originalmente gerada no Bolt.new (tem
 - Tela de analytics usa a RPC `profile_analytics(p_days)`, que agrega no banco e limita aos `analytics_days` do plano
 - Agendamento: `links.starts_at/ends_at` (trigger exige `scheduling`); a página pública filtra a janela
 - SEO: `profiles.seo_title/seo_description/seo_image_url` (exige `seo`); `generateMetadata` ignora os campos se o plano venceu
+- Leads: botão é um link com `url = LEAD_FORM_URL` (`lib/leads.ts`); `BioClient` intercepta o clique e abre `LeadFormModal`; envio pela RPC `submit_lead` (limite mensal `leads`), contatos em `page_leads`
+- QR code (`components/dashboard/QrCodeCard.tsx`, exige `qr_code`) aponta para `?utm_source=qrcode`
+- Modelos por nicho (`components/dashboard/StarterTemplates.tsx`) aparecem no painel enquanto não há links nem redes; usam só temas gratuitos
 
 ## Pagamentos (Mercado Pago, Checkout Pro)
 - Planos: `free`, `pro`, `business` (Business com `is_active = false` / `available: false` até ter múltiplas páginas e leads)
