@@ -2,23 +2,23 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { usePageId } from '@/lib/page-context';
 import { ProFeatureCard } from '@/components/dashboard/ProFeatureCard';
 import { validatePixelId, validateGaId } from '@/lib/tracking';
 import { Check, ExternalLink, Activity, CircleAlert as AlertCircle, CircleCheck as CheckCircle2 } from 'lucide-react';
 
 export default function IntegrationsPage() {
+  const pageId = usePageId();
   const [profile, setProfile] = useState<any>(null);
   const [saved, setSaved] = useState(false);
   const saveTimer = useRef<any>(null);
 
   useEffect(() => {
     (async () => {
-      const { data: u } = await supabase.auth.getUser();
-      if (!u.user) return;
-      const { data } = await supabase.from('profiles').select('*').eq('id', u.user.id).maybeSingle();
+      const { data } = await supabase.from('profiles').select('*').eq('id', pageId).maybeSingle();
       setProfile(data);
     })();
-  }, []);
+  }, [pageId]);
 
   function update(patch: any) {
     setProfile((prev: any) => ({ ...prev, ...patch }));

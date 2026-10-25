@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
+import { useOptionalCurrentPage } from '@/lib/page-context';
 import { getPlanFor, PlanDefinition, PLANS, ResourceKey, canAdd as canAddFn, limitFor as limitForFn, FeatureFlag, can as canFn } from '@/lib/plans';
 
 export type PlanProfile = {
@@ -23,6 +24,8 @@ export type ResourceCounts = {
 
 export function usePlan() {
   const { userId, ready } = useAuth();
+  // Plano é da conta; contagens são da página editada no painel
+  const countsFor = useOptionalCurrentPage()?.pageId ?? userId;
   const [profile, setProfile] = useState<PlanProfile | null>(null);
   const [counts, setCounts] = useState<ResourceCounts>({ links: 0, banners: 0, videos: 0, socials: 0 });
   const [loading, setLoading] = useState(true);
@@ -36,10 +39,10 @@ export function usePlan() {
     setProfile(p as PlanProfile | null);
 
     const [links, banners, videos, socials] = await Promise.all([
-      supabase.from('links').select('id', { count: 'exact', head: true }).eq('profile_id', userId),
-      supabase.from('banners').select('id', { count: 'exact', head: true }).eq('profile_id', userId),
-      supabase.from('videos').select('id', { count: 'exact', head: true }).eq('profile_id', userId),
-      supabase.from('social_links').select('id', { count: 'exact', head: true }).eq('profile_id', userId),
+      supabase.from('links').select('id', { count: 'exact', head: true }).eq('profile_id', countsFor ?? userId),
+      supabase.from('banners').select('id', { count: 'exact', head: true }).eq('profile_id', countsFor ?? userId),
+      supabase.from('videos').select('id', { count: 'exact', head: true }).eq('profile_id', countsFor ?? userId),
+      supabase.from('social_links').select('id', { count: 'exact', head: true }).eq('profile_id', countsFor ?? userId),
     ]);
     setCounts({
       links: links.count ?? 0,
@@ -48,7 +51,7 @@ export function usePlan() {
       socials: socials.count ?? 0,
     });
     setLoading(false);
-  }, [userId]);
+  }, [userId, countsFor]);
 
   useEffect(() => {
     if (!ready) return;

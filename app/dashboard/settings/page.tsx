@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { usePageId, useCurrentPage } from '@/lib/page-context';
 import { toast } from 'sonner';
 import { Upload, User } from 'lucide-react';
 import { ProFeatureCard } from '@/components/dashboard/ProFeatureCard';
@@ -12,6 +13,8 @@ import { SeoSection } from '@/components/dashboard/SeoSection';
 import { can } from '@/lib/plans';
 
 export default function SettingsPage() {
+  const pageId = usePageId();
+  const { accountId, isMainPage } = useCurrentPage();
   const [profile, setProfile] = useState<any>(null);
   const [saved, setSaved] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -20,12 +23,10 @@ export default function SettingsPage() {
 
   useEffect(() => {
     (async () => {
-      const { data: u } = await supabase.auth.getUser();
-      if (!u.user) return;
-      const { data } = await supabase.from('profiles').select('*').eq('id', u.user.id).maybeSingle();
+      const { data } = await supabase.from('profiles').select('*').eq('id', pageId).maybeSingle();
       setProfile(data);
     })();
-  }, []);
+  }, [pageId]);
 
   async function save() {
     if (!profile) return;
@@ -54,7 +55,7 @@ export default function SettingsPage() {
     if (!profile) return;
     setCropSrc(null);
     setUploading(true);
-    const path = `${profile.id}/${crypto.randomUUID()}.jpg`;
+    const path = `${accountId}/${crypto.randomUUID()}.jpg`;
     const { error } = await supabase.storage.from('avatars').upload(path, croppedFile, { upsert: false, contentType: 'image/jpeg' });
     if (error) { setUploading(false); toast.error('Falha no upload: ' + error.message); return; }
     const { data: pub } = supabase.storage.from('avatars').getPublicUrl(path);
@@ -168,7 +169,11 @@ export default function SettingsPage() {
           description="Use seu próprio domínio (ex: links.seudominio.com) em vez do subdomínio Bioflowzy."
           comingSoon={false}
         >
-          <CustomDomainSection />
+          {isMainPage ? (
+            <CustomDomainSection />
+          ) : (
+            <p className="text-sm text-black/70">O domínio próprio é configurado na página principal da conta.</p>
+          )}
         </ProFeatureCard>
       </section>
 

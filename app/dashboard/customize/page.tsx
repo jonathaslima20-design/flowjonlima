@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { usePageId } from '@/lib/page-context';
 import { BioPreview } from '@/components/dashboard/BioPreview';
 import { THEMES, getTheme } from '@/themes/registry';
 import { ThemeMockup } from '@/components/themes/ThemeMockup';
@@ -13,6 +14,7 @@ import { usePlan } from '@/hooks/use-plan';
 import { useUpgradeModal } from '@/components/dashboard/UpgradeModal';
 
 export default function CustomizePage() {
+  const pageId = usePageId();
   const [profileId, setProfileId] = useState('');
   const [profile, setProfile] = useState<any>(null);
   const [links, setLinks] = useState<any[]>([]);
@@ -50,23 +52,21 @@ export default function CustomizePage() {
 
   useEffect(() => {
     (async () => {
-      const { data: u } = await supabase.auth.getUser();
-      if (!u.user) return;
-      setProfileId(u.user.id);
-      const { data: p } = await supabase.from('profiles').select('*').eq('id', u.user.id).maybeSingle();
+      setProfileId(pageId);
+      const { data: p } = await supabase.from('profiles').select('*').eq('id', pageId).maybeSingle();
       setProfile(p);
       const [{ data: ls }, { data: ss }, { data: vs }, { data: bs }] = await Promise.all([
-        supabase.from('links').select('*').eq('profile_id', u.user.id).eq('is_active', true).order('position'),
-        supabase.from('social_links').select('*').eq('profile_id', u.user.id).eq('is_active', true).order('position'),
-        supabase.from('videos').select('*').eq('profile_id', u.user.id).eq('is_active', true).order('position'),
-        supabase.from('banners').select('*').eq('profile_id', u.user.id).eq('is_active', true).order('position'),
+        supabase.from('links').select('*').eq('profile_id', pageId).eq('is_active', true).order('position'),
+        supabase.from('social_links').select('*').eq('profile_id', pageId).eq('is_active', true).order('position'),
+        supabase.from('videos').select('*').eq('profile_id', pageId).eq('is_active', true).order('position'),
+        supabase.from('banners').select('*').eq('profile_id', pageId).eq('is_active', true).order('position'),
       ]);
       setLinks(ls ?? []);
       setSocials(ss ?? []);
       setVideos(vs ?? []);
       setBanners(bs ?? []);
     })();
-  }, []);
+  }, [pageId]);
 
   async function update(patch: any) {
     const next = { ...profile, ...patch };

@@ -237,3 +237,10 @@ export function planLabel(slug: string | null | undefined): string {
   if (!isPlanSlug(slug)) return 'Free';
   return PLANS[slug].name;
 }
+
+// Página extra (owner_id preenchido) só fica no ar enquanto o plano da conta permitir várias páginas
+export function isPageLive(profile: { owner_id?: string | null; plan?: string | null; plan_expires_at?: string | null } | null | undefined): boolean {
+  if (!profile?.owner_id) return true;
+  const pages = getPlanFor(profile).limits.pages;
+  return pages < 0 || pages > 1;
+}

@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { usePlan } from '@/hooks/use-plan';
 import { compressImage } from '@/lib/compress-image';
 import { useUpgradeModal } from './UpgradeModal';
+import { useCurrentPage } from '@/lib/page-context';
 
 const TITLE_MAX = 70;
 const DESCRIPTION_MAX = 200;
@@ -19,6 +20,7 @@ export function SeoSection({ profile }: { profile: { id: string; username: strin
   const { open: openUpgrade } = useUpgradeModal();
   const unlocked = has('seo');
   const fileInput = useRef<HTMLInputElement | null>(null);
+  const { accountId } = useCurrentPage();
   const [seo, setSeo] = useState<Seo>({ seo_title: '', seo_description: '', seo_image_url: '' });
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -48,7 +50,7 @@ export function SeoSection({ profile }: { profile: { id: string; username: strin
     setUploading(true);
     const file = await compressImage(original, { maxSize: 1200 });
     const ext = file.name.split('.').pop() || 'jpg';
-    const path = `${profile.id}/seo-${Date.now()}.${ext}`;
+    const path = `${accountId}/seo-${Date.now()}.${ext}`;
     const { error } = await supabase.storage.from('avatars').upload(path, file, { upsert: false, contentType: file.type });
     setUploading(false);
     if (error) { toast.error('Falha no upload: ' + error.message); return; }

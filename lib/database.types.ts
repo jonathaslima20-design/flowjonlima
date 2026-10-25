@@ -673,6 +673,7 @@ export type Database = {
           is_pro: boolean | null
           meta_pixel_enabled: boolean
           meta_pixel_id: string | null
+          owner_id: string | null
           plan: string | null
           plan_expires_at: string | null
           plan_started_at: string | null
@@ -708,6 +709,7 @@ export type Database = {
           is_pro?: boolean | null
           meta_pixel_enabled?: boolean
           meta_pixel_id?: string | null
+          owner_id?: string | null
           plan?: string | null
           plan_expires_at?: string | null
           plan_started_at?: string | null
@@ -743,6 +745,7 @@ export type Database = {
           is_pro?: boolean | null
           meta_pixel_enabled?: boolean
           meta_pixel_id?: string | null
+          owner_id?: string | null
           plan?: string | null
           plan_expires_at?: string | null
           plan_started_at?: string | null
@@ -1090,11 +1093,13 @@ export type Database = {
       effective_plan: { Args: { p_profile_id: string }; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
       grant_paid_plan: { Args: { p_payment_id: string }; Returns: string }
+      can_manage_page: { Args: { p_profile_id: string }; Returns: boolean }
+      create_page: { Args: { p_display_name: string; p_username: string }; Returns: string }
       is_admin: { Args: never; Returns: boolean }
       is_pro_only_theme: { Args: { p_theme: string }; Returns: boolean }
       is_reserved_username: { Args: { p_username: string }; Returns: boolean }
       is_suspended: { Args: { p_profile_id: string }; Returns: boolean }
-      lead_usage: { Args: never; Returns: Json }
+      lead_usage: { Args: { p_profile_id?: string }; Returns: Json }
       lookup_domain: {
         Args: { p_domain: string }
         Returns: {
@@ -1106,7 +1111,7 @@ export type Database = {
         Args: { p_key: string; p_profile_id: string }
         Returns: Json
       }
-      profile_analytics: { Args: { p_days?: number }; Returns: Json }
+      profile_analytics: { Args: { p_days?: number; p_profile_id?: string }; Returns: Json }
       request_payout: {
         Args: never
         Returns: {

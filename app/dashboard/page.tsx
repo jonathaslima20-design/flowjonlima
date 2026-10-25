@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
+import { usePageId } from '@/lib/page-context';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { MousePointerClick, Link2, AtSign, Video } from 'lucide-react';
 import { QrCodeCard } from '@/components/dashboard/QrCodeCard';
@@ -23,6 +24,7 @@ type Stats = {
 type TopLink = { title: string; clicks: number };
 
 export default function DashboardHome() {
+  const pageId = usePageId();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [stats, setStats] = useState<Stats>({
     totalClicks: 0, linkClicks: 0, socialClicks: 0, videoClicks: 0,
@@ -37,13 +39,11 @@ export default function DashboardHome() {
 
   useEffect(() => {
     (async () => {
-      const { data: u } = await supabase.auth.getUser();
-      if (!u.user) return;
 
       const { data: p } = await supabase
         .from('profiles')
         .select('id,username,display_name,bio')
-        .eq('id', u.user.id)
+        .eq('id', pageId)
         .maybeSingle();
       setProfile(p as Profile);
       if (!p) return;
@@ -114,7 +114,7 @@ export default function DashboardHome() {
 
       setLoading(false);
     })();
-  }, [reloadKey]);
+  }, [reloadKey, pageId]);
 
   return (
     <div className="max-w-5xl mx-auto">

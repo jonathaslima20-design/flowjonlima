@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { usePageId, useCurrentPage } from '@/lib/page-context';
 import { toast } from 'sonner';
 import { GripVertical, Plus, Trash2, ExternalLink, Image as ImageIcon, RefreshCw, Upload, X, Clock, Lock } from 'lucide-react';
 import { BioPreview } from '@/components/dashboard/BioPreview';
@@ -52,6 +53,8 @@ function scheduleStatus(link: Link): { label: string; cls: string } | null {
 }
 
 export default function LinksPage() {
+  const pageId = usePageId();
+  const { accountId } = useCurrentPage();
   const [profileId, setProfileId] = useState<string>('');
   const [links, setLinks] = useState<Link[]>([]);
   const [draggingId, setDraggingId] = useState<string | null>(null);
@@ -68,12 +71,10 @@ export default function LinksPage() {
 
   useEffect(() => {
     (async () => {
-      const { data: u } = await supabase.auth.getUser();
-      if (!u.user) return;
-      setProfileId(u.user.id);
-      load(u.user.id);
+      setProfileId(pageId);
+      load(pageId);
     })();
-  }, []);
+  }, [pageId]);
 
   async function addLink() {
     if (atLimit) return;
@@ -172,7 +173,7 @@ export default function LinksPage() {
       return;
     }
     const ext = (file.name.split('.').pop() || 'png').toLowerCase();
-    const path = `${profileId}/${link.id}-${Date.now()}.${ext}`;
+    const path = `${accountId}/${link.id}-${Date.now()}.${ext}`;
     const { error: upErr } = await supabase.storage.from('link-icons').upload(path, file, {
       cacheControl: '3600',
       upsert: true,

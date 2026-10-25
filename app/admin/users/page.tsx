@@ -67,6 +67,9 @@ export default function AdminUsersPage() {
       .from('profiles')
       .select('id, username, display_name, bio, avatar_url, is_pro, plan, plan_expires_at, plan_started_at, referral_code, role, suspended_at, created_at, theme', { count: 'exact' });
 
+    // Páginas extras (Business) não são contas
+    q = q.is('owner_id', null);
+
     // Vírgula, parênteses, aspas e barra mudam a sintaxe do filtro `or` do PostgREST
     const term = search.replace(/[,()"\\]/g, ' ').trim();
     if (term) q = q.or(`username.ilike.%${term}%,display_name.ilike.%${term}%`);

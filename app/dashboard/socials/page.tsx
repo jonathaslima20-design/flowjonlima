@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { usePageId } from '@/lib/page-context';
 import { toast } from 'sonner';
 import { GripVertical, Plus, Trash2, X } from 'lucide-react';
 import { SOCIALS, SOCIALS_BY_KEY, normalizeSocial, withWhatsappMessage, type SocialKey } from '@/lib/socials';
@@ -20,6 +21,7 @@ type Social = {
 };
 
 export default function SocialsPage() {
+  const pageId = usePageId();
   const [profileId, setProfileId] = useState('');
   const [socials, setSocials] = useState<Social[]>([]);
   const [dragging, setDragging] = useState<string | null>(null);
@@ -34,13 +36,11 @@ export default function SocialsPage() {
 
   useEffect(() => {
     (async () => {
-      const { data: u } = await supabase.auth.getUser();
-      if (!u.user) return;
-      setProfileId(u.user.id);
-      const { data } = await supabase.from('social_links').select('*').eq('profile_id', u.user.id).order('position');
+      setProfileId(pageId);
+      const { data } = await supabase.from('social_links').select('*').eq('profile_id', pageId).order('position');
       setSocials((data as Social[]) ?? []);
     })();
-  }, []);
+  }, [pageId]);
 
   async function confirmAdd() {
     if (!selected) return;

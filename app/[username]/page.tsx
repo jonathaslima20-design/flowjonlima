@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { BioClient } from './BioClient';
-import { can } from '@/lib/plans';
+import { can, isPageLive } from '@/lib/plans';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -24,11 +24,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { username } = await params;
   const { data: profile } = await supabase
     .from('profiles')
-    .select('display_name, bio, avatar_url, username, suspended_at, plan, plan_expires_at, seo_title, seo_description, seo_image_url')
+    .select('display_name, bio, avatar_url, username, suspended_at, plan, plan_expires_at, seo_title, seo_description, seo_image_url, owner_id')
     .eq('username', username)
     .maybeSingle();
 
-  if (!profile || profile.suspended_at) return {};
+  if (!profile || profile.suspended_at || !isPageLive(profile)) return {};
 
   const name = profile.display_name || profile.username;
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://bioflowzy.com';
@@ -76,7 +76,7 @@ export default async function PublicBio({ params }: Props) {
     .eq('username', username)
     .maybeSingle();
 
-  if (!profile || profile.suspended_at) return notFound();
+  if (!profile || profile.suspended_at || !isPageLive(profile)) return notFound();
 
   // Links agendados só aparecem dentro da janela (a página fica em cache por até 30 s)
   const now = new Date().toISOString();
@@ -91,7 +91,7 @@ export default async function PublicBio({ params }: Props) {
   ]);
 
   // Campos internos não vão para o HTML da página pública
-  const { role, referred_by, referral_code, suspended_at, ...publicProfile } = profile;
+  const { role, referred_by, referral_code, suspended_at, owner_id, ...publicProfile } = profile;
 
   return (
     <BioClient

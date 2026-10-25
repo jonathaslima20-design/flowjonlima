@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { usePageId } from '@/lib/page-context';
 import { toast } from 'sonner';
 import { GripVertical, Plus, Trash2, Video as VideoIcon } from 'lucide-react';
 import { parseVideoUrl } from '@/lib/embed';
@@ -23,6 +24,7 @@ type Video = {
 };
 
 export default function VideosPage() {
+  const pageId = usePageId();
   const [profileId, setProfileId] = useState('');
   const [videos, setVideos] = useState<Video[]>([]);
   const [dragging, setDragging] = useState<string | null>(null);
@@ -32,13 +34,11 @@ export default function VideosPage() {
 
   useEffect(() => {
     (async () => {
-      const { data: u } = await supabase.auth.getUser();
-      if (!u.user) return;
-      setProfileId(u.user.id);
-      const { data } = await supabase.from('videos').select('*').eq('profile_id', u.user.id).order('position');
+      setProfileId(pageId);
+      const { data } = await supabase.from('videos').select('*').eq('profile_id', pageId).order('position');
       setVideos((data as Video[]) ?? []);
     })();
-  }, []);
+  }, [pageId]);
 
   async function addVideo() {
     if (atLimit) return;

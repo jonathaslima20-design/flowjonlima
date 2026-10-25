@@ -4,13 +4,15 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
-import { LayoutDashboard, Link2, ChartBar as BarChart3, Palette, Settings, LogOut, Waypoints, ShieldCheck, Video, Image as ImageIcon, AtSign, Menu, X, Gift, LifeBuoy, Inbox } from 'lucide-react';
+import { LayoutDashboard, Link2, ChartBar as BarChart3, Palette, Settings, LogOut, Waypoints, ShieldCheck, Video, Image as ImageIcon, AtSign, Menu, X, Gift, LifeBuoy, Inbox, Layers } from 'lucide-react';
 import { UpgradeModalProvider } from '@/components/dashboard/UpgradeModal';
 import { SidebarPlanCard } from '@/components/dashboard/SidebarPlanCard';
 import { PaymentReturnNotice } from '@/components/dashboard/PaymentReturnNotice';
 import { RenewalNotice } from '@/components/dashboard/RenewalNotice';
 import { refreshPublicBio } from '@/lib/revalidate-bio';
 import { Toaster } from '@/components/ui/sonner';
+import { PageProvider, useCurrentPage } from '@/lib/page-context';
+import { PageSwitcher } from '@/components/dashboard/PageSwitcher';
 
 const nav = [
   { href: '/dashboard', label: 'Visão geral', icon: LayoutDashboard },
@@ -20,6 +22,7 @@ const nav = [
   { href: '/dashboard/videos', label: 'Vídeos', icon: Video },
   { href: '/dashboard/analytics', label: 'Analytics', icon: BarChart3 },
   { href: '/dashboard/leads', label: 'Leads', icon: Inbox },
+  { href: '/dashboard/pages', label: 'Páginas', icon: Layers },
   { href: '/dashboard/customize', label: 'Aparência', icon: Palette },
   { href: '/dashboard/referral', label: 'Indique e ganhe', icon: Gift },
   { href: '/dashboard/help', label: 'Central de Ajuda', icon: LifeBuoy },
@@ -30,29 +33,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const router = useRouter();
   const path = usePathname();
   const { ready, userId, role, suspended, signOut: ctxSignOut } = useAuth();
-  const [mobileOpen, setMobileOpen] = useState(false);
-
   useEffect(() => {
     if (ready && !userId) router.replace('/login');
   }, [ready, userId, router]);
-
-  useEffect(() => {
-    setMobileOpen(false);
-  }, [path]);
-
-  // A página pública fica em cache; atualiza ao trocar de página no painel ou sair da aba
-  // (ex.: "Ver minha bio" abre outra aba), para o usuário ver as edições na hora
-  useEffect(() => {
-    if (userId) refreshPublicBio();
-  }, [path, userId]);
-
-  useEffect(() => {
-    function onVisibility() {
-      if (document.visibilityState === 'hidden') refreshPublicBio();
-    }
-    document.addEventListener('visibilitychange', onVisibility);
-    return () => document.removeEventListener('visibilitychange', onVisibility);
-  }, []);
 
   async function signOut() {
     await ctxSignOut();
@@ -75,7 +58,36 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     );
   }
 
-  const isAdmin = role === 'admin';
+  return (
+    <PageProvider>
+      <DashboardShell path={path} isAdmin={role === 'admin'} signOut={signOut}>{children}</DashboardShell>
+    </PageProvider>
+  );
+}
+
+function DashboardShell({ path, isAdmin, signOut, children }: {
+  path: string; isAdmin: boolean; signOut: () => void; children: React.ReactNode;
+}) {
+  const { pageId, ready } = useCurrentPage();
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [path]);
+
+  // A página pública fica em cache; atualiza ao trocar de página no painel ou sair da aba
+  // (ex.: "Ver minha bio" abre outra aba), para o usuário ver as edições na hora
+  useEffect(() => {
+    if (pageId) refreshPublicBio(pageId);
+  }, [path, pageId]);
+
+  useEffect(() => {
+    function onVisibility() {
+      if (document.visibilityState === 'hidden' && pageId) refreshPublicBio(pageId);
+    }
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
+  }, [pageId]);
 
   const navContent = (
     <>
@@ -85,6 +97,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </span>
         <span className="font-display text-xl">BioFlowzy</span>
       </Link>
+      <PageSwitcher />
       <nav className="flex flex-col gap-2 flex-1">
         {nav.map(({ href, label, icon: Icon }) => {
           const active = path === href;
@@ -159,7 +172,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <main className="md:ml-64 p-6 md:p-10">
         <PaymentReturnNotice />
         <RenewalNotice />
-        {children}
+        {/* Remonta a tela ao trocar de página, para recarregar os dados da página escolhida */}
+        {ready && pageId ? <div key={pageId}>{children}</div> : <div className="font-bold">Carregando...</div>}
       </main>
       <Toaster
         theme="light"

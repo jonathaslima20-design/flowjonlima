@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { usePageId, useCurrentPage } from '@/lib/page-context';
 import { toast } from 'sonner';
 import { GripVertical, Plus, Trash2, Upload, Image as ImageIcon, Info } from 'lucide-react';
 import { usePlan } from '@/hooks/use-plan';
@@ -32,6 +33,8 @@ const PREVIEW_HEIGHT: Record<Banner['size'], string> = {
 };
 
 export default function BannersPage() {
+  const pageId = usePageId();
+  const { accountId } = useCurrentPage();
   const [profileId, setProfileId] = useState('');
   const [banners, setBanners] = useState<Banner[]>([]);
   const [dragging, setDragging] = useState<string | null>(null);
@@ -43,13 +46,11 @@ export default function BannersPage() {
 
   useEffect(() => {
     (async () => {
-      const { data: u } = await supabase.auth.getUser();
-      if (!u.user) return;
-      setProfileId(u.user.id);
-      const { data } = await supabase.from('banners').select('*').eq('profile_id', u.user.id).order('position');
+      setProfileId(pageId);
+      const { data } = await supabase.from('banners').select('*').eq('profile_id', pageId).order('position');
       setBanners((data as Banner[]) ?? []);
     })();
-  }, []);
+  }, [pageId]);
 
   async function addBanner() {
     if (atLimit) return;
@@ -80,7 +81,7 @@ export default function BannersPage() {
     const file = await compressImage(original, { maxSize: 1600 });
     if (file.size > 3 * 1024 * 1024) { setUploading(null); return toast.error('Máximo 3MB.'); }
     const ext = file.name.split('.').pop() || 'png';
-    const path = `${profileId}/${crypto.randomUUID()}.${ext}`;
+    const path = `${accountId}/${crypto.randomUUID()}.${ext}`;
     const { error } = await supabase.storage.from('banners').upload(path, file, { upsert: false, contentType: file.type });
     if (error) { setUploading(null); toast.error('Falha no upload: ' + error.message); return; }
     const { data: pub } = supabase.storage.from('banners').getPublicUrl(path);

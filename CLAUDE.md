@@ -28,7 +28,7 @@ Plataforma de link in bio (bioflowzy.com). Originalmente gerada no Bolt.new (tem
 - `app/api/revalidate-bio` — revalida a página pública após edições no painel
 - `middleware.ts` — domínios personalizados: hosts fora de `PRIMARY_SUFFIXES` são resolvidos via RPC `lookup_domain` e reescritos para `/{username}`
 - `themes/<nome>` + `themes/registry.ts` — temas visuais do bio; `components/themes`, `components/bio` renderizam
-- `lib/plans.ts` + `hooks/use-plan.ts` — planos (free / pro_monthly / pro_annual) e limites por recurso
+- `lib/plans.ts` + `hooks/use-plan.ts` — planos (free / pro / business) e limites por recurso (plano da conta, contagens da página editada)
 - `lib/auth-context.tsx` — contexto de autenticação
 - `supabase/migrations` — schema completo (perfis, planos, referral/PIX, help center, domínios, temas)
 
@@ -54,6 +54,15 @@ Plataforma de link in bio (bioflowzy.com). Originalmente gerada no Bolt.new (tem
 - Leads: botão é um link com `url = LEAD_FORM_URL` (`lib/leads.ts`); `BioClient` intercepta o clique e abre `LeadFormModal`; envio pela RPC `submit_lead` (limite mensal `leads`), contatos em `page_leads`
 - QR code (`components/dashboard/QrCodeCard.tsx`, exige `qr_code`) aponta para `?utm_source=qrcode`
 - Modelos por nicho (`components/dashboard/StarterTemplates.tsx`) aparecem no painel enquanto não há links nem redes; usam só temas gratuitos
+
+## Múltiplas páginas (Business)
+- Página extra = linha em `profiles` com `owner_id` = perfil principal (NULL = página principal / conta). Conteúdo continua por `profile_id`
+- `create_page(username, nome)` cria respeitando `plans.limits.pages`; dono exclui pela policy `owner_id = auth.uid()`
+- Plano e suspensão da conta são copiados para as páginas extras (`trg_mirror_account_to_pages`); `owner_id` é campo protegido
+- Policies de conteúdo usam `can_manage_page(profile_id)`; `profile_analytics` e `lead_usage` recebem `p_profile_id`
+- Painel: `lib/page-context.tsx` (`usePageId()` = página editada, `accountId` = usuário logado). Telas remontam ao trocar de página (`key={pageId}` no layout). Uploads vão na pasta `accountId/` (policies do storage usam `auth.uid()`)
+- Página pública de página extra só fica no ar se o plano da conta permitir várias páginas (`isPageLive`); domínio próprio vale só para a página principal
+- `profiles.id` não referencia mais `auth.users`: o trigger `on_auth_user_deleted` apaga o perfil principal e as extras caem em cascata
 
 ## Domínio próprio
 - Escrita só pela edge function `custom-domain` (`set` / `verify` / `remove`); usuários apenas leem `custom_domains`

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { usePageId } from '@/lib/page-context';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, BarChart, Bar, Legend } from 'recharts';
 import { Lock } from 'lucide-react';
 import { usePlan } from '@/hooks/use-plan';
@@ -28,6 +29,7 @@ const SOURCE_LABELS: Record<string, string> = {
 };
 
 export default function AnalyticsPage() {
+  const pageId = usePageId();
   const { plan, loading } = usePlan();
   const { open: openUpgrade } = useUpgradeModal();
   const [days, setDays] = useState(7);
@@ -45,14 +47,12 @@ export default function AnalyticsPage() {
   useEffect(() => {
     if (loading) return;
     (async () => {
-      const { data } = await supabase.rpc('profile_analytics', { p_days: days });
+      const { data } = await supabase.rpc('profile_analytics', { p_days: days, p_profile_id: pageId });
       setSummary(data as unknown as Summary);
-      const { data: u } = await supabase.auth.getUser();
-      if (!u.user) return;
-      const { data: links } = await supabase.from('links').select('title, clicks').eq('profile_id', u.user.id).order('clicks', { ascending: false }).limit(5);
+      const { data: links } = await supabase.from('links').select('title, clicks').eq('profile_id', pageId).order('clicks', { ascending: false }).limit(5);
       setTopLinks(links ?? []);
     })();
-  }, [days, loading]);
+  }, [days, loading, pageId]);
 
   const ctr = summary && summary.views > 0 ? Math.round((summary.clicks / summary.views) * 1000) / 10 : 0;
   const series = (summary?.series ?? []).map(p => ({ ...p, day: p.day.slice(8, 10) + '/' + p.day.slice(5, 7) }));

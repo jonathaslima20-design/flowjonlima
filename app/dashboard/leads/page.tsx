@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Download, Lock, Trash2, Mail, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
+import { usePageId } from '@/lib/page-context';
 import { usePlan } from '@/hooks/use-plan';
 import { useUpgradeModal } from '@/components/dashboard/UpgradeModal';
 import { LEAD_FORM_URL } from '@/lib/leads';
@@ -17,6 +18,7 @@ function csvCell(value: string | null) {
 }
 
 export default function LeadsPage() {
+  const pageId = usePageId();
   const { plan, loading } = usePlan();
   const { open: openUpgrade } = useUpgradeModal();
   const [profileId, setProfileId] = useState('');
@@ -31,19 +33,17 @@ export default function LeadsPage() {
   const canExport = limit < 0;
 
   const load = useCallback(async () => {
-    const { data: u } = await supabase.auth.getUser();
-    if (!u.user) return;
-    setProfileId(u.user.id);
+    setProfileId(pageId);
     const [{ data: leadRows }, { data: linkRow }, { data: usageData }] = await Promise.all([
-      supabase.from('page_leads').select('id, name, email, phone, created_at').eq('profile_id', u.user.id).order('created_at', { ascending: false }).limit(500),
-      supabase.from('links').select('id, title, is_active').eq('profile_id', u.user.id).eq('url', LEAD_FORM_URL).maybeSingle(),
-      supabase.rpc('lead_usage'),
+      supabase.from('page_leads').select('id, name, email, phone, created_at').eq('profile_id', pageId).order('created_at', { ascending: false }).limit(500),
+      supabase.from('links').select('id, title, is_active').eq('profile_id', pageId).eq('url', LEAD_FORM_URL).maybeSingle(),
+      supabase.rpc('lead_usage', { p_profile_id: pageId }),
     ]);
     setLeads(leadRows ?? []);
     setFormLink(linkRow ?? null);
     if (linkRow?.title) setTitle(linkRow.title);
     setUsage(usageData as unknown as { used: number; limit: number });
-  }, []);
+  }, [pageId]);
 
   useEffect(() => { load(); }, [load]);
 
