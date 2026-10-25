@@ -26,14 +26,15 @@ async function fetchAvatarBase64(url: string): Promise<string | null> {
   }
 }
 
-export default async function Icon({ params }: { params: { username: string } }) {
+export default async function Icon({ params }: { params: Promise<{ username: string }> }) {
+  const { username } = await params;
   const { data: profile } = await supabase
     .from('profiles')
     .select('display_name, avatar_url, username')
-    .eq('username', params.username)
+    .eq('username', username)
     .maybeSingle();
 
-  const name = profile?.display_name || profile?.username || params.username;
+  const name = profile?.display_name || profile?.username || username;
   const avatarBase64 = profile?.avatar_url ? await fetchAvatarBase64(profile.avatar_url) : null;
 
   return new ImageResponse(

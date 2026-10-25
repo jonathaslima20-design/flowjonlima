@@ -3,7 +3,9 @@
 Plataforma de link in bio (bioflowzy.com). Originalmente gerada no Bolt.new (template `nextjs-shadcn`), agora mantida aqui.
 
 ## Stack
-- Next.js 13.5 (App Router), React 18, TypeScript, Tailwind 3 + shadcn/ui (`components/ui`), ícones lucide-react / react-icons
+- Next.js 15.5 (App Router), React 19, TypeScript, Tailwind 3.4 + shadcn/ui (`components/ui`), ícones lucide-react
+- Next 15: `params`/`searchParams` de páginas do servidor são `Promise` (usar `await params`)
+- `lucide-react` fica na 0.446: versões novas removeram os ícones de marcas (Instagram, YouTube etc.) usados no site
 - Supabase (auth, Postgres, storage, RPCs, edge function `fetch-link-icon`) — cliente único em `lib/supabase.ts` usando apenas a anon key; segurança depende de RLS
 - Deploy: Netlify com `@netlify/plugin-nextjs` (`netlify.toml`), redireciona `www` → apex
 

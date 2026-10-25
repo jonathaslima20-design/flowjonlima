@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
@@ -199,9 +200,9 @@ export default function SettingsPage() {
             <p className="font-bold">Meta Pixel e Google Analytics</p>
             <p className="text-xs text-black/60 mt-1">Gerencie suas integrações de rastreamento na página dedicada.</p>
           </div>
-          <a href="/dashboard/integrations" className="brutal-btn bg-black text-white px-4 py-2 text-xs shrink-0">
+          <Link href="/dashboard/integrations" className="brutal-btn bg-black text-white px-4 py-2 text-xs shrink-0">
             Gerenciar integrações
-          </a>
+          </Link>
         </div>
       </section>
     </div>

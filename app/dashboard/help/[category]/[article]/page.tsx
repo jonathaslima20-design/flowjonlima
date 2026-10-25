@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactElement } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, ArrowRight, ChevronRight } from 'lucide-react';
 import {
@@ -12,7 +12,7 @@ import { HelpIcon } from '@/components/help/HelpIcon';
 
 function renderBody(body: string) {
   const lines = body.split('\n');
-  const blocks: JSX.Element[] = [];
+  const blocks: ReactElement[] = [];
   let listBuffer: string[] = [];
   let numberedBuffer: string[] = [];
 

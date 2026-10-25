@@ -171,7 +171,7 @@ export default function BannersPage() {
                     </div>
                   )}
                   <input
-                    ref={el => (fileInputs.current[b.id] = el)}
+                    ref={el => { fileInputs.current[b.id] = el; }}
                     type="file"
                     accept="image/*"
                     className="hidden"

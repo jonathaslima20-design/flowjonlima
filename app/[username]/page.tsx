@@ -17,11 +17,14 @@ export async function generateStaticParams() {
   return [];
 }
 
-export async function generateMetadata({ params }: { params: { username: string } }): Promise<Metadata> {
+type Props = { params: Promise<{ username: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { username } = await params;
   const { data: profile } = await supabase
     .from('profiles')
     .select('display_name, bio, avatar_url, username, suspended_at')
-    .eq('username', params.username)
+    .eq('username', username)
     .maybeSingle();
 
   if (!profile || profile.suspended_at) return {};
@@ -58,11 +61,12 @@ export async function generateMetadata({ params }: { params: { username: string 
   };
 }
 
-export default async function PublicBio({ params }: { params: { username: string } }) {
+export default async function PublicBio({ params }: Props) {
+  const { username } = await params;
   const { data: profile } = await supabase
     .from('profiles')
     .select('*')
-    .eq('username', params.username)
+    .eq('username', username)
     .maybeSingle();
 
   if (!profile || profile.suspended_at) return notFound();
