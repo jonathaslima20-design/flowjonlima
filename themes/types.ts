@@ -1,4 +1,5 @@
-import type { ComponentType, ReactNode } from 'react';
+import { createElement, type ComponentType, type ReactNode } from 'react';
+import { PageCountdown } from '@/components/bio/PageCountdown';
 
 export type BioProfile = {
   id: string;
@@ -35,7 +36,8 @@ export function orderedSections(
   sections: Record<string, ReactNode>,
 ): ReactNode[] {
   const order = sectionOrder && sectionOrder.length === 4 ? sectionOrder : DEFAULT_SECTION_ORDER;
-  return order.map((key) => sections[key]).filter(Boolean);
+  // A contagem regressiva (Business) entra antes das seções, em qualquer tema; sem dados ela não renderiza
+  return [createElement(PageCountdown, { key: 'countdown' }), ...order.map((key) => sections[key]).filter(Boolean)];
 }
 
 export type BioThemeDefaults = {

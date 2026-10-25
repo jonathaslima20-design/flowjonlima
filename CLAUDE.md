@@ -53,6 +53,7 @@ Plataforma de link in bio (bioflowzy.com). Originalmente gerada no Bolt.new (tem
 - SEO: `profiles.seo_title/seo_description/seo_image_url` (exige `seo`); `generateMetadata` ignora os campos se o plano venceu
 - Leads: botão é um link com `url = LEAD_FORM_URL` (`lib/leads.ts`); `BioClient` intercepta o clique e abre `LeadFormModal`; envio pela RPC `submit_lead` (limite mensal `leads`), contatos em `page_leads`
 - QR code (`components/dashboard/QrCodeCard.tsx`, exige `qr_code`) aponta para `?utm_source=qrcode`
+- Contagem regressiva (Business, `countdown`): `profiles.countdown_title/countdown_ends_at`; `orderedSections` (themes/types.ts) insere `<PageCountdown>` antes das seções em todos os temas, com dados do `CountdownProvider` (página pública e prévias); editor em `CountdownCard` na tela de Links
 - Modelos por nicho (`components/dashboard/StarterTemplates.tsx`) aparecem no painel enquanto não há links nem redes; usam só temas gratuitos
 
 ## Múltiplas páginas (Business)

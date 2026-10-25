@@ -735,6 +735,8 @@ export type Database = {
       }
       profiles: {
         Row: {
+          countdown_ends_at: string | null
+          countdown_title: string | null
           avatar_size: number | null
           avatar_url: string | null
           bg_color: string | null
@@ -771,6 +773,8 @@ export type Database = {
           username: string
         }
         Insert: {
+          countdown_ends_at?: string | null
+          countdown_title?: string | null
           avatar_size?: number | null
           avatar_url?: string | null
           bg_color?: string | null
@@ -807,6 +811,8 @@ export type Database = {
           username: string
         }
         Update: {
+          countdown_ends_at?: string | null
+          countdown_title?: string | null
           avatar_size?: number | null
           avatar_url?: string | null
           bg_color?: string | null

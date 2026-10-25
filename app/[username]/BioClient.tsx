@@ -7,6 +7,7 @@ import { firePixel, fireGa, TrackEntity, validatePixelId, validateGaId } from '@
 import { can, getPlanFor } from '@/lib/plans';
 import { isLeadFormUrl, LEAD_FORM_URL } from '@/lib/leads';
 import { LeadFormModal } from '@/components/bio/LeadFormModal';
+import { CountdownProvider, countdownFromProfile } from '@/components/bio/PageCountdown';
 import { detectDevice, detectSource } from '@/lib/visit-source';
 
 const RPC_HEADERS = {
@@ -71,15 +72,17 @@ export function BioClient({ profile, links, socials, videos, banners }: any) {
         metaEnabled={profile?.meta_pixel_enabled !== false}
         gaEnabled={profile?.ga_enabled !== false}
       />
-      <Theme
-        profile={profile}
-        links={visibleLinks}
-        socials={socials}
-        videos={videos}
-        banners={banners}
-        sectionOrder={profile?.section_order || ['socials', 'links', 'banners', 'videos']}
-        track={track}
-      />
+      <CountdownProvider value={countdownFromProfile(profile)}>
+        <Theme
+          profile={profile}
+          links={visibleLinks}
+          socials={socials}
+          videos={videos}
+          banners={banners}
+          sectionOrder={profile?.section_order || ['socials', 'links', 'banners', 'videos']}
+          track={track}
+        />
+      </CountdownProvider>
       {leadFormTitle && (
         <LeadFormModal
           profileId={profile.id}

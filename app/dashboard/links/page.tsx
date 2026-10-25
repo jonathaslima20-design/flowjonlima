@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { usePageId, useCurrentPage } from '@/lib/page-context';
+import { toLocalInput, fromLocalInput } from '@/lib/datetime-local';
+import { CountdownCard } from '@/components/dashboard/CountdownCard';
 import { toast } from 'sonner';
 import { GripVertical, Plus, Trash2, ExternalLink, Image as ImageIcon, RefreshCw, Upload, X, Clock, Lock } from 'lucide-react';
 import { BioPreview } from '@/components/dashboard/BioPreview';
@@ -28,18 +30,6 @@ type Link = {
   ends_at?: string | null;
 };
 
-// <input type="datetime-local"> trabalha com horário local sem fuso
-function toLocalInput(iso: string | null | undefined): string {
-  if (!iso) return '';
-  const d = new Date(iso);
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-function fromLocalInput(value: string): string | null {
-  return value ? new Date(value).toISOString() : null;
-}
-
 function scheduleStatus(link: Link): { label: string; cls: string } | null {
   const now = Date.now();
   if (link.ends_at && new Date(link.ends_at).getTime() <= now) return { label: 'Expirado', cls: 'bg-red-100 text-red-700' };
@@ -55,6 +45,8 @@ function scheduleStatus(link: Link): { label: string; cls: string } | null {
 export default function LinksPage() {
   const pageId = usePageId();
   const { accountId } = useCurrentPage();
+  // Recarrega a prévia depois de salvar a contagem regressiva
+  const [previewKey, setPreviewKey] = useState(0);
   const [profileId, setProfileId] = useState<string>('');
   const [links, setLinks] = useState<Link[]>([]);
   const [draggingId, setDraggingId] = useState<string | null>(null);
@@ -239,12 +231,14 @@ export default function LinksPage() {
             />
           ))}
         </div>
+
+        <CountdownCard pageId={pageId} onSaved={() => setPreviewKey(k => k + 1)} />
       </div>
 
       <div className="hidden lg:block">
         <div className="sticky top-6">
           <h2 className="font-display text-lg mb-4">Preview</h2>
-          <BioPreview profileId={profileId} links={links} />
+          <BioPreview key={previewKey} profileId={profileId} links={links} />
         </div>
       </div>
     </div>

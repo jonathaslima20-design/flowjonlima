@@ -1,5 +1,6 @@
 'use client';
 
+import { CountdownProvider, countdownFromProfile } from '@/components/bio/PageCountdown';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { getTheme, getThemeDefaults } from '@/themes/registry';
@@ -62,16 +63,18 @@ export function BioPreview({
             transformOrigin: 'top left',
           }}
         >
-          <Theme
-            profile={profile}
-            links={activeLinks}
-            socials={socials || []}
-            videos={videos || []}
-            banners={banners || []}
-            sectionOrder={profile.section_order || ['socials', 'links', 'banners', 'videos']}
-            track={noop}
-            preview
-          />
+          <CountdownProvider value={countdownFromProfile(profile)}>
+            <Theme
+              profile={profile}
+              links={activeLinks}
+              socials={socials || []}
+              videos={videos || []}
+              banners={banners || []}
+              sectionOrder={profile.section_order || ['socials', 'links', 'banners', 'videos']}
+              track={noop}
+              preview
+            />
+          </CountdownProvider>
         </div>
       </PhoneFrame>
     </div>
