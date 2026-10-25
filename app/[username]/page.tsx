@@ -8,7 +8,14 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-export const dynamic = 'force-dynamic';
+// Cache de 30 s (ISR): aguenta picos de acesso sem consultar o banco a cada visita.
+// O painel chama /api/revalidate-bio para refletir edições na hora.
+export const revalidate = 30;
+
+// Nenhuma página é gerada no build; cada perfil é gerado no primeiro acesso e fica em cache
+export async function generateStaticParams() {
+  return [];
+}
 
 export async function generateMetadata({ params }: { params: { username: string } }): Promise<Metadata> {
   const { data: profile } = await supabase

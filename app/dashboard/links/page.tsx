@@ -8,6 +8,7 @@ import { usePlan } from '@/hooks/use-plan';
 import { LimitBadge, UpgradeBanner } from '@/components/dashboard/LimitBadge';
 import { isUnlimited } from '@/lib/plans';
 import { toSafeUrl } from '@/lib/url';
+import { compressImage } from '@/lib/compress-image';
 
 type Link = {
   id: string;
@@ -131,8 +132,10 @@ export default function LinksPage() {
     }
   }
 
-  async function uploadCustomIcon(link: Link, file: File) {
+  async function uploadCustomIcon(link: Link, original: File) {
     if (!profileId) return;
+    // Ícone aparece pequeno no botão: 256px é suficiente (PNG no fallback preserva transparência)
+    const file = await compressImage(original, { maxSize: 256, fallbackType: 'image/png' });
     if (file.size > 2 * 1024 * 1024) {
       alert('Imagem muito grande. Tamanho maximo: 2MB.');
       return;

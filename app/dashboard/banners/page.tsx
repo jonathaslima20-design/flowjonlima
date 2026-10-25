@@ -7,6 +7,7 @@ import { usePlan } from '@/hooks/use-plan';
 import { LimitBadge, UpgradeBanner } from '@/components/dashboard/LimitBadge';
 import { isUnlimited } from '@/lib/plans';
 import { toSafeUrl } from '@/lib/url';
+import { compressImage } from '@/lib/compress-image';
 
 type Banner = {
   id: string;
@@ -72,10 +73,11 @@ export default function BannersPage() {
     await supabase.from('banners').update(dbPatch).eq('id', id);
   }
 
-  async function onFile(id: string, file: File) {
-    if (!file.type.startsWith('image/')) return alert('Envie um arquivo de imagem.');
-    if (file.size > 3 * 1024 * 1024) return alert('Máximo 3MB.');
+  async function onFile(id: string, original: File) {
+    if (!original.type.startsWith('image/')) return alert('Envie um arquivo de imagem.');
     setUploading(id);
+    const file = await compressImage(original, { maxSize: 1600 });
+    if (file.size > 3 * 1024 * 1024) { setUploading(null); return alert('Máximo 3MB.'); }
     const ext = file.name.split('.').pop() || 'png';
     const path = `${profileId}/${crypto.randomUUID()}.${ext}`;
     const { error } = await supabase.storage.from('banners').upload(path, file, { upsert: false, contentType: file.type });

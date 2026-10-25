@@ -19,17 +19,18 @@ import { AuthProvider } from '@/lib/auth-context';
 
 const archivo = Archivo_Black({ subsets: ['latin'], weight: '400', variable: '--font-archivo-black', display: 'swap', preload: true });
 const grotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-space-grotesk', display: 'swap', preload: true });
-const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfair', display: 'swap' });
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
-const jetbrains = JetBrains_Mono({ subsets: ['latin'], variable: '--font-jetbrains', display: 'swap' });
-const dmsans = DM_Sans({ subsets: ['latin'], variable: '--font-dmsans', display: 'swap' });
-const fraunces = Fraunces({ subsets: ['latin'], variable: '--font-fraunces', display: 'swap' });
-const manrope = Manrope({ subsets: ['latin'], variable: '--font-manrope', display: 'swap' });
-const syne = Syne({ subsets: ['latin'], variable: '--font-syne', display: 'swap' });
-const bricolage = Bricolage_Grotesque({ subsets: ['latin'], variable: '--font-bricolage', display: 'swap', adjustFontFallback: false });
-const cormorant = Cormorant_Garamond({ subsets: ['latin'], weight: ['400', '600', '700'], variable: '--font-cormorant', display: 'swap' });
-const dmserif = DM_Serif_Display({ subsets: ['latin'], weight: '400', variable: '--font-dmserif', display: 'swap' });
-const ibmplex = IBM_Plex_Mono({ subsets: ['latin'], weight: ['400', '500', '700'], variable: '--font-ibmplex', display: 'swap' });
+// Fontes dos temas: sem preload, o navegador só baixa as que o tema da página usa
+const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfair', display: 'swap', preload: false });
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap', preload: false });
+const jetbrains = JetBrains_Mono({ subsets: ['latin'], variable: '--font-jetbrains', display: 'swap', preload: false });
+const dmsans = DM_Sans({ subsets: ['latin'], variable: '--font-dmsans', display: 'swap', preload: false });
+const fraunces = Fraunces({ subsets: ['latin'], variable: '--font-fraunces', display: 'swap', preload: false });
+const manrope = Manrope({ subsets: ['latin'], variable: '--font-manrope', display: 'swap', preload: false });
+const syne = Syne({ subsets: ['latin'], variable: '--font-syne', display: 'swap', preload: false });
+const bricolage = Bricolage_Grotesque({ subsets: ['latin'], variable: '--font-bricolage', display: 'swap', preload: false, adjustFontFallback: false });
+const cormorant = Cormorant_Garamond({ subsets: ['latin'], weight: ['400', '600', '700'], variable: '--font-cormorant', display: 'swap', preload: false });
+const dmserif = DM_Serif_Display({ subsets: ['latin'], weight: '400', variable: '--font-dmserif', display: 'swap', preload: false });
+const ibmplex = IBM_Plex_Mono({ subsets: ['latin'], weight: ['400', '500', '700'], variable: '--font-ibmplex', display: 'swap', preload: false });
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://bioflowzy.com';
 
@@ -38,8 +39,8 @@ export const metadata: Metadata = {
   title: 'BioFlowzy — Sua bio, seu link, seu universo',
   description: 'Plataforma brutalista de bio links. Compartilhe tudo em um só lugar.',
   icons: {
-    icon: '/Gemini_Generated_Image_i7bfh0i7bfh0i7bf_(1).png',
-    apple: '/Gemini_Generated_Image_i7bfh0i7bfh0i7bf_(1).png',
+    icon: '/favicon-48.png',
+    apple: '/apple-touch-icon.png',
   },
   openGraph: {
     title: 'BioFlowzy — Um link para compartilhar tudo o que importa',

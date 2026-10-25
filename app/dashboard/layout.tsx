@@ -8,6 +8,7 @@ import { LayoutDashboard, Link2, ChartBar as BarChart3, Palette, Settings, LogOu
 import { UpgradeModalProvider } from '@/components/dashboard/UpgradeModal';
 import { SidebarPlanCard } from '@/components/dashboard/SidebarPlanCard';
 import { PaymentReturnNotice } from '@/components/dashboard/PaymentReturnNotice';
+import { refreshPublicBio } from '@/lib/revalidate-bio';
 
 const nav = [
   { href: '/dashboard', label: 'Visão geral', icon: LayoutDashboard },
@@ -35,6 +36,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     setMobileOpen(false);
   }, [path]);
+
+  // A página pública fica em cache; atualiza ao trocar de página no painel ou sair da aba
+  // (ex.: "Ver minha bio" abre outra aba), para o usuário ver as edições na hora
+  useEffect(() => {
+    if (userId) refreshPublicBio();
+  }, [path, userId]);
+
+  useEffect(() => {
+    function onVisibility() {
+      if (document.visibilityState === 'hidden') refreshPublicBio();
+    }
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
+  }, []);
 
   async function signOut() {
     await ctxSignOut();

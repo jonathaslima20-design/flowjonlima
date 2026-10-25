@@ -36,6 +36,11 @@ Plataforma de link in bio (bioflowzy.com). Originalmente gerada no Bolt.new (tem
 - Suspensão (`suspended_at`) bloqueia edição/inserção no banco, a página pública (404) e o domínio próprio
 - Usernames reservados: `is_reserved_username()` no banco (cadastro chama via RPC)
 
+## Performance da página pública
+- `app/[username]/page.tsx` é ISR (`revalidate = 30` + `generateStaticParams` vazio); o layout do painel chama `/api/revalidate-bio` (via `lib/revalidate-bio.ts`) ao trocar de página ou sair da aba, para o usuário ver as edições na hora
+- Fontes dos temas em `app/layout.tsx` têm `preload: false` (só Archivo Black e Space Grotesk, usadas no site, são pré-carregadas)
+- Uploads de banner e ícone passam por `lib/compress-image.ts` (WebP, 1600px / 256px)
+
 ## Pagamentos (Mercado Pago, Checkout Pro)
 - Pagamento por período, sem renovação automática: 1 mês (`pro_monthly`) ou 1 ano (`pro_annual`)
 - `supabase/functions/mp-checkout`: cria linha `pending` em `payments` + preferência (`external_reference = payments.id`); preço lido de `plans.price_cents`
