@@ -31,4 +31,11 @@ jobs:
       - name: Lint
         run: npm run lint
       - name: Build
-        run: npm run build
+        # Em caso de falha, publica o fim do log como anotação (visível sem login no GitHub)
+        run: |
+          set -o pipefail
+          if ! npm run build 2>&1 | tee build.log; then
+            msg=$(tail -n 60 build.log | sed -e 's/%/%25/g' -e 's/\r//g' | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/%0A/g')
+            echo "::error title=Build falhou::${msg}"
+            exit 1
+          fi
