@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { usePlan } from '@/hooks/use-plan';
 import { useUpgradeModal } from '@/components/dashboard/UpgradeModal';
+import { PLANS, brl, type BillingPeriod } from '@/lib/plans';
 import { Copy, Check, Lock, Crown, TrendingUp, DollarSign, Users, Wallet, Clock, CircleCheck as CheckCircle, Circle as XCircle, ChevronRight } from 'lucide-react';
 
 type ReferredUser = {
@@ -27,9 +28,16 @@ type PayoutRequest = {
 
 const PLAN_LABELS: Record<string, { label: string; color: string }> = {
   free: { label: 'Free', color: 'bg-neutral-200 text-black' },
-  pro_monthly: { label: 'Pro Mensal', color: 'bg-bioblue text-white' },
-  pro_annual: { label: 'Pro Anual', color: 'bg-green-600 text-white' },
+  pro: { label: 'Pro', color: 'bg-bioblue text-white' },
+  business: { label: 'Business', color: 'bg-green-600 text-white' },
 };
+
+// Igual ao cálculo de grant_paid_plan no banco: 30% do primeiro pagamento do indicado
+const COMMISSION_PERCENT = 30;
+
+function commissionFor(period: BillingPeriod) {
+  return Math.round(PLANS.pro.prices[period] * COMMISSION_PERCENT / 100);
+}
 
 const PAYOUT_STATUS: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
   pending: { label: 'Aguardando', icon: <Clock className="w-3.5 h-3.5" />, color: 'text-yellow-700 bg-bioyellow' },
@@ -162,16 +170,16 @@ export default function ReferralPage() {
       <div className="grid sm:grid-cols-2 gap-4 mb-8">
         <div className="brutal-card bg-bioyellow p-5 relative overflow-hidden">
           <div className="absolute -right-4 -top-4 w-20 h-20 bg-black/5 rounded-full" />
-          <p className="text-xs font-bold uppercase tracking-widest text-black/60 mb-2">Pro Mensal</p>
-          <div className="font-display text-5xl mb-1">R$10</div>
-          <p className="text-sm font-bold text-black/70">por cada indicado que assinar o plano mensal</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-black/60 mb-2">Pro Trimestral</p>
+          <div className="font-display text-5xl mb-1">{brl(commissionFor('quarterly'))}</div>
+          <p className="text-sm font-bold text-black/70">por cada indicado que assinar o pacote trimestral</p>
           <DollarSign className="absolute bottom-4 right-4 w-8 h-8 opacity-20" />
         </div>
         <div className="brutal-card bg-biolime p-5 relative overflow-hidden">
           <div className="absolute -right-4 -top-4 w-20 h-20 bg-black/5 rounded-full" />
           <p className="text-xs font-bold uppercase tracking-widest text-black/60 mb-2">Pro Anual</p>
-          <div className="font-display text-5xl mb-1">R$100</div>
-          <p className="text-sm font-bold text-black/70">por cada indicado que assinar o plano anual</p>
+          <div className="font-display text-5xl mb-1">{brl(commissionFor('annual'))}</div>
+          <p className="text-sm font-bold text-black/70">por cada indicado que assinar o pacote anual</p>
           <TrendingUp className="absolute bottom-4 right-4 w-8 h-8 opacity-20" />
         </div>
       </div>
@@ -215,7 +223,7 @@ export default function ReferralPage() {
                 <div>
                   <p className="font-bold text-sm">Torne-se Pro e comece a ganhar indicando!</p>
                   <p className="text-xs text-black/70 mt-0.5">
-                    Assine o plano Pro e desbloqueie seu link com comissoes de ate R$100 por indicado.
+                    Assine o plano Pro e desbloqueie seu link: você ganha {COMMISSION_PERCENT}% do primeiro pagamento de cada indicado.
                   </p>
                 </div>
               </div>

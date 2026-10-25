@@ -67,5 +67,5 @@ export function comingSoonBadge() {
 }
 
 export function getProPlansName() {
-  return `${PLANS.pro_monthly.name} / ${PLANS.pro_annual.name}`;
+  return `${PLANS.pro.name} / ${PLANS.business.name}`;
 }

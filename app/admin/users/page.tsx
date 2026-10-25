@@ -33,7 +33,7 @@ interface UserDetail extends Profile {
 const PAGE_SIZE = 25;
 
 type FilterRole = 'all' | 'admin' | 'user';
-type FilterPlan = 'all' | 'free' | 'pro_monthly' | 'pro_annual';
+type FilterPlan = 'all' | 'free' | 'pro' | 'business';
 type FilterStatus = 'all' | 'active' | 'suspended';
 
 export default function AdminUsersPage() {
@@ -199,8 +199,8 @@ export default function AdminUsersPage() {
           >
             <option value="all">Todos os planos</option>
             <option value="free">Free</option>
-            <option value="pro_monthly">Pro Mensal</option>
-            <option value="pro_annual">Pro Anual</option>
+            <option value="pro">Pro</option>
+            <option value="business">Business</option>
           </select>
           <select
             value={filterStatus}
@@ -262,9 +262,9 @@ export default function AdminUsersPage() {
                       {(() => {
                         const slug = isPlanSlug(p.plan) ? p.plan : 'free';
                         const label = planLabel(slug).toUpperCase();
-                        const cls = slug === 'pro_annual'
+                        const cls = slug === 'business'
                           ? 'bg-black text-white'
-                          : slug === 'pro_monthly'
+                          : slug === 'pro'
                           ? 'bg-bioyellow text-black'
                           : 'text-gray-400';
                         return (

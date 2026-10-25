@@ -3,18 +3,9 @@
 import { Check, Star } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
-import { PLANS } from '@/lib/plans';
+import { PLANS, PERIOD_LABELS, annualDiscount, brl, monthlyPrice, type BillingPeriod, type PlanSlug } from '@/lib/plans';
 
-const ANNUAL_DISCOUNT = Math.round((1 - (PLANS.pro_annual.priceCents / 100) / ((PLANS.pro_monthly.priceCents / 100) * 12)) * 100);
-
-type Card = {
-  key: string;
-  name: string;
-  price: string;
-  period: string;
-  features: string[];
-  cta: string;
-  href: string;
+type CardStyle = {
   bg: string;
   ctaBg: string;
   ctaText: string;
@@ -22,52 +13,25 @@ type Card = {
   badge?: { label: string; bg: string; text: string; position: 'top-center' | 'top-right'; icon?: boolean };
 };
 
-const freeCard: Card = {
-  key: 'free',
-  name: PLANS.free.name.toUpperCase(),
-  price: PLANS.free.priceLabel,
-  period: '/sempre',
-  features: PLANS.free.features,
-  cta: 'COMEÇAR GRÁTIS',
-  href: '/register',
-  bg: 'bg-white',
-  ctaBg: 'bg-white',
-  ctaText: 'text-black',
-};
-
-const proMonthlyCard: Card = {
-  key: 'pro_monthly',
-  name: PLANS.pro_monthly.name.toUpperCase(),
-  price: PLANS.pro_monthly.priceLabel,
-  period: PLANS.pro_monthly.periodLabel,
-  features: PLANS.pro_monthly.features,
-  cta: 'ASSINAR PRO',
-  href: '/register?plan=pro_monthly',
-  bg: 'bg-bioyellow',
-  ctaBg: 'bg-blue-600',
-  ctaText: 'text-white',
-  highlight: true,
-  badge: { label: 'MAIS POPULAR', bg: 'bg-black', text: 'text-white', position: 'top-center', icon: true },
-};
-
-const proAnnualCard: Card = {
-  key: 'pro_annual',
-  name: PLANS.pro_annual.name.toUpperCase(),
-  price: PLANS.pro_annual.priceLabel,
-  period: PLANS.pro_annual.periodLabel,
-  features: PLANS.pro_annual.features,
-  cta: 'ASSINAR ANUAL',
-  href: '/register?plan=pro_annual',
-  bg: 'bg-biolime',
-  ctaBg: 'bg-black',
-  ctaText: 'text-white',
-  badge: { label: `ECONOMIZE ${ANNUAL_DISCOUNT}%`, bg: 'bg-blue-600', text: 'text-white', position: 'top-right' },
+const STYLES: Record<PlanSlug, CardStyle> = {
+  free: { bg: 'bg-white', ctaBg: 'bg-white', ctaText: 'text-black' },
+  pro: {
+    bg: 'bg-bioyellow',
+    ctaBg: 'bg-blue-600',
+    ctaText: 'text-white',
+    highlight: true,
+    badge: { label: 'MAIS POPULAR', bg: 'bg-black', text: 'text-white', position: 'top-center', icon: true },
+  },
+  business: {
+    bg: 'bg-biolime',
+    ctaBg: 'bg-black',
+    ctaText: 'text-white',
+    badge: { label: 'EM BREVE', bg: 'bg-blue-600', text: 'text-white', position: 'top-right' },
+  },
 };
 
 export function Pricing() {
-  const [period, setPeriod] = useState<'monthly' | 'annual'>('monthly');
-  const proCard = period === 'monthly' ? proMonthlyCard : proAnnualCard;
-  const allCards: Card[] = [freeCard, proCard, period === 'monthly' ? proAnnualCard : proMonthlyCard];
+  const [period, setPeriod] = useState<BillingPeriod>('annual');
 
   return (
     <section id="pricing" className="py-24 bg-white border-y-2 border-black">
@@ -82,64 +46,76 @@ export function Pricing() {
           </p>
 
           <div className="mt-8 inline-flex brutal-border bg-white p-1 gap-1">
-            <button
-              onClick={() => setPeriod('monthly')}
-              className={`px-4 py-2 text-sm font-bold ${period === 'monthly' ? 'bg-black text-white' : 'bg-white text-black'}`}
-            >
-              Mensal
-            </button>
-            <button
-              onClick={() => setPeriod('annual')}
-              className={`px-4 py-2 text-sm font-bold inline-flex items-center gap-2 ${period === 'annual' ? 'bg-black text-white' : 'bg-white text-black'}`}
-            >
-              Anual
-              <span className={`text-[10px] px-1.5 py-0.5 ${period === 'annual' ? 'bg-biolime text-black' : 'bg-biolime text-black'} font-bold`}>
-                -{ANNUAL_DISCOUNT}%
-              </span>
-            </button>
+            {(['quarterly', 'annual'] as BillingPeriod[]).map(p => (
+              <button
+                key={p}
+                onClick={() => setPeriod(p)}
+                className={`px-4 py-2 text-sm font-bold inline-flex items-center gap-2 ${period === p ? 'bg-black text-white' : 'bg-white text-black'}`}
+              >
+                {PERIOD_LABELS[p].name}
+                {p === 'annual' && (
+                  <span className="text-[10px] px-1.5 py-0.5 bg-biolime text-black font-bold">-{annualDiscount('pro')}%</span>
+                )}
+              </button>
+            ))}
           </div>
         </div>
 
         <div className="mt-14 grid md:grid-cols-3 gap-6 items-stretch">
-          {allCards.map((p) => (
-            <div
-              key={p.key}
-              className={`${p.bg} brutal-border p-8 ${p.highlight ? 'brutal-shadow-xl' : 'brutal-shadow'} relative flex flex-col`}
-            >
-              {p.badge && (
-                <span
-                  className={`absolute ${p.badge.position === 'top-center' ? '-top-4 left-1/2 -translate-x-1/2' : '-top-3 right-4'} ${p.badge.bg} ${p.badge.text} px-3 py-1.5 text-xs font-bold brutal-border inline-flex items-center gap-1.5 whitespace-nowrap`}
-                >
-                  {p.badge.icon && <Star className="w-3 h-3" fill="currentColor" />}
-                  {p.badge.label}
-                </span>
-              )}
-
-              <h3 className="font-display text-2xl">{p.name}</h3>
-              <div className="mt-3 flex items-baseline gap-1">
-                <span className="font-display text-5xl">{p.price}</span>
-                <span className="text-sm font-medium">{p.period}</span>
-              </div>
-
-              <ul className="mt-6 space-y-3 flex-1">
-                {p.features.map((f) => (
-                  <li key={f} className="flex items-start gap-2 text-sm font-bold">
-                    <span className="w-5 h-5 shrink-0 bg-black text-white flex items-center justify-center mt-0.5">
-                      <Check className="w-3 h-3" strokeWidth={3} />
-                    </span>
-                    <span>{f}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <Link
-                href={p.href}
-                className={`mt-8 brutal-btn w-full py-3 text-center font-bold ${p.ctaBg} ${p.ctaText}`}
+          {(['free', 'pro', 'business'] as PlanSlug[]).map(slug => {
+            const plan = PLANS[slug];
+            const style = STYLES[slug];
+            const isFree = slug === 'free';
+            return (
+              <div
+                key={slug}
+                className={`${style.bg} brutal-border p-8 ${style.highlight ? 'brutal-shadow-xl' : 'brutal-shadow'} relative flex flex-col`}
               >
-                {p.cta}
-              </Link>
-            </div>
-          ))}
+                {style.badge && (
+                  <span
+                    className={`absolute ${style.badge.position === 'top-center' ? '-top-4 left-1/2 -translate-x-1/2' : '-top-3 right-4'} ${style.badge.bg} ${style.badge.text} px-3 py-1.5 text-xs font-bold brutal-border inline-flex items-center gap-1.5 whitespace-nowrap`}
+                  >
+                    {style.badge.icon && <Star className="w-3 h-3" fill="currentColor" />}
+                    {style.badge.label}
+                  </span>
+                )}
+
+                <h3 className="font-display text-2xl">{plan.name.toUpperCase()}</h3>
+                <p className="text-xs font-bold text-black/60 mt-1">{plan.tagline}</p>
+                <div className="mt-3 flex items-baseline gap-1">
+                  <span className="font-display text-5xl">{isFree ? 'R$ 0' : brl(monthlyPrice(slug, period))}</span>
+                  <span className="text-sm font-medium">{isFree ? '/sempre' : '/mês'}</span>
+                </div>
+                <p className="text-xs font-bold text-black/60 mt-1 min-h-[1rem]">
+                  {isFree ? 'Sem cartão de crédito' : `${brl(plan.prices[period])} no pacote ${PERIOD_LABELS[period].adjective}`}
+                </p>
+
+                <ul className="mt-6 space-y-3 flex-1">
+                  {plan.features.map(f => (
+                    <li key={f} className="flex items-start gap-2 text-sm font-bold">
+                      <span className="w-5 h-5 shrink-0 bg-black text-white flex items-center justify-center mt-0.5">
+                        <Check className="w-3 h-3" strokeWidth={3} />
+                      </span>
+                      <span>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                {plan.available ? (
+                  <Link
+                    href={isFree ? '/register' : `/register?plan=${slug}`}
+                    className={`mt-8 brutal-btn w-full py-3 text-center font-bold ${style.ctaBg} ${style.ctaText}`}
+                  >
+                    {isFree ? 'COMEÇAR GRÁTIS' : `ASSINAR ${plan.name.toUpperCase()}`}
+                  </Link>
+                ) : (
+                  <span className={`mt-8 brutal-btn w-full py-3 text-center font-bold opacity-50 cursor-not-allowed ${style.ctaBg} ${style.ctaText}`}>
+                    EM BREVE
+                  </span>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>

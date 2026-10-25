@@ -1,14 +1,13 @@
 import { supabase } from './supabase';
-
-export type PaidPlan = 'pro_monthly' | 'pro_annual';
+import type { BillingPeriod, PaidPlanSlug } from './plans';
 
 export type CheckoutResult =
   | { ok: true }
   | { ok: false; notConfigured: boolean; message: string };
 
 // Cria o pagamento na edge function mp-checkout e redireciona para o Checkout Pro
-export async function startCheckout(plan: PaidPlan): Promise<CheckoutResult> {
-  const { data, error } = await supabase.functions.invoke('mp-checkout', { body: { plan } });
+export async function startCheckout(plan: PaidPlanSlug, period: BillingPeriod): Promise<CheckoutResult> {
+  const { data, error } = await supabase.functions.invoke('mp-checkout', { body: { plan, period } });
   if (!error && data?.url) {
     window.location.href = data.url;
     return { ok: true };

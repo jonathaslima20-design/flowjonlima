@@ -397,6 +397,7 @@ export type Database = {
           mp_preference_id: string | null
           mp_status_detail: string | null
           paid_at: string | null
+          period: string
           plan_granted_until: string | null
           plan_slug: string
           profile_id: string
@@ -412,6 +413,7 @@ export type Database = {
           mp_preference_id?: string | null
           mp_status_detail?: string | null
           paid_at?: string | null
+          period?: string
           plan_granted_until?: string | null
           plan_slug: string
           profile_id: string
@@ -427,6 +429,7 @@ export type Database = {
           mp_preference_id?: string | null
           mp_status_detail?: string | null
           paid_at?: string | null
+          period?: string
           plan_granted_until?: string | null
           plan_slug?: string
           profile_id?: string
@@ -499,6 +502,7 @@ export type Database = {
           is_active: boolean | null
           limits: Json | null
           name: string
+          price_annual_cents: number | null
           price_cents: number | null
           slug: string | null
         }
@@ -512,6 +516,7 @@ export type Database = {
           is_active?: boolean | null
           limits?: Json | null
           name: string
+          price_annual_cents?: number | null
           price_cents?: number | null
           slug?: string | null
         }
@@ -525,6 +530,7 @@ export type Database = {
           is_active?: boolean | null
           limits?: Json | null
           name?: string
+          price_annual_cents?: number | null
           price_cents?: number | null
           slug?: string | null
         }
@@ -988,6 +994,7 @@ export type Database = {
       generate_referral_code: { Args: never; Returns: string }
       grant_paid_plan: { Args: { p_payment_id: string }; Returns: string }
       is_admin: { Args: never; Returns: boolean }
+      is_pro_only_theme: { Args: { p_theme: string }; Returns: boolean }
       is_reserved_username: { Args: { p_username: string }; Returns: boolean }
       is_suspended: { Args: { p_profile_id: string }; Returns: boolean }
       lookup_domain: {

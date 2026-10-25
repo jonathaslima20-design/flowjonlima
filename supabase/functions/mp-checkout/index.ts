@@ -10,7 +10,11 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
-const PAID_PLANS = ["pro_monthly", "pro_annual"];
+const PAID_PLANS = ["pro", "business"];
+const PERIODS: Record<string, { label: string; column: "price_cents" | "price_annual_cents" }> = {
+  quarterly: { label: "Trimestral", column: "price_cents" },
+  annual: { label: "Anual", column: "price_annual_cents" },
+};
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -39,7 +43,10 @@ Deno.serve(async (req: Request) => {
 
   const body = await req.json().catch(() => ({}));
   const plan = String(body?.plan ?? "");
+  const period = String(body?.period ?? "");
   if (!PAID_PLANS.includes(plan)) return json({ error: "Plano inválido." }, 400);
+  const periodInfo = PERIODS[period];
+  if (!periodInfo) return json({ error: "Período inválido." }, 400);
 
   const admin = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
 
@@ -54,16 +61,17 @@ Deno.serve(async (req: Request) => {
   // O preço vem do banco, nunca do navegador
   const { data: planRow } = await admin
     .from("plans")
-    .select("name, price_cents, is_active")
+    .select("name, price_cents, price_annual_cents, is_active")
     .eq("slug", plan)
     .maybeSingle();
-  if (!planRow?.is_active || !planRow.price_cents || planRow.price_cents <= 0) {
+  const amount = planRow?.[periodInfo.column];
+  if (!planRow?.is_active || !amount || amount <= 0) {
     return json({ error: "Plano indisponível no momento." }, 400);
   }
 
   const { data: payment, error: payErr } = await admin
     .from("payments")
-    .insert({ profile_id: user.id, plan_slug: plan, amount_cents: planRow.price_cents })
+    .insert({ profile_id: user.id, plan_slug: plan, period, amount_cents: amount })
     .select("id")
     .single();
   if (payErr || !payment) {
@@ -80,10 +88,10 @@ Deno.serve(async (req: Request) => {
     },
     body: JSON.stringify({
       items: [{
-        id: plan,
-        title: `BioFlowzy ${planRow.name}`,
+        id: `${plan}_${period}`,
+        title: `BioFlowzy ${planRow.name} ${periodInfo.label}`,
         quantity: 1,
-        unit_price: planRow.price_cents / 100,
+        unit_price: amount / 100,
         currency_id: "BRL",
       }],
       payer: user.email ? { email: user.email } : undefined,

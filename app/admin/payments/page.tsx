@@ -2,12 +2,13 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { planLabel } from '@/lib/plans';
+import { PERIOD_LABELS, planLabel, type BillingPeriod } from '@/lib/plans';
 import { RefreshCw, ExternalLink } from 'lucide-react';
 
 type Payment = {
   id: string;
   plan_slug: string;
+  period: BillingPeriod;
   amount_cents: number;
   status: string;
   mp_payment_id: string | null;
@@ -54,7 +55,7 @@ export default function AdminPaymentsPage() {
     setLoading(true);
     const { data } = await supabase
       .from('payments')
-      .select('id, plan_slug, amount_cents, status, mp_payment_id, mp_status_detail, paid_at, plan_granted_until, created_at, profiles!payments_profile_id_fkey(username, display_name)')
+      .select('id, plan_slug, period, amount_cents, status, mp_payment_id, mp_status_detail, paid_at, plan_granted_until, created_at, profiles!payments_profile_id_fkey(username, display_name)')
       .order('created_at', { ascending: false })
       .limit(500);
     setPayments((data as unknown as Payment[]) ?? []);
@@ -155,7 +156,7 @@ export default function AdminPaymentsPage() {
                           <span className="text-gray-400">conta removida</span>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-xs font-bold">{planLabel(p.plan_slug)}</td>
+                      <td className="px-4 py-3 text-xs font-bold">{planLabel(p.plan_slug)} · {PERIOD_LABELS[p.period]?.name ?? p.period}</td>
                       <td className="px-4 py-3 text-right font-bold whitespace-nowrap">{brl(p.amount_cents)}</td>
                       <td className="px-4 py-3 text-center">
                         <span className={`text-[10px] font-bold px-2 py-0.5 inline-block ${status.cls}`} title={p.mp_status_detail ?? undefined}>

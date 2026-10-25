@@ -3,12 +3,14 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { Json } from '@/lib/database.types';
+import { brl } from '@/lib/plans';
 import { Plus, Pencil, ToggleLeft, ToggleRight, Trash2, X, Check, TriangleAlert as AlertTriangle, Users, RefreshCw } from 'lucide-react';
 
 interface Plan {
   id: string;
   name: string;
   price_cents: number;
+  price_annual_cents: number | null;
   features: string[];
   is_active: boolean;
   created_at: string;
@@ -20,13 +22,14 @@ interface Plan {
 interface PlanForm {
   name: string;
   price_cents: string;
+  price_annual_cents: string;
   features: string[];
   is_active: boolean;
   button_label: string;
   button_url: string;
 }
 
-const emptyForm: PlanForm = { name: '', price_cents: '0', features: [''], is_active: true, button_label: '', button_url: '' };
+const emptyForm: PlanForm = { name: '', price_cents: '0', price_annual_cents: '0', features: [''], is_active: true, button_label: '', button_url: '' };
 
 export default function AdminPlansPage() {
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -50,7 +53,7 @@ export default function AdminPlansPage() {
     setLoading(true);
     const { data: plansData } = await supabase
       .from('plans')
-      .select('id, name, price_cents, features, is_active, created_at, button_label, button_url')
+      .select('id, name, price_cents, price_annual_cents, features, is_active, created_at, button_label, button_url')
       .order('price_cents', { ascending: true });
 
     const { data: subsData } = await supabase
@@ -93,6 +96,7 @@ export default function AdminPlansPage() {
     setForm({
       name: plan.name,
       price_cents: String(plan.price_cents),
+      price_annual_cents: String(plan.price_annual_cents ?? 0),
       features: plan.features.length > 0 ? plan.features : [''],
       is_active: plan.is_active,
       button_label: plan.button_label ?? '',
@@ -103,13 +107,15 @@ export default function AdminPlansPage() {
 
   async function savePlan() {
     const price = parseInt(form.price_cents, 10);
-    if (!form.name.trim() || isNaN(price)) return;
+    const priceAnnual = parseInt(form.price_annual_cents, 10);
+    if (!form.name.trim() || isNaN(price) || isNaN(priceAnnual)) return;
     const cleanFeatures = form.features.filter(f => f.trim() !== '');
 
     setSaving(true);
     const payload = {
       name: form.name.trim(),
       price_cents: price,
+      price_annual_cents: priceAnnual,
       features: cleanFeatures,
       is_active: form.is_active,
       button_label: form.button_label.trim() || null,
@@ -221,7 +227,7 @@ export default function AdminPlansPage() {
                   <div className="font-display text-2xl mb-3">
                     {plan.price_cents === 0
                       ? 'Gratuito'
-                      : `R$ ${(plan.price_cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}/mês`}
+                      : `${brl(plan.price_cents)}/trimestre · ${brl(plan.price_annual_cents ?? 0)}/ano`}
                   </div>
                   <ul className="flex flex-wrap gap-x-4 gap-y-1 mb-2">
                     {plan.features.map((f, i) => (
@@ -309,9 +315,10 @@ export default function AdminPlansPage() {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-bold mb-1">Preço (em centavos)</label>
-                <div className="flex items-center gap-2">
+              {/* O checkout cobra estes valores; os textos de preço do site ficam em lib/plans.ts */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-bold mb-1">Pacote trimestral (centavos)</label>
                   <input
                     type="number"
                     min="0"
@@ -320,9 +327,19 @@ export default function AdminPlansPage() {
                     className="brutal-input w-full py-2 px-3 text-sm"
                     placeholder="0 = gratuito"
                   />
-                  <span className="text-sm text-gray-500 shrink-0">
-                    = R$ {(parseInt(form.price_cents || '0', 10) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                  </span>
+                  <span className="text-xs text-gray-500">= {brl(parseInt(form.price_cents || '0', 10))}</span>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold mb-1">Pacote anual (centavos)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={form.price_annual_cents}
+                    onChange={e => setForm(f => ({ ...f, price_annual_cents: e.target.value }))}
+                    className="brutal-input w-full py-2 px-3 text-sm"
+                    placeholder="0 = gratuito"
+                  />
+                  <span className="text-xs text-gray-500">= {brl(parseInt(form.price_annual_cents || '0', 10))}</span>
                 </div>
               </div>
 

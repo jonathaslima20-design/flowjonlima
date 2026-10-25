@@ -47,8 +47,11 @@ Plataforma de link in bio (bioflowzy.com). Originalmente gerada no Bolt.new (tem
 - Uploads de banner e ícone passam por `lib/compress-image.ts` (WebP, 1600px / 256px)
 
 ## Pagamentos (Mercado Pago, Checkout Pro)
-- Pagamento por período, sem renovação automática: 1 mês (`pro_monthly`) ou 1 ano (`pro_annual`)
-- `supabase/functions/mp-checkout`: cria linha `pending` em `payments` + preferência (`external_reference = payments.id`); preço lido de `plans.price_cents`
+- Planos: `free`, `pro`, `business` (Business com `is_active = false` / `available: false` até ter múltiplas páginas e leads)
+- Pagamento por período, sem renovação automática: pacote `quarterly` (3 meses, `plans.price_cents`) ou `annual` (1 ano, `plans.price_annual_cents`)
+- Comissão de indicação: 30% do primeiro pagamento aprovado do indicado, calculada em `grant_paid_plan`
+- Temas Pro: lista em `admin_settings.pro_only_themes` (editável em Admin → Temas); o banco bloqueia a troca para quem não tem `pro_themes`
+- `supabase/functions/mp-checkout`: cria linha `pending` em `payments` + preferência (`external_reference = payments.id`); recebe `{ plan, period }` e lê o preço do pacote no banco
 - `supabase/functions/mp-webhook` (deploy com `verify_jwt = false`): consulta o pagamento na API do MP e chama `grant_paid_plan()` (só service_role; idempotente; estende a partir da expiração vigente)
 - Secrets das edge functions (painel do Supabase): `MP_ACCESS_TOKEN`, `MP_WEBHOOK_SECRET`, `SITE_URL`
 - Sem os secrets, o modal de upgrade cai no `plans.button_url` (links mpago.la cadastrados no admin)

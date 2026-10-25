@@ -11,13 +11,13 @@ export function SidebarPlanCard() {
   if (loading) return null;
 
   const isFree = plan.slug === 'free';
-  const isAnnual = plan.slug === 'pro_annual';
+  const isBusiness = plan.slug === 'business';
   const expires = profile?.plan_expires_at ? new Date(profile.plan_expires_at) : null;
   // Sem renovação automática: oferece renovar quando faltam 30 dias ou menos
   const expiringSoon = !!expires && !isFree && expires.getTime() - Date.now() < 30 * 24 * 60 * 60 * 1000;
 
-  const accentBg = isAnnual ? 'bg-black text-white' : isFree ? 'bg-neutral-100' : 'bg-bioyellow';
-  const pillBg = isAnnual ? 'bg-bioyellow text-black' : isFree ? 'bg-black text-white' : 'bg-black text-white';
+  const accentBg = isBusiness ? 'bg-black text-white' : isFree ? 'bg-neutral-100' : 'bg-bioyellow';
+  const pillBg = isBusiness ? 'bg-bioyellow text-black' : 'bg-black text-white';
 
   return (
     <div className={`brutal-border p-3 mt-3 ${accentBg}`}>
@@ -37,13 +37,13 @@ export function SidebarPlanCard() {
           Desbloqueie todos os recursos.
         </p>
       )}
-      {(!isAnnual || expiringSoon) && (
+      {(isFree || expiringSoon) && (
         <button
           onClick={open}
           className={`brutal-btn w-full py-2 text-xs gap-2 ${isFree ? 'bg-bioyellow' : 'bg-white text-black'}`}
         >
           {isFree ? <Crown className="w-3.5 h-3.5" /> : <Sparkles className="w-3.5 h-3.5" />}
-          {isFree ? 'Fazer upgrade' : expiringSoon ? 'Renovar plano' : 'Upgrade para anual'}
+          {isFree ? 'Fazer upgrade' : 'Renovar plano'}
         </button>
       )}
     </div>

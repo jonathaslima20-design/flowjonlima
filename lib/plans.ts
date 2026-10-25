@@ -1,4 +1,10 @@
-export type PlanSlug = 'free' | 'pro_monthly' | 'pro_annual';
+// Espelha a tabela `plans` do banco (limites e preços). O banco é a fonte da
+// verdade para o checkout e para os limites aplicados por trigger; aqui ficam os
+// textos e valores exibidos na interface.
+
+export type PlanSlug = 'free' | 'pro' | 'business';
+export type PaidPlanSlug = Exclude<PlanSlug, 'free'>;
+export type BillingPeriod = 'quarterly' | 'annual';
 
 export type ResourceKey = 'links' | 'banners' | 'videos' | 'socials';
 
@@ -8,73 +14,83 @@ export type PlanLimits = {
   videos: number;
   socials: number;
   analytics: 'basic' | 'advanced';
+  analytics_days: number;
+  pro_themes: boolean;
   custom_domain: boolean;
   pixel_ga: boolean;
   priority_support: boolean;
   referral: boolean;
   remove_logo: boolean;
   early_access: boolean;
+  leads: number;
+  pages: number;
 };
 
 export type PlanDefinition = {
   slug: PlanSlug;
   name: string;
-  priceCents: number;
-  billingPeriod: 'free' | 'monthly' | 'annual';
-  priceLabel: string;
-  periodLabel: string;
-  highlight?: boolean;
-  badge?: string;
+  // Preço total de cada pacote, em centavos (0 no Free)
+  prices: Record<BillingPeriod, number>;
+  tagline: string;
+  // Business só aparece para compra quando os recursos dele existirem
+  available: boolean;
   features: string[];
   limits: PlanLimits;
+};
+
+export const PERIOD_MONTHS: Record<BillingPeriod, number> = { quarterly: 3, annual: 12 };
+
+export const PERIOD_LABELS: Record<BillingPeriod, { name: string; adjective: string }> = {
+  quarterly: { name: 'Trimestral', adjective: 'trimestral' },
+  annual: { name: 'Anual', adjective: 'anual' },
 };
 
 export const PLANS: Record<PlanSlug, PlanDefinition> = {
   free: {
     slug: 'free',
     name: 'Free',
-    priceCents: 0,
-    billingPeriod: 'free',
-    priceLabel: 'R$ 0',
-    periodLabel: 'sempre',
+    prices: { quarterly: 0, annual: 0 },
+    tagline: 'Para começar agora',
+    available: true,
     features: [
-      '3 links',
-      '2 links sociais',
-      '1 banner',
-      '1 vídeo',
-      'Analytics básico',
+      'Links ilimitados',
+      'Redes sociais ilimitadas',
+      '1 banner e 1 vídeo',
+      '4 temas',
+      'Analytics dos últimos 7 dias',
     ],
     limits: {
-      links: 3,
+      links: -1,
       banners: 1,
       videos: 1,
-      socials: 2,
+      socials: -1,
       analytics: 'basic',
+      analytics_days: 7,
+      pro_themes: false,
       custom_domain: false,
       pixel_ga: false,
       priority_support: false,
       referral: false,
       remove_logo: false,
       early_access: false,
+      leads: 0,
+      pages: 1,
     },
   },
-  pro_monthly: {
-    slug: 'pro_monthly',
-    name: 'Pro Mensal',
-    priceCents: 2900,
-    billingPeriod: 'monthly',
-    priceLabel: 'R$ 29',
-    periodLabel: '/mês',
-    highlight: true,
-    badge: 'Mais popular',
+  pro: {
+    slug: 'pro',
+    name: 'Pro',
+    prices: { quarterly: 8970, annual: 23880 },
+    tagline: 'Para quem quer uma página profissional',
+    available: true,
     features: [
-      'Links sociais ilimitados',
-      'Links ilimitados',
-      'Vídeos ilimitados',
-      'Banners ilimitados',
+      'Tudo do Free',
+      'Todos os temas e personalização completa',
+      'Remoção da marca BioFlowzy',
+      'Banners e vídeos ilimitados',
+      'Analytics completo',
       'Domínio personalizado',
       'Meta Pixel e Google Analytics',
-      'Suporte prioritário',
       'Indique e ganhe',
     ],
     limits: {
@@ -83,27 +99,31 @@ export const PLANS: Record<PlanSlug, PlanDefinition> = {
       videos: -1,
       socials: -1,
       analytics: 'advanced',
+      analytics_days: 90,
+      pro_themes: true,
       custom_domain: true,
       pixel_ga: true,
-      priority_support: true,
+      priority_support: false,
       referral: true,
-      remove_logo: false,
+      remove_logo: true,
       early_access: false,
+      leads: 100,
+      pages: 1,
     },
   },
-  pro_annual: {
-    slug: 'pro_annual',
-    name: 'Pro Anual',
-    priceCents: 27900,
-    billingPeriod: 'annual',
-    priceLabel: 'R$ 279',
-    periodLabel: '/ano',
-    badge: 'Economize 20%',
+  business: {
+    slug: 'business',
+    name: 'Business',
+    prices: { quarterly: 17970, annual: 47880 },
+    tagline: 'Para agências e negócios com várias marcas',
+    available: false,
     features: [
-      'Tudo do Pro Mensal',
-      'Remoção da logo Bioflowzy',
-      'Desconto de 20%',
-      'Acesso antecipado a novos recursos',
+      'Tudo do Pro',
+      'Até 5 páginas',
+      'Acesso para clientes e equipe',
+      'Leads ilimitados com exportação',
+      'Analytics de 1 ano com exportação',
+      'Suporte prioritário no WhatsApp',
     ],
     limits: {
       links: -1,
@@ -111,20 +131,39 @@ export const PLANS: Record<PlanSlug, PlanDefinition> = {
       videos: -1,
       socials: -1,
       analytics: 'advanced',
+      analytics_days: 365,
+      pro_themes: true,
       custom_domain: true,
       pixel_ga: true,
       priority_support: true,
       referral: true,
       remove_logo: true,
       early_access: true,
+      leads: -1,
+      pages: 5,
     },
   },
 };
 
-export const PLAN_ORDER: PlanSlug[] = ['free', 'pro_monthly', 'pro_annual'];
+export const PLAN_ORDER: PlanSlug[] = ['free', 'pro', 'business'];
 
 export function isPlanSlug(v: any): v is PlanSlug {
-  return v === 'free' || v === 'pro_monthly' || v === 'pro_annual';
+  return v === 'free' || v === 'pro' || v === 'business';
+}
+
+export function brl(cents: number): string {
+  return (cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+// Preço por mês de um pacote, para exibição ("R$ 19,90/mês no anual")
+export function monthlyPrice(plan: PlanSlug, period: BillingPeriod): number {
+  return Math.round(PLANS[plan].prices[period] / PERIOD_MONTHS[period]);
+}
+
+// Desconto do anual em relação a pagar o trimestral o ano todo
+export function annualDiscount(plan: PaidPlanSlug): number {
+  const { quarterly, annual } = PLANS[plan].prices;
+  return Math.round((1 - annual / (quarterly * 4)) * 100);
 }
 
 export function getPlanFor(profile: { plan?: string | null; plan_expires_at?: string | null } | null | undefined): PlanDefinition {
@@ -157,7 +196,8 @@ export type FeatureFlag =
   | 'priority_support'
   | 'referral'
   | 'remove_logo'
-  | 'early_access';
+  | 'early_access'
+  | 'pro_themes';
 
 export function can(profile: any, feature: FeatureFlag): boolean {
   const limits = getPlanFor(profile).limits;

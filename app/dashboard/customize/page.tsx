@@ -7,8 +7,10 @@ import { THEMES, getTheme } from '@/themes/registry';
 import { ThemeMockup } from '@/components/themes/ThemeMockup';
 import { ThemeControls } from '@/components/dashboard/ThemeControls';
 import { SectionOrderControl } from '@/components/dashboard/SectionOrderControl';
-import { Check, Eye, X } from 'lucide-react';
+import { Check, Eye, Lock, X } from 'lucide-react';
 import { fetchAllShowcasePresets, catalogDemoFor, ShowcasePreset } from '@/lib/theme-showcase';
+import { usePlan } from '@/hooks/use-plan';
+import { useUpgradeModal } from '@/components/dashboard/UpgradeModal';
 
 export default function CustomizePage() {
   const [profileId, setProfileId] = useState('');
@@ -21,21 +23,28 @@ export default function CustomizePage() {
   const [showcase, setShowcase] = useState<Record<string, ShowcasePreset>>({});
   const [catalogOrder, setCatalogOrder] = useState<string[]>([]);
   const [disabledThemes, setDisabledThemes] = useState<string[]>([]);
+  const [proOnlyThemes, setProOnlyThemes] = useState<string[]>([]);
+  const { has } = usePlan();
+  const { open: openUpgrade } = useUpgradeModal();
   const [previewOpen, setPreviewOpen] = useState(false);
   const saveTimer = useRef<any>(null);
 
   useEffect(() => {
     (async () => {
-      const [all, { data: settingRow }] = await Promise.all([
+      const [all, { data: settingRows }] = await Promise.all([
         fetchAllShowcasePresets(),
-        supabase.from('admin_settings').select('value').eq('key', 'disabled_themes').maybeSingle(),
+        supabase.from('admin_settings').select('key, value').in('key', ['disabled_themes', 'pro_only_themes']),
       ]);
       const map: Record<string, ShowcasePreset> = {};
       for (const p of all) map[p.theme_key] = p;
       setShowcase(map);
       setCatalogOrder(all.map(p => p.theme_key));
-      const disabled = settingRow?.value;
-      setDisabledThemes(Array.isArray(disabled) ? (disabled as string[]) : []);
+      const listFor = (key: string) => {
+        const value = settingRows?.find(r => r.key === key)?.value;
+        return Array.isArray(value) ? (value as string[]) : [];
+      };
+      setDisabledThemes(listFor('disabled_themes'));
+      setProOnlyThemes(listFor('pro_only_themes'));
     })();
   }, []);
 
@@ -199,13 +208,15 @@ export default function CustomizePage() {
               ...Object.values(THEMES).filter(({ meta }) => !catalogOrder.includes(meta.key)),
             ].filter(({ meta }) => !disabledThemes.includes(meta.key) || activeKey === meta.key).map(({ meta }) => {
               const active = activeKey === meta.key;
+              // Temas Pro: o banco também bloqueia a troca para quem não tem o recurso
+              const locked = !active && proOnlyThemes.includes(meta.key) && !has('pro_themes');
               const preset = showcase[meta.key];
               const hasShowcase = preset?.show_in_catalog;
               const demo = hasShowcase ? catalogDemoFor(preset) : null;
               return (
                 <button
                   key={meta.key}
-                  onClick={() => applyTheme(meta.key)}
+                  onClick={() => (locked ? openUpgrade() : applyTheme(meta.key))}
                   className={`group brutal-border text-left transition-all overflow-hidden bg-white ${active ? 'brutal-shadow -translate-y-0.5' : 'hover:-translate-y-0.5 hover:brutal-shadow'}`}
                 >
                   <div className="relative bg-[#F7F7F5] border-b-[3px] border-black flex items-center justify-center py-6">
@@ -219,6 +230,11 @@ export default function CustomizePage() {
                       themeSettings={demo?.themeSettings}
                       height={454}
                     />
+                    {locked && (
+                      <span className="absolute top-2 right-2 text-[10px] font-bold uppercase bg-bioyellow text-black px-2 py-1 brutal-border flex items-center gap-1 z-10">
+                        <Lock className="w-3 h-3" /> Pro
+                      </span>
+                    )}
                     {active && (
                       <span className="absolute top-2 right-2 text-[10px] font-bold uppercase bg-black text-white px-2 py-1 brutal-border flex items-center gap-1 z-10">
                         <Check className="w-3 h-3" /> Ativo
