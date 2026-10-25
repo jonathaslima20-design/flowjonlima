@@ -8,6 +8,7 @@ import { Upload, User } from 'lucide-react';
 import { ProFeatureCard } from '@/components/dashboard/ProFeatureCard';
 import { AvatarCropModal } from '@/components/dashboard/AvatarCropModal';
 import { CustomDomainSection } from '@/components/dashboard/CustomDomainSection';
+import { SeoSection } from '@/components/dashboard/SeoSection';
 import { can } from '@/lib/plans';
 
 export default function SettingsPage() {
@@ -156,6 +157,8 @@ export default function SettingsPage() {
           {saved && <div className="font-bold">Salvo!</div>}
         </div>
       </section>
+
+      <SeoSection profile={profile} />
 
       {/* Dominio */}
       <section>

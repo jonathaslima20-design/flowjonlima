@@ -339,6 +339,7 @@ export type Database = {
         Row: {
           clicks: number | null
           created_at: string | null
+          ends_at: string | null
           icon: string | null
           icon_fetched_at: string | null
           icon_source: string | null
@@ -347,12 +348,14 @@ export type Database = {
           position: number | null
           profile_id: string
           show_icon: boolean | null
+          starts_at: string | null
           title: string | null
           url: string | null
         }
         Insert: {
           clicks?: number | null
           created_at?: string | null
+          ends_at?: string | null
           icon?: string | null
           icon_fetched_at?: string | null
           icon_source?: string | null
@@ -361,12 +364,14 @@ export type Database = {
           position?: number | null
           profile_id: string
           show_icon?: boolean | null
+          starts_at?: string | null
           title?: string | null
           url?: string | null
         }
         Update: {
           clicks?: number | null
           created_at?: string | null
+          ends_at?: string | null
           icon?: string | null
           icon_fetched_at?: string | null
           icon_source?: string | null
@@ -375,12 +380,51 @@ export type Database = {
           position?: number | null
           profile_id?: string
           show_icon?: boolean | null
+          starts_at?: string | null
           title?: string | null
           url?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "links_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      page_views: {
+        Row: {
+          country: string | null
+          created_at: string
+          device: string
+          id: string
+          profile_id: string
+          source: string
+          visitor_hash: string
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string
+          device?: string
+          id?: string
+          profile_id: string
+          source?: string
+          visitor_hash: string
+        }
+        Update: {
+          country?: string | null
+          created_at?: string
+          device?: string
+          id?: string
+          profile_id?: string
+          source?: string
+          visitor_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "page_views_profile_id_fkey"
             columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -592,6 +636,9 @@ export type Database = {
           referred_by: string | null
           role: string | null
           section_order: string[]
+          seo_description: string | null
+          seo_image_url: string | null
+          seo_title: string | null
           shadow_offset: number | null
           suspended_at: string | null
           text_color: string | null
@@ -624,6 +671,9 @@ export type Database = {
           referred_by?: string | null
           role?: string | null
           section_order?: string[]
+          seo_description?: string | null
+          seo_image_url?: string | null
+          seo_title?: string | null
           shadow_offset?: number | null
           suspended_at?: string | null
           text_color?: string | null
@@ -656,6 +706,9 @@ export type Database = {
           referred_by?: string | null
           role?: string | null
           section_order?: string[]
+          seo_description?: string | null
+          seo_image_url?: string | null
+          seo_title?: string | null
           shadow_offset?: number | null
           suspended_at?: string | null
           text_color?: string | null
@@ -1008,6 +1061,7 @@ export type Database = {
         Args: { p_key: string; p_profile_id: string }
         Returns: Json
       }
+      profile_analytics: { Args: { p_days?: number }; Returns: Json }
       request_payout: {
         Args: never
         Returns: {
@@ -1041,6 +1095,10 @@ export type Database = {
           p_entity_type: string
           p_profile_id: string
         }
+        Returns: boolean
+      }
+      track_view: {
+        Args: { p_device?: string; p_profile_id: string; p_source?: string }
         Returns: boolean
       }
       user_detail_counts: {

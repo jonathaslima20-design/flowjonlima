@@ -52,6 +52,13 @@ export function getSocialHref(platform: string, url: string): string {
   return url;
 }
 
+// Mensagem já preenchida quando o visitante abre a conversa (wa.me/...?text=)
+export function withWhatsappMessage(url: string, message: string): string {
+  const text = message.trim();
+  if (!text) return url;
+  return `${url}${url.includes('?') ? '&' : '?'}text=${encodeURIComponent(text)}`;
+}
+
 export function normalizeSocial(key: SocialKey, raw: string): string {
   const v = (raw || '').trim();
   if (!v) return '';

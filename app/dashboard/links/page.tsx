@@ -3,10 +3,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { GripVertical, Plus, Trash2, ExternalLink, Image as ImageIcon, RefreshCw, Upload, X } from 'lucide-react';
+import { GripVertical, Plus, Trash2, ExternalLink, Image as ImageIcon, RefreshCw, Upload, X, Clock, Lock } from 'lucide-react';
 import { BioPreview } from '@/components/dashboard/BioPreview';
 import { usePlan } from '@/hooks/use-plan';
 import { LimitBadge, UpgradeBanner } from '@/components/dashboard/LimitBadge';
+import { useUpgradeModal } from '@/components/dashboard/UpgradeModal';
 import { isUnlimited } from '@/lib/plans';
 import { toSafeUrl } from '@/lib/url';
 import { compressImage } from '@/lib/compress-image';
@@ -21,14 +22,41 @@ type Link = {
   icon_source?: 'none' | 'auto' | 'custom' | null;
   show_icon?: boolean | null;
   icon_fetched_at?: string | null;
+  starts_at?: string | null;
+  ends_at?: string | null;
 };
+
+// <input type="datetime-local"> trabalha com horário local sem fuso
+function toLocalInput(iso: string | null | undefined): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function fromLocalInput(value: string): string | null {
+  return value ? new Date(value).toISOString() : null;
+}
+
+function scheduleStatus(link: Link): { label: string; cls: string } | null {
+  const now = Date.now();
+  if (link.ends_at && new Date(link.ends_at).getTime() <= now) return { label: 'Expirado', cls: 'bg-red-100 text-red-700' };
+  if (link.starts_at && new Date(link.starts_at).getTime() > now) {
+    return { label: `Agendado: ${new Date(link.starts_at).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}`, cls: 'bg-blue-100 text-blue-800' };
+  }
+  if (link.ends_at) {
+    return { label: `Até ${new Date(link.ends_at).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}`, cls: 'bg-bioyellow text-black' };
+  }
+  return null;
+}
 
 export default function LinksPage() {
   const [profileId, setProfileId] = useState<string>('');
   const [links, setLinks] = useState<Link[]>([]);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [fetchingIcon, setFetchingIcon] = useState<Record<string, boolean>>({});
-  const { limitOf, reload: reloadPlan } = usePlan();
+  const { limitOf, has, reload: reloadPlan } = usePlan();
+  const { open: openUpgrade } = useUpgradeModal();
   const limit = limitOf('links');
   const atLimit = !isUnlimited(limit) && links.length >= limit;
 
@@ -69,7 +97,8 @@ export default function LinksPage() {
       if (!safe) return;
       dbPatch.url = safe;
     }
-    await supabase.from('links').update(dbPatch).eq('id', id);
+    const { error } = await supabase.from('links').update(dbPatch).eq('id', id);
+    if (error) toast.error(error.message);
   }
 
   async function removeLink(id: string) {
@@ -203,6 +232,8 @@ export default function LinksPage() {
               onClearIcon={() => clearIcon(link)}
               onDragStart={() => setDraggingId(link.id)}
               onDrop={() => onDrop(link.id)}
+              canSchedule={has('scheduling')}
+              onUpgrade={openUpgrade}
             />
           ))}
         </div>
@@ -228,8 +259,12 @@ function LinkRow({
   onClearIcon,
   onDragStart,
   onDrop,
+  canSchedule,
+  onUpgrade,
 }: {
   link: Link;
+  canSchedule: boolean;
+  onUpgrade: () => void;
   fetching: boolean;
   onUpdate: (patch: Partial<Link>) => void;
   onRemove: () => void;
@@ -240,6 +275,9 @@ function LinkRow({
   onDrop: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
+  const status = scheduleStatus(link);
+  const hasSchedule = !!(link.starts_at || link.ends_at);
   const fileRef = useRef<HTMLInputElement>(null);
   const lastAutoUrl = useRef<string | null>(link.icon_source === 'auto' ? link.url : null);
 
@@ -312,6 +350,14 @@ function LinkRow({
             >
               <ImageIcon className="w-4 h-4" />
             </button>
+            <button
+              onClick={() => setScheduleOpen(v => !v)}
+              className={`brutal-btn w-9 h-9 shrink-0 ${hasSchedule ? 'bg-bioyellow' : 'bg-white'}`}
+              aria-label="Agendar"
+              title="Agendar exibição"
+            >
+              <Clock className="w-4 h-4" />
+            </button>
             <a href={link.url} target="_blank" rel="noreferrer" className="brutal-btn bg-white w-9 h-9 shrink-0" aria-label="Abrir link">
               <ExternalLink className="w-4 h-4" />
             </a>
@@ -321,6 +367,54 @@ function LinkRow({
           </div>
         </div>
       </div>
+
+      {status && (
+        <div className="pl-8 sm:pl-0">
+          <span className={`text-[10px] font-bold uppercase px-2 py-0.5 border border-black/20 ${status.cls}`}>{status.label}</span>
+        </div>
+      )}
+
+      {scheduleOpen && (
+        <div className="border-t-2 border-black/10 pt-3 flex flex-col gap-3">
+          {canSchedule ? (
+            <>
+              <div className="grid sm:grid-cols-2 gap-3">
+                <label className="text-xs font-bold flex flex-col gap-1">
+                  Aparecer a partir de
+                  <input
+                    type="datetime-local"
+                    value={toLocalInput(link.starts_at)}
+                    onChange={e => onUpdate({ starts_at: fromLocalInput(e.target.value) })}
+                    className="brutal-input px-2 py-1.5 text-sm"
+                  />
+                </label>
+                <label className="text-xs font-bold flex flex-col gap-1">
+                  Sumir em
+                  <input
+                    type="datetime-local"
+                    value={toLocalInput(link.ends_at)}
+                    onChange={e => onUpdate({ ends_at: fromLocalInput(e.target.value) })}
+                    className="brutal-input px-2 py-1.5 text-sm"
+                  />
+                </label>
+              </div>
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <p className="text-[11px] opacity-60">Deixe em branco para não limitar. A página pública atualiza em até 1 minuto.</p>
+                {hasSchedule && (
+                  <button onClick={() => onUpdate({ starts_at: null, ends_at: null })} className="brutal-btn bg-white px-3 py-1.5 text-xs gap-1">
+                    <X className="w-3.5 h-3.5" /> Remover agendamento
+                  </button>
+                )}
+              </div>
+            </>
+          ) : (
+            <div className="flex items-center justify-between gap-3 flex-wrap bg-bioyellow brutal-border p-3">
+              <p className="text-xs font-bold flex items-center gap-2"><Lock className="w-4 h-4" /> Agende quando o link aparece e some (promoções, lançamentos). Disponível no Pro.</p>
+              <button onClick={onUpgrade} className="brutal-btn bg-black text-white px-3 py-1.5 text-xs">Ver planos</button>
+            </div>
+          )}
+        </div>
+      )}
 
       {expanded && (
         <div className="border-t-2 border-black/10 pt-3 flex flex-col gap-3">

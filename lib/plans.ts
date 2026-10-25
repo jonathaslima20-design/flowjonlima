@@ -16,6 +16,8 @@ export type PlanLimits = {
   analytics: 'basic' | 'advanced';
   analytics_days: number;
   pro_themes: boolean;
+  scheduling: boolean;
+  seo: boolean;
   custom_domain: boolean;
   pixel_ga: boolean;
   priority_support: boolean;
@@ -67,6 +69,8 @@ export const PLANS: Record<PlanSlug, PlanDefinition> = {
       analytics: 'basic',
       analytics_days: 7,
       pro_themes: false,
+      scheduling: false,
+      seo: false,
       custom_domain: false,
       pixel_ga: false,
       priority_support: false,
@@ -88,7 +92,9 @@ export const PLANS: Record<PlanSlug, PlanDefinition> = {
       'Todos os temas e personalização completa',
       'Remoção da marca BioFlowzy',
       'Banners e vídeos ilimitados',
-      'Analytics completo',
+      'Analytics completo: visitas, origem e dispositivo',
+      'Agendamento de links',
+      'SEO e prévia de compartilhamento',
       'Domínio personalizado',
       'Meta Pixel e Google Analytics',
       'Indique e ganhe',
@@ -101,6 +107,8 @@ export const PLANS: Record<PlanSlug, PlanDefinition> = {
       analytics: 'advanced',
       analytics_days: 90,
       pro_themes: true,
+      scheduling: true,
+      seo: true,
       custom_domain: true,
       pixel_ga: true,
       priority_support: false,
@@ -133,6 +141,8 @@ export const PLANS: Record<PlanSlug, PlanDefinition> = {
       analytics: 'advanced',
       analytics_days: 365,
       pro_themes: true,
+      scheduling: true,
+      seo: true,
       custom_domain: true,
       pixel_ga: true,
       priority_support: true,
@@ -197,7 +207,9 @@ export type FeatureFlag =
   | 'referral'
   | 'remove_logo'
   | 'early_access'
-  | 'pro_themes';
+  | 'pro_themes'
+  | 'scheduling'
+  | 'seo';
 
 export function can(profile: any, feature: FeatureFlag): boolean {
   const limits = getPlanFor(profile).limits;

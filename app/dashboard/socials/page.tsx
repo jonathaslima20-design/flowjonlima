@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { GripVertical, Plus, Trash2, X } from 'lucide-react';
-import { SOCIALS, SOCIALS_BY_KEY, normalizeSocial, type SocialKey } from '@/lib/socials';
+import { SOCIALS, SOCIALS_BY_KEY, normalizeSocial, withWhatsappMessage, type SocialKey } from '@/lib/socials';
 import { usePlan } from '@/hooks/use-plan';
 import { LimitBadge, UpgradeBanner } from '@/components/dashboard/LimitBadge';
 import { isUnlimited } from '@/lib/plans';
@@ -26,6 +26,7 @@ export default function SocialsPage() {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [selected, setSelected] = useState<SocialKey | null>(null);
   const [handleInput, setHandleInput] = useState('');
+  const [whatsappMessage, setWhatsappMessage] = useState('');
   const { limitOf, reload: reloadPlan } = usePlan();
   const { open: openUpgrade } = useUpgradeModal();
   const limit = limitOf('socials');
@@ -45,7 +46,8 @@ export default function SocialsPage() {
     if (!selected) return;
     if (atLimit) { toast.error('Limite de redes sociais do plano atingido.'); return; }
     if (!handleInput.trim()) return toast.error('Valor inválido.');
-    const url = selected === 'location' ? handleInput.trim() : normalizeSocial(selected, handleInput);
+    let url = selected === 'location' ? handleInput.trim() : normalizeSocial(selected, handleInput);
+    if (selected === 'whatsapp' && url) url = withWhatsappMessage(url, whatsappMessage);
     if (!url || isDangerousUrl(url)) return toast.error('Valor inválido.');
     const { data, error } = await supabase.from('social_links').insert({
       profile_id: profileId, platform: selected, url, position: socials.length,
@@ -55,7 +57,7 @@ export default function SocialsPage() {
       setSocials([...socials, data as Social]);
       reloadPlan();
     }
-    setSelected(null); setHandleInput(''); setPickerOpen(false);
+    setSelected(null); setHandleInput(''); setWhatsappMessage(''); setPickerOpen(false);
   }
 
   async function update(id: string, patch: Partial<Social>) {
@@ -200,6 +202,19 @@ export default function SocialsPage() {
                   placeholder={SOCIALS_BY_KEY[selected].placeholder}
                   className="brutal-input px-3 py-2"
                 />
+                {selected === 'whatsapp' && (
+                  <label className="text-xs font-bold flex flex-col gap-1">
+                    Mensagem pronta (opcional)
+                    <textarea
+                      value={whatsappMessage}
+                      onChange={e => setWhatsappMessage(e.target.value)}
+                      maxLength={300}
+                      placeholder="Olá! Vim pelo seu link na bio e quero saber mais."
+                      className="brutal-input px-3 py-2 min-h-[70px] font-normal"
+                    />
+                    <span className="font-normal opacity-60">O visitante abre a conversa com esse texto já escrito.</span>
+                  </label>
+                )}
                 <div className="flex gap-2">
                   <button onClick={() => setSelected(null)} className="brutal-btn bg-white px-4 py-2 text-sm flex-1">Voltar</button>
                   <button onClick={confirmAdd} className="brutal-btn bg-bioblue text-white px-4 py-2 text-sm flex-1">Adicionar</button>
