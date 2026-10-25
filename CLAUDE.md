@@ -25,7 +25,7 @@ Plataforma de link in bio (bioflowzy.com). Originalmente gerada no Bolt.new (tem
 - `app/[username]` — página pública do bio
 - `app/dashboard/*` — painel do usuário (links, banners, vídeos, socials, customize, analytics, domain, integrations, referral, help, settings)
 - `app/admin/*` — painel admin (users, plans, themes, theme-showcase)
-- `app/api/` — `domains`, `domains/verify` (domínio próprio), `track` (analytics)
+- `app/api/revalidate-bio` — revalida a página pública após edições no painel
 - `middleware.ts` — domínios personalizados: hosts fora de `PRIMARY_SUFFIXES` são resolvidos via RPC `lookup_domain` e reescritos para `/{username}`
 - `themes/<nome>` + `themes/registry.ts` — temas visuais do bio; `components/themes`, `components/bio` renderizam
 - `lib/plans.ts` + `hooks/use-plan.ts` — planos (free / pro_monthly / pro_annual) e limites por recurso
@@ -54,6 +54,11 @@ Plataforma de link in bio (bioflowzy.com). Originalmente gerada no Bolt.new (tem
 - Leads: botão é um link com `url = LEAD_FORM_URL` (`lib/leads.ts`); `BioClient` intercepta o clique e abre `LeadFormModal`; envio pela RPC `submit_lead` (limite mensal `leads`), contatos em `page_leads`
 - QR code (`components/dashboard/QrCodeCard.tsx`, exige `qr_code`) aponta para `?utm_source=qrcode`
 - Modelos por nicho (`components/dashboard/StarterTemplates.tsx`) aparecem no painel enquanto não há links nem redes; usam só temas gratuitos
+
+## Domínio próprio
+- Escrita só pela edge function `custom-domain` (`set` / `verify` / `remove`); usuários apenas leem `custom_domains`
+- `verify` confere via DNS-over-HTTPS o TXT `_bioflowzy.<host>` com o token e o roteamento (CNAME para `cname.bioflowzy.com` ou A `75.2.60.5`), adiciona o domínio em `domain_aliases` do site no Netlify e marca `verified` + `netlify_added`
+- Secrets: `NETLIFY_API_TOKEN`, `NETLIFY_SITE_ID` (sem eles, a verificação responde 503). `cname.bioflowzy.com` é um CNAME (DNS da Hostinger) para o site `*.netlify.app`
 
 ## Pagamentos (Mercado Pago, Checkout Pro)
 - Planos: `free`, `pro`, `business` (Business com `is_active = false` / `available: false` até ter múltiplas páginas e leads)

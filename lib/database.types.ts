@@ -149,6 +149,7 @@ export type Database = {
           error_message: string | null
           id: string
           last_checked_at: string | null
+          netlify_added: boolean
           profile_id: string
           status: string
           verification_token: string
@@ -161,6 +162,7 @@ export type Database = {
           error_message?: string | null
           id?: string
           last_checked_at?: string | null
+          netlify_added?: boolean
           profile_id: string
           status?: string
           verification_token?: string
@@ -173,6 +175,7 @@ export type Database = {
           error_message?: string | null
           id?: string
           last_checked_at?: string | null
+          netlify_added?: boolean
           profile_id?: string
           status?: string
           verification_token?: string
