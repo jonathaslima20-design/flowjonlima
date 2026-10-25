@@ -964,6 +964,26 @@ export type Database = {
     }
     Functions: {
       admin_dashboard_stats: { Args: never; Returns: Json }
+      admin_resolve_payout: {
+        Args: { p_action: string; p_note?: string; p_payout_id: string }
+        Returns: {
+          admin_note: string | null
+          amount_cents: number
+          created_at: string | null
+          id: string
+          pix_full_name: string
+          pix_key: string
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "payout_requests"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       effective_plan: { Args: { p_profile_id: string }; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
       grant_paid_plan: { Args: { p_payment_id: string }; Returns: string }

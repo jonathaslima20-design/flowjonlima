@@ -21,6 +21,7 @@ type PayoutRequest = {
   amount_cents: number;
   pix_key: string;
   status: string;
+  admin_note: string | null;
   created_at: string;
 };
 
@@ -380,6 +381,11 @@ export default function ReferralPage() {
                     <p className="text-xs text-black/40 mt-0.5">
                       {new Date(p.created_at).toLocaleDateString('pt-BR')}
                     </p>
+                    {p.status === 'rejected' && p.admin_note && (
+                      <p className="text-xs text-red-700 font-bold mt-1">
+                        Motivo: {p.admin_note}. O valor voltou para o seu saldo.
+                      </p>
+                    )}
                   </div>
                   <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold brutal-border ${st.color}`}>
                     {st.icon}
