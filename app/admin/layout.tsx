@@ -10,6 +10,7 @@ import {
   Palette,
   Images,
   CreditCard,
+  Receipt,
   LogOut,
   Waypoints,
   ShieldCheck,
@@ -24,6 +25,7 @@ const nav = [
   { href: '/admin/themes', label: 'Temas', icon: Palette, exact: false },
   { href: '/admin/theme-showcase', label: 'Vitrine', icon: Images, exact: false },
   { href: '/admin/plans', label: 'Planos', icon: CreditCard, exact: false },
+  { href: '/admin/payments', label: 'Pagamentos', icon: Receipt, exact: false },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

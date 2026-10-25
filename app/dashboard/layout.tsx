@@ -8,6 +8,7 @@ import { LayoutDashboard, Link2, ChartBar as BarChart3, Palette, Settings, LogOu
 import { UpgradeModalProvider } from '@/components/dashboard/UpgradeModal';
 import { SidebarPlanCard } from '@/components/dashboard/SidebarPlanCard';
 import { PaymentReturnNotice } from '@/components/dashboard/PaymentReturnNotice';
+import { RenewalNotice } from '@/components/dashboard/RenewalNotice';
 import { refreshPublicBio } from '@/lib/revalidate-bio';
 import { Toaster } from '@/components/ui/sonner';
 
@@ -156,6 +157,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       <main className="md:ml-64 p-6 md:p-10">
         <PaymentReturnNotice />
+        <RenewalNotice />
         {children}
       </main>
       <Toaster
