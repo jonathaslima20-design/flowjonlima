@@ -17,6 +17,7 @@ import { LavaTheme, lavaMeta } from './lava';
 import { GlitchTheme, glitchMeta } from './glitch';
 import { CosmosTheme, cosmosMeta } from './cosmos';
 import { CupertinoTheme, cupertinoMeta } from './cupertino';
+import { COLLECTION_2026 } from './collection';
 import type { BioThemeDefaults, BioThemeDefinition, BioThemeMeta, ControlDef } from './types';
 
 function buildCoreControls(meta: BioThemeMeta): ControlDef[] {
@@ -60,6 +61,8 @@ export const THEMES: Record<string, BioThemeDefinition> = {
   lava: { meta: withCoreControls(lavaMeta), component: LavaTheme },
   glitch: { meta: withCoreControls(glitchMeta), component: GlitchTheme },
   cosmos: { meta: withCoreControls(cosmosMeta), component: CosmosTheme },
+  // Coleção 2026 (themes/collection.ts)
+  ...Object.fromEntries(COLLECTION_2026.map(t => [t.meta.key, { meta: withCoreControls(t.meta), component: t.component }])),
 };
 
 export function getTheme(key: string | undefined | null): BioThemeDefinition {

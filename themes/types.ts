@@ -121,6 +121,11 @@ export const CURATED_FONTS: FontOption[] = [
   { value: 'dmserif', label: 'DM Serif Display', stack: 'var(--font-dmserif), Georgia, serif', category: 'serif' },
   { value: 'jetbrains', label: 'JetBrains Mono', stack: 'var(--font-jetbrains), ui-monospace, monospace', category: 'mono' },
   { value: 'ibmplex', label: 'IBM Plex Mono', stack: 'var(--font-ibmplex), ui-monospace, monospace', category: 'mono' },
+  { value: 'unbounded', label: 'Unbounded', stack: 'var(--font-unbounded), sans-serif', category: 'display' },
+  { value: 'anton', label: 'Anton', stack: 'var(--font-anton), Impact, sans-serif', category: 'display' },
+  { value: 'instrument', label: 'Instrument Serif', stack: 'var(--font-instrument), Georgia, serif', category: 'serif' },
+  { value: 'caveat', label: 'Caveat (manuscrita)', stack: 'var(--font-caveat), cursive', category: 'display' },
+  { value: 'pixel', label: 'Press Start (pixel)', stack: 'var(--font-pixel), monospace', category: 'mono' },
   { value: 'system', label: 'System UI', stack: 'system-ui, -apple-system, sans-serif', category: 'sans' },
 ];
 

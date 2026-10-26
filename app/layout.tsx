@@ -14,6 +14,11 @@ import {
   Cormorant_Garamond,
   DM_Serif_Display,
   IBM_Plex_Mono,
+  Caveat,
+  Press_Start_2P,
+  Anton,
+  Instrument_Serif,
+  Unbounded,
 } from 'next/font/google';
 import { AuthProvider } from '@/lib/auth-context';
 
@@ -31,6 +36,11 @@ const bricolage = Bricolage_Grotesque({ subsets: ['latin'], variable: '--font-br
 const cormorant = Cormorant_Garamond({ subsets: ['latin'], weight: ['400', '600', '700'], variable: '--font-cormorant', display: 'swap', preload: false });
 const dmserif = DM_Serif_Display({ subsets: ['latin'], weight: '400', variable: '--font-dmserif', display: 'swap', preload: false });
 const ibmplex = IBM_Plex_Mono({ subsets: ['latin'], weight: ['400', '500', '700'], variable: '--font-ibmplex', display: 'swap', preload: false });
+const caveat = Caveat({ subsets: ['latin'], variable: '--font-caveat', display: 'swap', preload: false });
+const pixel = Press_Start_2P({ subsets: ['latin'], weight: '400', variable: '--font-pixel', display: 'swap', preload: false });
+const anton = Anton({ subsets: ['latin'], weight: '400', variable: '--font-anton', display: 'swap', preload: false });
+const instrument = Instrument_Serif({ subsets: ['latin'], weight: '400', style: ['normal', 'italic'], variable: '--font-instrument', display: 'swap', preload: false });
+const unbounded = Unbounded({ subsets: ['latin'], variable: '--font-unbounded', display: 'swap', preload: false });
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://bioflowzy.com';
 
@@ -72,6 +82,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     archivo.variable, grotesk.variable, playfair.variable, inter.variable,
     jetbrains.variable, dmsans.variable, fraunces.variable, manrope.variable,
     syne.variable, bricolage.variable, cormorant.variable, dmserif.variable, ibmplex.variable,
+    caveat.variable, pixel.variable, anton.variable, instrument.variable, unbounded.variable,
   ].join(' ');
   return (
     <html lang="pt-BR" className={classes}>
