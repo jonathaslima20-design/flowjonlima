@@ -317,6 +317,48 @@ export type Database = {
         }
         Relationships: []
       }
+      landing_niches: {
+        Row: {
+          benefits: string[]
+          demo: Json
+          description: string
+          headline: string
+          id: string
+          is_active: boolean
+          key: string
+          label: string
+          position: number
+          theme_key: string
+          updated_at: string
+        }
+        Insert: {
+          benefits?: string[]
+          demo?: Json
+          description?: string
+          headline?: string
+          id?: string
+          is_active?: boolean
+          key: string
+          label: string
+          position?: number
+          theme_key: string
+          updated_at?: string
+        }
+        Update: {
+          benefits?: string[]
+          demo?: Json
+          description?: string
+          headline?: string
+          id?: string
+          is_active?: boolean
+          key?: string
+          label?: string
+          position?: number
+          theme_key?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       leads: {
         Row: {
           created_at: string | null

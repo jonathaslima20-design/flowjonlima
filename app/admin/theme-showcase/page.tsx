@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { THEMES, getTheme } from '@/themes/registry';
+import { THEMES } from '@/themes/registry';
 import { ThemeMockup } from '@/components/themes/ThemeMockup';
-import { ThemeControls } from '@/components/dashboard/ThemeControls';
 import { MediaUploader } from '@/components/admin/MediaUploader';
+import { DemoPageEditor, Field, type DemoPageValue } from '@/components/admin/DemoPageEditor';
 import {
   ShowcasePreset,
   emptyPreset,
@@ -21,9 +21,7 @@ import {
   fetchSocialProof,
   updateSocialProof,
 } from '@/lib/theme-showcase';
-import { ArrowUp, ArrowDown, Save, RotateCcw, Copy, Plus, Trash2, CopyPlus } from 'lucide-react';
-import { parseVideoUrl } from '@/lib/embed';
-import { supabase } from '@/lib/supabase';
+import { ArrowUp, ArrowDown, Save, RotateCcw, Copy, CopyPlus } from 'lucide-react';
 
 type Tab = 'catalog' | 'landing';
 
@@ -246,150 +244,41 @@ export default function AdminThemeShowcasePage() {
   const coreField = tab === 'catalog' ? 'catalog_theme_core' : 'landing_theme_core';
   const settingsField = tab === 'catalog' ? 'catalog_theme_settings' : 'landing_theme_settings';
 
-  function setProfile(field: string, value: any) {
-    patchSelectedFn((prev) => ({ [profileField]: { ...((prev as any)[profileField] || {}), [field]: value } } as any));
-  }
-
-  function mutateArr(fieldKey: keyof ShowcasePreset, mutator: (arr: any[]) => any[]) {
-    patchSelectedFn((prev) => ({ [fieldKey]: mutator(((prev as any)[fieldKey] || []) as any[]) } as any));
-  }
-
-  function setLinksField(idx: number, field: string, value: any) {
-    mutateArr(linksField as any, (arr) => {
-      const next = [...arr];
-      next[idx] = { ...next[idx], [field]: value };
-      return next;
+  // Editor compartilhado: lê e grava os campos da aba atual (catálogo ou landing)
+  const demoValue: DemoPageValue = {
+    profile: profileOverride || {},
+    links: linksOverride || [],
+    socials: socialsOverride || [],
+    banners: bannersOverride || [],
+    videos: videosOverride || [],
+    theme_core: themeCore || {},
+    theme_settings: themeSettings || {},
+  };
+  const demoFields: Record<keyof DemoPageValue, keyof ShowcasePreset> = {
+    profile: profileField, links: linksField, socials: socialsField, banners: bannersField,
+    videos: videosField, theme_core: coreField, theme_settings: settingsField,
+  } as Record<keyof DemoPageValue, keyof ShowcasePreset>;
+  function changeDemo(fn: (prev: DemoPageValue) => Partial<DemoPageValue>) {
+    patchSelectedFn((prev) => {
+      const current: DemoPageValue = {
+        profile: (prev as any)[profileField] || {},
+        links: (prev as any)[linksField] || [],
+        socials: (prev as any)[socialsField] || [],
+        banners: (prev as any)[bannersField] || [],
+        videos: (prev as any)[videosField] || [],
+        theme_core: (prev as any)[coreField] || {},
+        theme_settings: (prev as any)[settingsField] || {},
+      };
+      const patch = fn(current);
+      const out: Record<string, any> = {};
+      for (const [k, v] of Object.entries(patch)) out[demoFields[k as keyof DemoPageValue] as string] = v;
+      return out as Partial<ShowcasePreset>;
     });
   }
-  function addLink() {
-    mutateArr(linksField as any, (arr) => [...arr, { id: `l_${Date.now()}`, title: 'Novo link', subtitle: '', url: '#', is_active: true, show_icon: true, icon_source: 'auto', icon: '' }]);
-  }
-  async function detectLinkIcon(idx: number) {
-    const arr = (selected as any)[linksField] || [];
-    const link = arr[idx];
-    let url: string = link?.url || '';
-    if (!/^https?:\/\//i.test(url)) {
-      const typed = typeof window !== 'undefined'
-        ? window.prompt('URL do site para detectar ícone (ex: https://calendly.com)', 'https://')
-        : '';
-      if (!typed || !/^https?:\/\//i.test(typed)) {
-        setToast('URL inválida para detectar ícone');
-        setTimeout(() => setToast(''), 2000);
-        return;
-      }
-      url = typed;
-    }
-    try {
-      const apiUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/fetch-link-icon`;
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 15000);
-      // A função exige usuário logado
-      const { data: { session } } = await supabase.auth.getSession();
-      const res = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${session?.access_token ?? ''}`,
-          'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ url }),
-        signal: controller.signal,
-      });
-      clearTimeout(timeout);
-      const data = await res.json().catch(() => ({}));
-      if (data?.icon) {
-        mutateArr(linksField as any, (a) => {
-          const next = [...a];
-          next[idx] = { ...next[idx], icon: data.icon, icon_source: 'auto', show_icon: true };
-          return next;
-        });
-        setToast('Ícone detectado');
-      } else {
-        setToast(data?.error ? `Falhou: ${data.error}` : 'Nenhum ícone encontrado');
-      }
-    } catch (err) {
-      console.error('detectLinkIcon', err);
-      setToast('Erro ao detectar ícone');
-    }
+  function flashToast(message: string) {
+    setToast(message);
     setTimeout(() => setToast(''), 2500);
   }
-  function removeLink(idx: number) {
-    mutateArr(linksField as any, (arr) => { const next = [...arr]; next.splice(idx, 1); return next; });
-  }
-
-  function setSocialField(idx: number, field: string, value: any) {
-    mutateArr(socialsField as any, (arr) => {
-      const next = [...arr];
-      next[idx] = { ...next[idx], [field]: value };
-      return next;
-    });
-  }
-  function addSocial() {
-    mutateArr(socialsField as any, (arr) => [...arr, { id: `s_${Date.now()}`, platform: 'instagram', url: '#' }]);
-  }
-  function removeSocial(idx: number) {
-    mutateArr(socialsField as any, (arr) => { const next = [...arr]; next.splice(idx, 1); return next; });
-  }
-
-  function setBannerField(idx: number, field: string, value: any) {
-    mutateArr(bannersField as any, (arr) => {
-      const next = [...arr];
-      next[idx] = { ...next[idx], [field]: value };
-      return next;
-    });
-  }
-  function addBanner() {
-    mutateArr(bannersField as any, (arr) => [...arr, { id: `b_${Date.now()}`, image_url: '', title: '', subtitle: '', url: '#' }]);
-  }
-  function removeBanner(idx: number) {
-    mutateArr(bannersField as any, (arr) => { const next = [...arr]; next.splice(idx, 1); return next; });
-  }
-
-  function setVideoField(idx: number, field: string, value: any) {
-    mutateArr(videosField as any, (arr) => {
-      const next = [...arr];
-      next[idx] = { ...next[idx], [field]: value };
-      return next;
-    });
-  }
-  function normalizeVideoUrl(idx: number) {
-    mutateArr(videosField as any, (arr) => {
-      const next = [...arr];
-      const v = { ...next[idx] };
-      const raw = (v.embed_url ?? '').trim();
-      if (!raw) { next[idx] = v; return next; }
-      const parsed = parseVideoUrl(raw);
-      if (parsed) {
-        v.embed_url = parsed.embed_url;
-        if (parsed.platform !== 'generic') v.platform = parsed.platform;
-        if (!v.thumbnail && parsed.thumbnail) v.thumbnail = parsed.thumbnail;
-      }
-      next[idx] = v;
-      return next;
-    });
-  }
-  function addVideo() {
-    mutateArr(videosField as any, (arr) => [...arr, { id: `v_${Date.now()}`, platform: 'youtube', title: '', embed_url: '', thumbnail: '', file_url: '' }]);
-  }
-  function removeVideo(idx: number) {
-    mutateArr(videosField as any, (arr) => { const next = [...arr]; next.splice(idx, 1); return next; });
-  }
-
-  function updateCoreField(field: string, value: any) {
-    patchSelectedFn((prev) => ({ [coreField]: { ...((prev as any)[coreField] || {}), [field]: value } } as any));
-  }
-  function updateThemeSetting(_themeKey: string, key: string, value: any) {
-    patchSelectedFn((prev) => ({ [settingsField]: { ...((prev as any)[settingsField] || {}), [key]: value } } as any));
-  }
-  function resetAllTheme() {
-    patchSelected(tab === 'catalog'
-      ? { catalog_theme_core: {}, catalog_theme_settings: {} }
-      : { landing_theme_core: {}, landing_theme_settings: {} }
-    );
-  }
-
-  const activeTheme = getTheme(selectedKey);
-  const controls = activeTheme.meta.controls || [];
 
   if (loading) {
     return <div className="p-6 font-bold">Carregando vitrine...</div>;
@@ -618,230 +507,20 @@ export default function AdminThemeShowcasePage() {
             </div>
           </div>
 
-          {/* PROFILE */}
-          <h3 className="font-display text-base mb-2">Perfil demo</h3>
-          <div className="grid sm:grid-cols-2 gap-3 mb-4">
-            <Field label="Nome exibido">
-              <input type="text" value={profileOverride?.display_name ?? ''} placeholder="@maria.cria"
-                onChange={(e) => setProfile('display_name', e.target.value)}
-                className="brutal-input py-2 px-3 text-sm w-full" />
-            </Field>
-            <Field label="Username">
-              <input type="text" value={profileOverride?.username ?? ''} placeholder="maria.cria"
-                onChange={(e) => setProfile('username', e.target.value)}
-                className="brutal-input py-2 px-3 text-sm w-full" />
-            </Field>
-            <Field label="Bio" full>
-              <textarea value={profileOverride?.bio ?? ''} placeholder="Criadora de conteúdo • SP"
-                onChange={(e) => setProfile('bio', e.target.value)} rows={4}
-                className="brutal-input py-2 px-3 text-sm w-full font-normal resize-y" />
-            </Field>
-          </div>
-
-          {/* AVATAR UPLOAD */}
-          <Field label="Avatar" full>
-            <div className="grid sm:grid-cols-[auto_1fr] gap-3 items-start">
-              <MediaUploader
-                kind="image"
-                value={profileOverride?.avatar_url}
-                pathPrefix={`${pathBase}/avatar`}
-                onUploaded={(url) => setProfile('avatar_url', url)}
-                onRemove={() => setProfile('avatar_url', '')}
-              />
-              <input
-                type="text"
-                value={profileOverride?.avatar_url ?? ''}
-                placeholder="Ou cole uma URL externa (https://...)"
-                onChange={(e) => setProfile('avatar_url', e.target.value)}
-                className="brutal-input py-2 px-3 text-sm w-full"
-              />
-            </div>
-          </Field>
-
-          {tab === 'landing' && (
-            <Field label="Tagline do slide (admin)" full>
-              <input type="text" value={selected.landing_tagline ?? ''} placeholder="Ex: Ideal para criadores"
-                onChange={(e) => patchSelected({ landing_tagline: e.target.value })}
-                className="brutal-input py-2 px-3 text-sm w-full" />
-            </Field>
-          )}
-
-          {/* LINKS */}
-          <SectionHeader title="Links demo" onAdd={addLink} />
-          <div className="flex flex-col gap-2 mb-5">
-            {(linksOverride || []).length === 0 && <p className="text-[11px] text-black/60">Sem links personalizados (usando padrão).</p>}
-            {(linksOverride || []).map((l: any, idx: number) => (
-              <div key={idx} className="brutal-border bg-[#FAFAFA] p-3 flex flex-col gap-2">
-                <div className="grid grid-cols-[1fr_1fr_auto] gap-2 items-center">
-                  <input type="text" value={l.title ?? ''} placeholder="Título"
-                    onChange={(e) => setLinksField(idx, 'title', e.target.value)}
-                    className="brutal-input py-1.5 px-2 text-xs" />
-                  <input type="text" value={l.subtitle ?? ''} placeholder="Subtítulo"
-                    onChange={(e) => setLinksField(idx, 'subtitle', e.target.value)}
-                    className="brutal-input py-1.5 px-2 text-xs" />
-                  <IconBtn onClick={() => removeLink(idx)} />
-                </div>
-                <input type="text" value={l.url ?? ''} placeholder="URL (https://...)"
-                  onChange={(e) => setLinksField(idx, 'url', e.target.value)}
-                  className="brutal-input py-1.5 px-2 text-xs" />
-                <div className="grid grid-cols-[auto_auto_1fr_auto] gap-2 items-center">
-                  <label className="flex items-center gap-1 text-[11px]">
-                    <input type="checkbox" checked={!!l.show_icon}
-                      onChange={(e) => setLinksField(idx, 'show_icon', e.target.checked)} />
-                    Ícone
-                  </label>
-                  <select value={l.icon_source ?? 'auto'}
-                    onChange={(e) => setLinksField(idx, 'icon_source', e.target.value)}
-                    className="brutal-input py-1 px-2 text-[11px] bg-white">
-                    <option value="none">Nenhum</option>
-                    <option value="auto">Auto</option>
-                    <option value="custom">Custom</option>
-                  </select>
-                  <input type="text" value={l.icon ?? ''} placeholder="URL do ícone"
-                    onChange={(e) => setLinksField(idx, 'icon', e.target.value)}
-                    className="brutal-input py-1 px-2 text-[11px]" />
-                  <button type="button" onClick={() => detectLinkIcon(idx)}
-                    className="brutal-border bg-white px-2 py-1 text-[11px] font-semibold hover:bg-black hover:text-white transition-colors">
-                    Detectar
-                  </button>
-                </div>
-                {l.icon && (
-                  <div className="flex items-center gap-2 text-[11px] text-black/60">
-                    <img src={l.icon} alt="" className="w-6 h-6 object-cover brutal-border" />
-                    <span className="truncate">{l.icon}</span>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-
-          {/* SOCIALS */}
-          <SectionHeader title="Redes sociais demo" onAdd={addSocial} />
-          <div className="flex flex-col gap-2 mb-5">
-            {(socialsOverride || []).length === 0 && <p className="text-[11px] text-black/60">Sem redes personalizadas.</p>}
-            {(socialsOverride || []).map((s: any, idx: number) => (
-              <div key={idx} className="grid grid-cols-[160px_1fr_auto] gap-2 items-center">
-                <select value={s.platform ?? 'instagram'} onChange={(e) => setSocialField(idx, 'platform', e.target.value)}
-                  className="brutal-input py-1.5 px-2 text-xs bg-white">
-                  {['instagram','youtube','tiktok','x','facebook','linkedin','github','twitch','whatsapp','telegram','threads','pinterest','spotify','soundcloud','discord','email','website'].map(p => (
-                    <option key={p} value={p}>{p}</option>
-                  ))}
-                </select>
-                <input type="text" value={s.url ?? ''} placeholder="https://..."
-                  onChange={(e) => setSocialField(idx, 'url', e.target.value)}
-                  className="brutal-input py-1.5 px-2 text-xs" />
-                <IconBtn onClick={() => removeSocial(idx)} />
-              </div>
-            ))}
-          </div>
-
-          {/* BANNERS */}
-          <SectionHeader title="Banners demo" onAdd={addBanner} />
-          <div className="flex flex-col gap-3 mb-5">
-            {(bannersOverride || []).length === 0 && <p className="text-[11px] text-black/60">Sem banners personalizados.</p>}
-            {(bannersOverride || []).map((b: any, idx: number) => (
-              <div key={idx} className="brutal-border bg-[#FAFAFA] p-3 flex flex-col gap-2">
-                <div className="grid sm:grid-cols-[auto_1fr] gap-2 items-start">
-                  <MediaUploader
-                    kind="image"
-                    value={b.image_url}
-                    pathPrefix={`${pathBase}/banner`}
-                    onUploaded={(url) => setBannerField(idx, 'image_url', url)}
-                    onRemove={() => setBannerField(idx, 'image_url', '')}
-                  />
-                  <input type="text" value={b.image_url ?? ''} placeholder="Ou URL externa da imagem"
-                    onChange={(e) => setBannerField(idx, 'image_url', e.target.value)}
-                    className="brutal-input py-1.5 px-2 text-xs" />
-                </div>
-                <div className="grid sm:grid-cols-2 gap-2">
-                  <input type="text" value={b.title ?? ''} placeholder="Título"
-                    onChange={(e) => setBannerField(idx, 'title', e.target.value)}
-                    className="brutal-input py-1.5 px-2 text-xs" />
-                  <input type="text" value={b.subtitle ?? ''} placeholder="Subtítulo"
-                    onChange={(e) => setBannerField(idx, 'subtitle', e.target.value)}
-                    className="brutal-input py-1.5 px-2 text-xs" />
-                </div>
-                <div className="flex items-center gap-2">
-                  <input type="text" value={b.url ?? ''} placeholder="Link (https://...)"
-                    onChange={(e) => setBannerField(idx, 'url', e.target.value)}
-                    className="brutal-input py-1.5 px-2 text-xs flex-1" />
-                  <IconBtn onClick={() => removeBanner(idx)} />
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* VIDEOS */}
-          <SectionHeader title="Vídeos demo" onAdd={addVideo} />
-          <div className="flex flex-col gap-3 mb-5">
-            {(videosOverride || []).length === 0 && <p className="text-[11px] text-black/60">Sem vídeos personalizados.</p>}
-            {(videosOverride || []).map((v: any, idx: number) => (
-              <div key={idx} className="brutal-border bg-[#FAFAFA] p-3 flex flex-col gap-2">
-                <div className="grid sm:grid-cols-[160px_1fr] gap-2">
-                  <select value={v.platform ?? 'youtube'} onChange={(e) => setVideoField(idx, 'platform', e.target.value)}
-                    className="brutal-input py-1.5 px-2 text-xs bg-white">
-                    <option value="youtube">YouTube</option>
-                    <option value="vimeo">Vimeo</option>
-                    <option value="upload">Arquivo</option>
-                  </select>
-                  <input type="text" value={v.title ?? ''} placeholder="Título"
-                    onChange={(e) => setVideoField(idx, 'title', e.target.value)}
-                    className="brutal-input py-1.5 px-2 text-xs" />
-                </div>
-                <input type="text" value={v.embed_url ?? ''} placeholder="URL do embed (YouTube/Vimeo)"
-                  onChange={(e) => setVideoField(idx, 'embed_url', e.target.value)}
-                  onBlur={() => normalizeVideoUrl(idx)}
-                  className="brutal-input py-1.5 px-2 text-xs" />
-                <div className="grid sm:grid-cols-2 gap-2">
-                  <div>
-                    <div className="text-[10px] font-bold mb-1">Arquivo de vídeo</div>
-                    <MediaUploader
-                      kind="video"
-                      value={v.file_url}
-                      pathPrefix={`${pathBase}/video`}
-                      onUploaded={(url) => setVideoField(idx, 'file_url', url)}
-                      onRemove={() => setVideoField(idx, 'file_url', '')}
-                    />
-                  </div>
-                  <div>
-                    <div className="text-[10px] font-bold mb-1">Thumbnail</div>
-                    <MediaUploader
-                      kind="image"
-                      value={v.thumbnail}
-                      pathPrefix={`${pathBase}/thumb`}
-                      onUploaded={(url) => setVideoField(idx, 'thumbnail', url)}
-                      onRemove={() => setVideoField(idx, 'thumbnail', '')}
-                    />
-                  </div>
-                </div>
-                <div className="flex justify-end">
-                  <IconBtn onClick={() => removeVideo(idx)} />
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* THEME STYLE */}
-          {controls.length > 0 && (
-            <>
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-display text-base">Estilo do tema</h3>
-                <button onClick={resetAllTheme} className="text-[11px] font-bold uppercase underline underline-offset-4">
-                  Restaurar estilo
-                </button>
-              </div>
-              <div className="brutal-border p-3 bg-[#FAFAFA]">
-                <ThemeControls
-                  controls={controls}
-                  values={themeSettings || {}}
-                  coreValues={themeCore || {}}
-                  onChange={(k, v) => updateThemeSetting(selectedKey, k, v)}
-                  onCoreChange={updateCoreField}
-                  onReset={resetAllTheme}
-                />
-              </div>
-            </>
-          )}
+          <DemoPageEditor
+            themeKey={selectedKey}
+            value={demoValue}
+            onChange={changeDemo}
+            pathBase={pathBase}
+            onToast={flashToast}
+            afterProfile={tab === 'landing' ? (
+              <Field label="Tagline do slide (admin)" full>
+                <input type="text" value={selected.landing_tagline ?? ''} placeholder="Ex: Ideal para criadores"
+                  onChange={(e) => patchSelected({ landing_tagline: e.target.value })}
+                  className="brutal-input py-2 px-3 text-sm w-full" />
+              </Field>
+            ) : null}
+          />
         </section>
 
         {/* PREVIEW */}
@@ -875,25 +554,7 @@ function TabBtn({ active, onClick, children }: { active: boolean; onClick: () =>
   );
 }
 
-function Field({ label, children, full }: { label: string; children: React.ReactNode; full?: boolean }) {
-  return (
-    <label className={`block text-xs font-bold ${full ? 'sm:col-span-2' : ''}`}>
-      <div className="mb-1">{label}</div>
-      {children}
-    </label>
-  );
-}
 
-function SectionHeader({ title, onAdd }: { title: string; onAdd: () => void }) {
-  return (
-    <div className="flex items-center justify-between mb-2 mt-2">
-      <h3 className="font-display text-base">{title}</h3>
-      <button onClick={onAdd} className="brutal-btn bg-white px-2 py-1 text-[11px] gap-1">
-        <Plus className="w-3 h-3" /> Adicionar
-      </button>
-    </div>
-  );
-}
 
 function CfgSlider({
   label, value, onChange, min, max, step, unit,
@@ -926,10 +587,3 @@ function CfgSlider({
   );
 }
 
-function IconBtn({ onClick }: { onClick: () => void }) {
-  return (
-    <button onClick={onClick} className="w-8 h-8 brutal-border bg-white hover:bg-red-100 flex items-center justify-center" aria-label="Remover">
-      <Trash2 className="w-3.5 h-3.5" />
-    </button>
-  );
-}

@@ -77,6 +77,13 @@ Plataforma de link in bio (bioflowzy.com). Originalmente gerada no Bolt.new (tem
 - `monthly_report_recipients` / `monthly_report_data` (só service_role); `monthly_report_log` evita repetir e reenvia erros até 3x
 - `profiles.monthly_report_enabled` (liga/desliga em Configurações, na página principal) e envio de teste (`{ mode: "test" }`, 1 a cada 10 min)
 
+## Landing
+- Hero (`components/landing/Hero.tsx`) não deve ter o texto alterado; melhorias da landing entram como seções novas
+- Ordem: Hero, Marquee, HowItWorks, NicheShowcase ("Para quem é"), Features, FeatureShowcase, Pricing, FAQ, Footer
+- Nichos: tabela `landing_niches` (leitura pública dos ativos, escrita só admin), editados em Admin → Nichos da landing; o celular usa `ThemeMockup` como o carrossel do hero
+- `components/admin/DemoPageEditor.tsx`: editor de página de demonstração compartilhado pela Vitrine e pelos nichos
+- Comparativos citam "outras ferramentas", nunca concorrentes pelo nome
+
 ## Domínio próprio
 - Escrita só pela edge function `custom-domain` (`set` / `verify` / `remove`); usuários apenas leem `custom_domains`
 - `verify` confere via DNS-over-HTTPS o TXT `_bioflowzy.<host>` com o token e o roteamento (CNAME para `cname.bioflowzy.com` ou A `75.2.60.5`), adiciona o domínio em `domain_aliases` do site no Netlify e marca `verified` + `netlify_added`
