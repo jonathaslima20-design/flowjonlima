@@ -41,8 +41,6 @@ export const cupertinoMeta: BioThemeMeta = {
       { value: 'regular', label: 'Regular' },
       { value: 'spacious', label: 'Espaçosa' },
     ], default: 'regular', group: 'Layout', category: 'layout' },
-    { key: 'showBadge', label: 'Badge verificado', type: 'toggle', default: true, group: 'Layout', category: 'geral' },
-    { key: 'badgeText', label: 'Texto do badge', type: 'text', default: 'Verificado', maxLength: 20, group: 'Textos', category: 'textos' },
     { key: 'sectionLabel', label: 'Rótulo da seção', type: 'text', default: 'Links', maxLength: 20, group: 'Textos', category: 'textos' },
     { key: 'footerText', label: 'Rodapé', type: 'text', default: '', placeholder: 'Ex: Feito em Cupertino', maxLength: 60, group: 'Textos', category: 'textos' },
     { key: 'titleFont', label: 'Fonte do título', type: 'fontFamily', default: 'inter', group: 'Tipografia', category: 'tipografia' },
@@ -133,17 +131,6 @@ export function CupertinoTheme({ profile, links, socials, videos, banners, secti
             >
               {profile.display_name}
             </h1>
-            {s.showBadge && (
-              <span
-                className="inline-flex items-center justify-center rounded-full"
-                style={{ width: 18, height: 18, background: accent }}
-                aria-label={s.badgeText || 'Verificado'}
-              >
-                <svg viewBox="0 0 16 16" width="11" height="11" fill="none" aria-hidden>
-                  <path d="M4 8.2 6.8 11 12 5.5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </span>
-            )}
           </div>
 
           {profile.bio && (

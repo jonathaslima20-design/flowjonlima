@@ -16,6 +16,7 @@ import {
   Waypoints,
   ShieldCheck,
   Store,
+  TrendingUp,
   MessageSquareQuote,
   ChevronLeft,
   Menu,
@@ -24,6 +25,7 @@ import {
 
 const nav = [
   { href: '/admin', label: 'Visão geral', icon: LayoutDashboard, exact: true },
+  { href: '/admin/metrics', label: 'Métricas', icon: TrendingUp, exact: false },
   { href: '/admin/users', label: 'Usuários', icon: Users, exact: false },
   { href: '/admin/themes', label: 'Temas', icon: Palette, exact: false },
   { href: '/admin/theme-showcase', label: 'Vitrine', icon: Images, exact: false },

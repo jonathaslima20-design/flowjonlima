@@ -88,6 +88,13 @@ Plataforma de link in bio (bioflowzy.com). Originalmente gerada no Bolt.new (tem
 - Nichos: tabela `landing_niches` (leitura pública dos ativos, escrita só admin), editados em Admin → Nichos da landing; o celular usa `ThemeMockup` como o carrossel do hero
 - `components/admin/DemoPageEditor.tsx`: editor de página de demonstração compartilhado pela Vitrine e pelos nichos
 - Comparativos citam "outras ferramentas", nunca concorrentes pelo nome
+- Páginas legais: `/termos` e `/privacidade` (`components/legal/LegalPage.tsx`); dados do responsável (razão social, CNPJ, e-mail) em `lib/legal.ts`, campos vazios não aparecem
+
+## Aquisição e métricas
+- Selo "feito com BioFlowzy" (`components/bio/BioflowzyBadge.tsx`) aponta para `bioflowzy.com/?utm_source=badge&utm_campaign=<username>` (URL absoluta: no domínio próprio, "/" seria a página do usuário)
+- `lib/attribution.ts` guarda a origem da primeira visita (30 dias); o cadastro envia `signup_source`/`signup_campaign` e `handle_new_user` grava em `profiles`
+- Admin → Métricas: RPC `admin_growth_metrics(p_days)` (ativação, conversão, renovação, receita, origem dos cadastros, planos vencendo, páginas mais visitadas)
+- Temas não têm selo de "verificado" (removido de Atlas e Cupertino para não permitir imitar perfis verificados)
 
 ## Domínio próprio
 - Escrita só pela edge function `custom-domain` (`set` / `verify` / `remove`); usuários apenas leem `custom_domains`

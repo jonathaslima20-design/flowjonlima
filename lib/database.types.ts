@@ -813,6 +813,8 @@ export type Database = {
       }
       profiles: {
         Row: {
+          signup_campaign: string | null
+          signup_source: string | null
           monthly_report_enabled: boolean
           countdown_ends_at: string | null
           countdown_title: string | null
@@ -852,6 +854,8 @@ export type Database = {
           username: string
         }
         Insert: {
+          signup_campaign?: string | null
+          signup_source?: string | null
           monthly_report_enabled?: boolean
           countdown_ends_at?: string | null
           countdown_title?: string | null
@@ -891,6 +895,8 @@ export type Database = {
           username: string
         }
         Update: {
+          signup_campaign?: string | null
+          signup_source?: string | null
           monthly_report_enabled?: boolean
           countdown_ends_at?: string | null
           countdown_title?: string | null
@@ -1234,6 +1240,7 @@ export type Database = {
     }
     Functions: {
       admin_dashboard_stats: { Args: never; Returns: Json }
+      admin_growth_metrics: { Args: { p_days?: number }; Returns: Json }
       admin_resolve_payout: {
         Args: { p_action: string; p_note?: string; p_payout_id: string }
         Returns: {

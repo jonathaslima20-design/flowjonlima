@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowRight, Circle, BadgeCheck } from 'lucide-react';
+import { ArrowRight, Circle } from 'lucide-react';
 import { SOCIALS_BY_KEY, getSocialHref } from '@/lib/socials';
 import type { BioThemeProps, BioThemeMeta } from '@/themes/types';
 import { getThemeSettings, getFontStack, orderedSections } from '@/themes/types';
@@ -44,7 +44,6 @@ export const atlasMeta: BioThemeMeta = {
       { value: 'building', label: 'Construindo algo novo' },
       { value: 'speaking', label: 'Aberto a palestras' },
     ], default: 'available', group: 'Cabecalho' },
-    { key: 'verified', label: 'Selo verificado', type: 'toggle', default: true, group: 'Cabecalho' },
     { key: 'cardStyle', label: 'Estilo dos cards', type: 'select', options: [
       { value: 'outline', label: 'Apenas borda' },
       { value: 'filled', label: 'Preenchido suave' },
@@ -62,7 +61,6 @@ export const atlasMeta: BioThemeMeta = {
     { key: 'useCardBgCustom', label: 'Usar cor personalizada de card', type: 'toggle', default: false, group: 'Cores' },
     { key: 'footerText', label: 'Texto do rodapé', type: 'text', default: '', placeholder: 'Ex: Based in Lisbon', maxLength: 80, group: 'Textos' },
     { key: 'sectionTitle', label: 'Título da seção de links', type: 'text', default: '', placeholder: 'Ex: Links úteis', maxLength: 40, group: 'Textos' },
-    { key: 'showVerified', label: 'Mostrar selo verificado', type: 'toggle', default: true, group: 'Elementos' },
   ],
 };
 
@@ -161,9 +159,6 @@ export function AtlasTheme({ profile, links, socials, videos, banners, sectionOr
             >
               {profile.display_name}
             </h1>
-            {s.verified && s.showVerified !== false && (
-              <BadgeCheck className="w-[18px] h-[18px]" style={{ color: accent }} fill={`${accent}22`} strokeWidth={2} />
-            )}
           </div>
 
           {s.tagline && s.tagline.trim() && (

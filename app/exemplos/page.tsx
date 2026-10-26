@@ -5,6 +5,7 @@ import { Nav } from '@/components/landing/Nav';
 import { Footer } from '@/components/landing/Footer';
 import { FinalCTA } from '@/components/landing/FinalCTA';
 import { ExampleNiches } from '@/components/landing/ExampleNiches';
+import { AttributionCapture } from '@/components/landing/AttributionCapture';
 import { fetchLandingNiches } from '@/lib/landing-niches';
 
 // Mesmos exemplos da seção "Para quem é" (Admin → Nichos da landing); atualiza a cada 5 minutos
@@ -44,6 +45,7 @@ export default async function ExamplesPage() {
 
       <FinalCTA />
       <Footer />
+      <AttributionCapture />
     </main>
   );
 }

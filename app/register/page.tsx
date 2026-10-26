@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Waypoints } from 'lucide-react';
+import { captureAttribution, readAttribution } from '@/lib/attribution';
 
 // useSearchParams exige um Suspense boundary no build do Next 14
 export default function RegisterPage() {
@@ -47,6 +48,9 @@ function RegisterForm() {
     const { data: taken } = await supabase.from('profiles').select('id').eq('username', clean).maybeSingle();
     if (taken) { setErr('Este @ já está em uso.'); setLoading(false); return; }
 
+    // Origem da primeira visita (link com utm direto no cadastro também conta)
+    captureAttribution();
+    const attribution = readAttribution();
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -55,6 +59,7 @@ function RegisterForm() {
           username: clean,
           display_name: clean,
           ...(refCode ? { referred_by_code: refCode.toUpperCase() } : {}),
+          ...(attribution ? { signup_source: attribution.source, signup_campaign: attribution.campaign } : {}),
         },
         emailRedirectTo: typeof window !== 'undefined' ? `${window.location.origin}/dashboard` : undefined,
       },
@@ -123,6 +128,10 @@ function RegisterForm() {
           <button disabled={loading} className="brutal-btn bg-bioblue text-white py-3 mt-2">
             {loading ? 'Criando...' : 'Criar conta grátis'}
           </button>
+          <p className="text-[11px] text-black/60 text-center">
+            Ao criar sua conta, você concorda com os <Link href="/termos" target="_blank" className="underline font-bold">Termos de Uso</Link> e a{' '}
+            <Link href="/privacidade" target="_blank" className="underline font-bold">Política de Privacidade</Link>.
+          </p>
         </form>
         <div className="mt-6 text-center text-sm">
           Ja tem conta? <Link href={next ? `/login?next=${encodeURIComponent(next)}` : '/login'} className="font-bold underline">Entrar</Link>

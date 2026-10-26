@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Instagram, Youtube, Twitter, Github, Waypoints } from 'lucide-react';
+import { Waypoints } from 'lucide-react';
 
 export function Footer() {
   return (
@@ -13,20 +13,19 @@ export function Footer() {
             <span className="font-display text-xl">BioFlowzy</span>
           </div>
           <p className="mt-4 text-sm text-white/80">Um link para compartilhar tudo o que importa.</p>
-          <div className="mt-5 flex gap-3">
-            {[Instagram, Youtube, Twitter, Github].map((Icon, i) => (
-              <a
-                key={i}
-                href="#"
-                className="w-10 h-10 bg-black border-2 border-white flex items-center justify-center active:translate-x-[2px] active:translate-y-[2px] transition-transform"
-              >
-                <Icon className="w-4 h-4" />
-              </a>
-            ))}
-          </div>
         </div>
-        <FooterCol title="Produto" items={['Recursos', 'Preços', 'Templates', 'Integrações']} />
-        <FooterCol title="Legal" items={['Termos', 'Privacidade', 'Cookies', 'DMCA']} />
+        <FooterCol title="Produto" items={[
+          { label: 'Recursos', href: '/#features' },
+          { label: 'Preços', href: '/#pricing' },
+          { label: 'Exemplos', href: '/exemplos' },
+          { label: 'Para agências', href: '/#agencias' },
+        ]} />
+        <FooterCol title="Legal" items={[
+          { label: 'Termos de Uso', href: '/termos' },
+          { label: 'Privacidade', href: '/privacidade' },
+          { label: 'Cookies', href: '/privacidade#cookies' },
+          { label: 'Direitos autorais', href: '/termos#direitos-autorais' },
+        ]} />
       </div>
       <div className="border-t-2 border-white/20">
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-5 flex items-center justify-center text-xs">
@@ -37,14 +36,14 @@ export function Footer() {
   );
 }
 
-function FooterCol({ title, items }: { title: string; items: string[] }) {
+function FooterCol({ title, items }: { title: string; items: { label: string; href: string }[] }) {
   return (
     <div>
       <h4 className="font-display text-sm mb-4">{title}</h4>
       <ul className="space-y-2 text-sm text-white/80">
         {items.map((i) => (
-          <li key={i}>
-            <Link href="#" className="hover:text-bioyellow">{i}</Link>
+          <li key={i.href}>
+            <Link href={i.href} className="hover:text-bioyellow">{i.label}</Link>
           </li>
         ))}
       </ul>

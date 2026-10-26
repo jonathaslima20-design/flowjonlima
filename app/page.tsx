@@ -13,6 +13,7 @@ import { ReferralCalculator } from '@/components/landing/ReferralCalculator';
 import { FinalCTA } from '@/components/landing/FinalCTA';
 import { StickyMobileCTA } from '@/components/landing/StickyMobileCTA';
 import { StructuredData } from '@/components/landing/StructuredData';
+import { AttributionCapture } from '@/components/landing/AttributionCapture';
 import type { Metadata } from 'next';
 import { Pricing } from '@/components/landing/Pricing';
 import { FAQ } from '@/components/landing/FAQ';
@@ -58,6 +59,7 @@ export default async function Home() {
       <Footer />
       <StickyMobileCTA />
       <StructuredData />
+      <AttributionCapture />
     </main>
   );
 }
