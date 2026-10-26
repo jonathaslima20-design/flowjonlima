@@ -735,6 +735,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          monthly_report_enabled: boolean
           countdown_ends_at: string | null
           countdown_title: string | null
           avatar_size: number | null
@@ -773,6 +774,7 @@ export type Database = {
           username: string
         }
         Insert: {
+          monthly_report_enabled?: boolean
           countdown_ends_at?: string | null
           countdown_title?: string | null
           avatar_size?: number | null
@@ -811,6 +813,7 @@ export type Database = {
           username: string
         }
         Update: {
+          monthly_report_enabled?: boolean
           countdown_ends_at?: string | null
           countdown_title?: string | null
           avatar_size?: number | null

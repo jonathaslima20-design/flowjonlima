@@ -31,6 +31,8 @@ export type PlanLimits = {
   members: number;
   /** Bloco de contagem regressiva na página */
   countdown: boolean;
+  /** Relatório mensal por e-mail */
+  monthly_report: boolean;
 };
 
 export type PlanDefinition = {
@@ -87,6 +89,7 @@ export const PLANS: Record<PlanSlug, PlanDefinition> = {
       pages: 1,
       members: 0,
       countdown: false,
+      monthly_report: false,
     },
   },
   pro: {
@@ -130,6 +133,7 @@ export const PLANS: Record<PlanSlug, PlanDefinition> = {
       pages: 1,
       members: 0,
       countdown: false,
+      monthly_report: false,
     },
   },
   business: {
@@ -143,6 +147,7 @@ export const PLANS: Record<PlanSlug, PlanDefinition> = {
       'Até 5 páginas',
       'Acesso para clientes e equipe',
       'Contagem regressiva para lançamentos',
+      'Relatório mensal por e-mail',
       'Leads ilimitados com exportação',
       'Analytics de 1 ano com exportação',
       'Suporte prioritário no WhatsApp',
@@ -168,6 +173,7 @@ export const PLANS: Record<PlanSlug, PlanDefinition> = {
       pages: 5,
       members: 3,
       countdown: true,
+      monthly_report: true,
     },
   },
 };
@@ -228,7 +234,8 @@ export type FeatureFlag =
   | 'scheduling'
   | 'seo'
   | 'qr_code'
-  | 'countdown';
+  | 'countdown'
+  | 'monthly_report';
 
 export function can(profile: any, feature: FeatureFlag): boolean {
   const limits = getPlanFor(profile).limits;

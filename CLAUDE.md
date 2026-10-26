@@ -71,6 +71,12 @@ Plataforma de link in bio (bioflowzy.com). Originalmente gerada no Bolt.new (tem
 - RPCs `create_page_invite`, `get_page_invite` (anon, para a tela de aceite), `accept_page_invite`; rota `/convite/[token]` (login/cadastro voltam via `?next=`)
 - Painel: páginas compartilhadas entram no seletor com `shared: true` (`isOwner` falso). `usePlan().plan/has/limitOf` seguem a página editada; `profile`/`accountPlan` são da conta logada
 
+## Relatório mensal por e-mail (Business)
+- Edge function `monthly-report` (deploy com `verify_jwt = false`), envio pelo Resend. Secrets: `RESEND_API_KEY`, `REPORT_FROM` (remetente num domínio verificado no Resend), `SITE_URL`
+- pg_cron `monthly-report` chama a função de hora em hora nos dias 1 e 2 (`{ mode: "cron", token }`, token no Vault conferido por `verify_report_cron_token`); cada chamada envia até 40 contas e responde na hora (`EdgeRuntime.waitUntil`)
+- `monthly_report_recipients` / `monthly_report_data` (só service_role); `monthly_report_log` evita repetir e reenvia erros até 3x
+- `profiles.monthly_report_enabled` (liga/desliga em Configurações, na página principal) e envio de teste (`{ mode: "test" }`, 1 a cada 10 min)
+
 ## Domínio próprio
 - Escrita só pela edge function `custom-domain` (`set` / `verify` / `remove`); usuários apenas leem `custom_domains`
 - `verify` confere via DNS-over-HTTPS o TXT `_bioflowzy.<host>` com o token e o roteamento (CNAME para `cname.bioflowzy.com` ou A `75.2.60.5`), adiciona o domínio em `domain_aliases` do site no Netlify e marca `verified` + `netlify_added`
