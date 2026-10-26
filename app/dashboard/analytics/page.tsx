@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { usePageId } from '@/lib/page-context';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, BarChart, Bar, Legend } from 'recharts';
-import { Lock } from 'lucide-react';
+import { Download, Lock } from 'lucide-react';
 import { usePlan } from '@/hooks/use-plan';
 import { useUpgradeModal } from '@/components/dashboard/UpgradeModal';
 
@@ -19,7 +19,7 @@ type Summary = {
   countries: Breakdown[];
 };
 
-const PERIODS = [7, 30, 90];
+const PERIODS = [7, 30, 90, 365];
 
 const DEVICE_LABELS: Record<string, string> = { mobile: 'Celular', tablet: 'Tablet', desktop: 'Computador' };
 const SOURCE_LABELS: Record<string, string> = {
@@ -38,6 +38,8 @@ export default function AnalyticsPage() {
 
   const maxDays = plan.limits.analytics_days;
   const advanced = plan.limits.analytics === 'advanced';
+  // Exportação acompanha o histórico de 1 ano (Business)
+  const canExport = maxDays >= 365;
 
   // Abre em 30 dias para quem tem histórico maior; o Free fica nos 7 dias do plano
   useEffect(() => {
@@ -61,6 +63,12 @@ export default function AnalyticsPage() {
     <div>
       <div className="flex items-center justify-between flex-wrap gap-3 mb-6">
         <h1 className="font-display text-4xl">Analytics</h1>
+        <div className="flex items-center gap-2 flex-wrap">
+        {canExport && summary && (
+          <button onClick={() => exportCsv(summary)} className="brutal-btn bg-white px-3 py-2 text-xs gap-1">
+            <Download className="w-3 h-3" /> Exportar CSV
+          </button>
+        )}
         <div className="inline-flex brutal-border bg-white p-1 gap-1">
           {PERIODS.map(p => {
             const locked = p > maxDays;
@@ -70,10 +78,11 @@ export default function AnalyticsPage() {
                 onClick={() => (locked ? openUpgrade() : setDays(p))}
                 className={`px-3 py-1.5 text-xs font-bold inline-flex items-center gap-1 ${days === p ? 'bg-black text-white' : 'bg-white text-black'} ${locked ? 'opacity-50' : ''}`}
               >
-                {locked && <Lock className="w-3 h-3" />} {p} dias
+                {locked && <Lock className="w-3 h-3" />} {p === 365 ? '1 ano' : `${p} dias`}
               </button>
             );
           })}
+        </div>
         </div>
       </div>
 
@@ -187,4 +196,32 @@ function BreakdownCard({
       )}
     </div>
   );
+}
+
+function csvCell(value: string | number) {
+  const v = String(value);
+  return /[",\n;]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
+}
+
+// Planilha com a série diária e as quebras por origem, dispositivo e país do período escolhido
+function exportCsv(summary: Summary) {
+  const rows: (string | number)[][] = [['Dia', 'Visitas', 'Cliques']];
+  for (const p of summary.series ?? []) rows.push([p.day, p.views, p.clicks]);
+  const sections: [string, Breakdown[], (n: string) => string][] = [
+    ['Origem', summary.sources, n => SOURCE_LABELS[n] ?? n],
+    ['Dispositivo', summary.devices, n => DEVICE_LABELS[n] ?? n],
+    ['País', summary.countries, n => n],
+  ];
+  for (const [title, list, label] of sections) {
+    rows.push([], [title, 'Visitas']);
+    for (const b of list ?? []) rows.push([label(b.name), b.count]);
+  }
+  const csv = rows.map(r => r.map(csvCell).join(',')).join('\n');
+  // BOM para o Excel reconhecer os acentos
+  const url = URL.createObjectURL(new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `analytics-${summary.days}-dias.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
 }

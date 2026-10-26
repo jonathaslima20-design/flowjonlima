@@ -8,6 +8,7 @@ import {
   type BillingPeriod, type PaidPlanSlug,
 } from '@/lib/plans';
 import { startCheckout } from '@/lib/checkout';
+import { usePlan } from '@/hooks/use-plan';
 import { WhatsAppSupport } from '@/components/shared/WhatsAppSupport';
 
 const PAID_PLANS: PaidPlanSlug[] = ['pro', 'business'];
@@ -62,6 +63,9 @@ function UpgradeModal({ onClose }: { onClose: () => void }) {
   const [error, setError] = useState('');
 
   const plans = PAID_PLANS.filter(slug => PLANS[slug].available);
+  const { accountPlan, profile } = usePlan();
+  // Pro vigente com data de vencimento: o tempo restante vira crédito no Business (grant_paid_plan)
+  const proCredit = accountPlan.slug === 'pro' && !!profile?.plan_expires_at && plans.includes('business');
 
   useEffect(() => {
     supabase
@@ -109,7 +113,7 @@ function UpgradeModal({ onClose }: { onClose: () => void }) {
               <Crown className="w-5 h-5" />
             </span>
             <div>
-              <h2 className="font-display text-xl leading-tight">Faça upgrade para o Pro</h2>
+              <h2 className="font-display text-xl leading-tight">{plans.length > 1 ? 'Escolha seu plano' : 'Faça upgrade para o Pro'}</h2>
               <p className="text-xs text-black/60">Desbloqueie todos os recursos e remova limites.</p>
             </div>
           </div>
@@ -151,6 +155,14 @@ function UpgradeModal({ onClose }: { onClose: () => void }) {
             />
           ))}
         </div>
+
+        {proCredit && (
+          <div className="px-6 pb-3 -mt-2">
+            <p className="text-center text-xs font-bold bg-biolime brutal-border px-3 py-2">
+              Já é Pro? Ao assinar o Business, os dias que faltam do seu Pro viram dias de Business, proporcionais ao preço de cada plano.
+            </p>
+          </div>
+        )}
 
         {error && (
           <div className="px-6 pb-3 -mt-2">

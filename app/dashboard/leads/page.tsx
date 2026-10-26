@@ -150,7 +150,7 @@ export default function LeadsPage() {
           <button
             onClick={canExport ? exportCsv : undefined}
             disabled={!canExport || leads.length === 0}
-            title={canExport ? 'Exportar CSV' : 'Exportação disponível no plano Business (em breve)'}
+            title={canExport ? 'Exportar CSV' : 'Exportação disponível no plano Business'}
             className="brutal-btn bg-white px-3 py-2 text-xs gap-2 disabled:opacity-50"
           >
             {canExport ? <Download className="w-4 h-4" /> : <Lock className="w-4 h-4" />} Exportar CSV

@@ -26,7 +26,7 @@ const STYLES: Record<PlanSlug, CardStyle> = {
     bg: 'bg-biolime',
     ctaBg: 'bg-black',
     ctaText: 'text-white',
-    badge: { label: 'EM BREVE', bg: 'bg-blue-600', text: 'text-white', position: 'top-right' },
+    badge: { label: PLANS.business.available ? 'PARA AGÊNCIAS' : 'EM BREVE', bg: 'bg-blue-600', text: 'text-white', position: 'top-right' },
   },
 };
 

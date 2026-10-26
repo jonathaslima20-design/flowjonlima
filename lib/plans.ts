@@ -137,7 +137,7 @@ export const PLANS: Record<PlanSlug, PlanDefinition> = {
     name: 'Business',
     prices: { quarterly: 17970, annual: 47880 },
     tagline: 'Para agências e negócios com várias marcas',
-    available: false,
+    available: true,
     features: [
       'Tudo do Pro',
       'Até 5 páginas',
