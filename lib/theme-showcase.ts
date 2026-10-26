@@ -211,3 +211,15 @@ export async function upsertShowcasePreset(preset: ShowcasePreset) {
     .upsert(payload, { onConflict: 'theme_key' });
   return { error };
 }
+
+// A demonstração da landing foi personalizada? (senão a landing usa a do catálogo)
+export function hasLandingDemo(preset: ShowcasePreset | null | undefined): boolean {
+  if (!preset) return false;
+  const filled = (v: unknown) => (Array.isArray(v) ? v.length > 0 : !!v && typeof v === 'object' && Object.keys(v as object).length > 0);
+  return [preset.landing_profile, preset.landing_links, preset.landing_socials, preset.landing_banners, preset.landing_videos, preset.landing_theme_core, preset.landing_theme_settings].some(filled);
+}
+
+// Demonstração usada pela landing fora do hero (galeria): a da landing quando existe, senão a do catálogo
+export function landingOrCatalogDemoFor(preset: ShowcasePreset | null | undefined): ShowcaseDemoData {
+  return hasLandingDemo(preset) ? landingDemoFor(preset) : catalogDemoFor(preset);
+}

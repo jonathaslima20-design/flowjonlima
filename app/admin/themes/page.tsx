@@ -3,8 +3,10 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { THEMES } from '@/themes/registry';
-import { Eye, EyeOff, Lock, Clock as Unlock, RefreshCw, ChartBar as BarChart2, GripVertical } from 'lucide-react';
+import { Eye, EyeOff, Lock, Clock as Unlock, RefreshCw, ChartBar as BarChart2, GripVertical, Save, Search } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { ShowcaseDemoEditor, ShowcasePreview } from '@/components/admin/ShowcaseDemoEditor';
+import { emptyPreset, fetchAllShowcasePresets, upsertShowcasePreset, type ShowcasePreset } from '@/lib/theme-showcase';
 
 interface ThemeRow {
   key: string;
@@ -16,12 +18,20 @@ interface ThemeRow {
   catalogOrder: number;
 }
 
+// Temas do catálogo (tela Aparência do usuário): ativação, plano, ordem e demonstração de cada tema.
+// O que aparece na landing fica em Admin → Landing page.
 export default function AdminThemesPage() {
   const [themes, setThemes] = useState<ThemeRow[]>([]);
+  const [presets, setPresets] = useState<Record<string, ShowcasePreset>>({});
+  const [selectedKey, setSelectedKey] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
+  const [savingDemo, setSavingDemo] = useState(false);
+  const [dirty, setDirty] = useState(false);
   const [adminId, setAdminId] = useState<string>('');
   const [viewChart, setViewChart] = useState(false);
+  const [query, setQuery] = useState('');
+  const [toast, setToast] = useState('');
   const draggingKey = useRef<string | null>(null);
 
   useEffect(() => {
@@ -33,10 +43,10 @@ export default function AdminThemesPage() {
   const fetchData = useCallback(async () => {
     setLoading(true);
 
-    const [{ data: settingsRows }, { data: counts }, { data: presets }] = await Promise.all([
+    const [{ data: settingsRows }, { data: counts }, all] = await Promise.all([
       supabase.from('admin_settings').select('key, value').in('key', ['disabled_themes', 'pro_only_themes']),
       supabase.rpc('theme_usage_counts'),
-      supabase.from('theme_showcase_presets').select('theme_key, catalog_order').order('catalog_order', { ascending: true }),
+      fetchAllShowcasePresets(),
     ]);
 
     const disabledThemes = (settingsRows?.find(r => r.key === 'disabled_themes')?.value as string[] | undefined) ?? [];
@@ -47,10 +57,9 @@ export default function AdminThemesPage() {
       themeCounts[r.theme] = Number(r.count);
     });
 
-    const orderMap: Record<string, number> = {};
-    (presets ?? []).forEach((r: any) => {
-      orderMap[r.theme_key] = r.catalog_order;
-    });
+    const map: Record<string, ShowcasePreset> = {};
+    for (const p of all) map[p.theme_key] = { ...emptyPreset(p.theme_key), ...p };
+    for (const key of Object.keys(THEMES)) if (!map[key]) map[key] = { ...emptyPreset(key), catalog_order: 999 };
 
     const rows: ThemeRow[] = Object.values(THEMES).map(({ meta }) => ({
       key: meta.key,
@@ -59,16 +68,25 @@ export default function AdminThemesPage() {
       userCount: themeCounts[meta.key] ?? 0,
       disabled: disabledThemes.includes(meta.key),
       proOnly: proOnlyThemes.includes(meta.key),
-      catalogOrder: orderMap[meta.key] ?? 999,
+      catalogOrder: all.find(p => p.theme_key === meta.key)?.catalog_order ?? 999,
     }));
 
-    setThemes(rows.sort((a, b) => a.catalogOrder - b.catalogOrder));
+    const sorted = rows.sort((a, b) => a.catalogOrder - b.catalogOrder);
+    setThemes(sorted);
+    setPresets(map);
+    setSelectedKey(k => k || sorted[0]?.key || '');
+    setDirty(false);
     setLoading(false);
   }, []);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  function flashToast(message: string) {
+    setToast(message);
+    setTimeout(() => setToast(''), 2500);
+  }
 
   async function updateSetting(key: 'disabled_themes' | 'pro_only_themes', newList: string[]) {
     await supabase
@@ -144,46 +162,66 @@ export default function AdminThemesPage() {
     });
   }
 
+  const selected = presets[selectedKey];
+
+  function patchSelected(fn: (prev: ShowcasePreset) => Partial<ShowcasePreset>) {
+    setPresets(prev => {
+      const base = prev[selectedKey] || emptyPreset(selectedKey);
+      return { ...prev, [selectedKey]: { ...base, ...fn(base) } };
+    });
+    setDirty(true);
+  }
+
+  async function saveDemo() {
+    if (!selected) return;
+    setSavingDemo(true);
+    const order = themes.find(t => t.key === selectedKey)?.catalogOrder ?? selected.catalog_order;
+    const { error } = await upsertShowcasePreset({ ...selected, catalog_order: order });
+    setSavingDemo(false);
+    if (error) { flashToast('Erro ao salvar: ' + error.message); return; }
+    setDirty(false);
+    flashToast('Demonstração do catálogo salva');
+  }
+
+  function selectTheme(key: string) {
+    if (dirty && !confirm('Há alterações não salvas na demonstração atual. Trocar de tema mesmo assim?')) return;
+    setSelectedKey(key);
+    setDirty(false);
+  }
+
   const totalUsers = themes.reduce((s, t) => s + t.userCount, 0);
+  const q = query.trim().toLowerCase();
+  const visible = q ? themes.filter(t => t.name.toLowerCase().includes(q) || t.key.includes(q)) : themes;
 
   return (
-    <div className="p-6 md:p-8 max-w-5xl">
-      <div className="mb-6 flex items-start justify-between">
+    <div className="p-4 md:p-6 max-w-[1600px] mx-auto">
+      <div className="mb-5 flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="font-display text-3xl mb-1">Gestão de Temas</h1>
-          <p className="text-gray-500 text-sm">{themes.length} temas · arraste para reordenar o catálogo</p>
+          <h1 className="font-display text-3xl mb-1">Temas</h1>
+          <p className="text-gray-500 text-sm max-w-2xl">
+            Catálogo que os usuários veem em Aparência: ative ou desative, defina os temas Pro, arraste para reordenar e edite a demonstração de cada tema. O que aparece na página inicial fica em Landing page.
+          </p>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => setViewChart(v => !v)}
-            className={`brutal-btn px-3 py-2 text-sm gap-2 ${viewChart ? 'bg-bioyellow' : 'bg-white'}`}
-          >
+          <button onClick={() => setViewChart(v => !v)} className={`brutal-btn px-3 py-2 text-sm gap-2 ${viewChart ? 'bg-bioyellow' : 'bg-white'}`}>
             <BarChart2 className="w-4 h-4" />
-            {viewChart ? 'Ver lista' : 'Ver gráfico'}
+            {viewChart ? 'Ocultar uso' : 'Ver uso'}
           </button>
-          <button onClick={fetchData} className="brutal-btn px-3 py-2 bg-white text-sm">
+          <button onClick={fetchData} className="brutal-btn px-3 py-2 bg-white text-sm" aria-label="Recarregar">
             <RefreshCw className="w-4 h-4" />
           </button>
         </div>
       </div>
 
-      {/* Legend */}
-      <div className="flex flex-wrap gap-4 mb-6 text-xs font-bold text-gray-500">
-        <div className="flex items-center gap-1.5"><Eye className="w-3.5 h-3.5 text-green-500" /> Ativo (visível a todos)</div>
-        <div className="flex items-center gap-1.5"><EyeOff className="w-3.5 h-3.5 text-red-400" /> Desativado (ninguém pode selecionar)</div>
-        <div className="flex items-center gap-1.5"><Lock className="w-3.5 h-3.5 text-yellow-500" /> Somente Pro</div>
-        <div className="flex items-center gap-1.5"><Unlock className="w-3.5 h-3.5 text-gray-400" /> Todos os planos</div>
-        <div className="flex items-center gap-1.5"><GripVertical className="w-3.5 h-3.5 text-gray-400" /> Arraste para reordenar</div>
-      </div>
+      {toast && <div className="mb-4 inline-block brutal-card px-4 py-2 bg-biolime font-bold">{toast}</div>}
 
-      {/* Chart view */}
       {viewChart && !loading && (
-        <div className="brutal-card p-5 mb-6">
+        <div className="brutal-card p-5 mb-5">
           <h2 className="font-display text-lg mb-4">Distribuição de uso</h2>
-          <ResponsiveContainer width="100%" height={280}>
+          <ResponsiveContainer width="100%" height={Math.max(280, themes.length * 18)}>
             <BarChart data={themes} layout="vertical">
               <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
-              <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={90} />
+              <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={110} />
               <Tooltip formatter={(v) => [`${v} usuários`, 'Usuários']} />
               <Bar dataKey="userCount" fill="#FACC15" stroke="#000" strokeWidth={1.5} />
             </BarChart>
@@ -191,85 +229,80 @@ export default function AdminThemesPage() {
         </div>
       )}
 
-      {/* Theme list */}
       {loading ? (
         <div className="brutal-card p-12 text-center font-bold text-gray-400 animate-pulse">Carregando...</div>
       ) : (
-        <div className="grid gap-3">
-          {themes.map(theme => {
-            const pct = totalUsers > 0 ? (theme.userCount / totalUsers) * 100 : 0;
-            return (
-              <div
-                key={theme.key}
-                draggable
-                onDragStart={() => onDragStart(theme.key)}
-                onDragOver={onDragOver}
-                onDrop={() => onDrop(theme.key)}
-                className={`brutal-card p-4 transition-all cursor-default ${theme.disabled ? 'opacity-60' : ''}`}
-              >
-                <div className="flex items-start gap-4">
-                  {/* Drag handle */}
-                  <div className="cursor-grab mt-1 text-gray-400 hover:text-gray-600 shrink-0">
-                    <GripVertical className="w-5 h-5" />
-                  </div>
-
-                  {/* Color swatch from theme defaults */}
+        <div className="grid lg:grid-cols-[360px_1fr_320px] gap-4 items-start">
+          <aside className="brutal-card p-3 bg-white">
+            <div className="flex items-center gap-2 brutal-border px-2 mb-2">
+              <Search className="w-4 h-4 text-gray-400" />
+              <input value={query} onChange={e => setQuery(e.target.value)} placeholder={`Buscar entre ${themes.length} temas`} className="flex-1 py-2 text-sm outline-none" />
+            </div>
+            <p className="text-[11px] text-gray-500 mb-2 flex items-center gap-1"><GripVertical className="w-3 h-3" /> Arraste para mudar a ordem do catálogo</p>
+            <div className="flex flex-col gap-1.5 max-h-[75vh] overflow-y-auto pr-1">
+              {visible.map(theme => {
+                const pct = totalUsers > 0 ? (theme.userCount / totalUsers) * 100 : 0;
+                const active = theme.key === selectedKey;
+                return (
                   <div
-                    className="w-10 h-10 shrink-0 brutal-border"
-                    style={{ background: THEMES[theme.key]?.meta.defaults.bg_color ?? '#fff' }}
-                  />
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                      <span className="font-display text-lg leading-tight">{theme.name}</span>
-                      {theme.disabled && (
-                        <span className="text-[10px] bg-red-100 text-red-700 border border-red-300 px-1.5 py-0.5 font-bold">DESATIVADO</span>
-                      )}
-                      {theme.proOnly && (
-                        <span className="text-[10px] bg-bioyellow text-black brutal-border px-1.5 py-0.5 font-bold">SOMENTE PRO</span>
-                      )}
-                    </div>
-                    <p className="text-xs text-gray-500 mb-2 leading-relaxed">{theme.description}</p>
-
-                    {/* Usage bar */}
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 h-1.5 bg-gray-100 border border-gray-200 overflow-hidden">
-                        <div
-                          className="h-full bg-black transition-all"
-                          style={{ width: `${pct}%` }}
-                        />
-                      </div>
-                      <span className="text-xs text-gray-500 font-bold w-16 text-right">
-                        {theme.userCount} {theme.userCount === 1 ? 'usuário' : 'usuários'}
+                    key={theme.key}
+                    draggable={!q}
+                    onDragStart={() => onDragStart(theme.key)}
+                    onDragOver={onDragOver}
+                    onDrop={() => onDrop(theme.key)}
+                    className={`brutal-border p-2 flex items-center gap-2 ${active ? 'bg-bioyellow' : 'bg-white hover:bg-black/5'} ${theme.disabled ? 'opacity-60' : ''}`}
+                  >
+                    <GripVertical className={`w-4 h-4 shrink-0 text-gray-400 ${q ? 'opacity-30' : 'cursor-grab'}`} />
+                    <span className="w-6 h-6 shrink-0 brutal-border" style={{ background: THEMES[theme.key]?.meta.defaults.bg_color ?? '#fff' }} />
+                    <button onClick={() => selectTheme(theme.key)} className="flex-1 min-w-0 text-left">
+                      <span className="block text-sm font-bold truncate">{theme.name}</span>
+                      <span className="flex items-center gap-1.5 mt-0.5">
+                        <span className="flex-1 h-1 bg-gray-100 overflow-hidden"><span className="block h-full bg-black" style={{ width: `${pct}%` }} /></span>
+                        <span className="text-[10px] text-gray-500 font-bold">{theme.userCount}</span>
                       </span>
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex items-center gap-2 shrink-0">
+                    </button>
                     <button
                       onClick={() => toggleProOnly(theme)}
                       disabled={saving === theme.key + '_pro'}
-                      title={theme.proOnly ? 'Tornar disponível a todos' : 'Restringir ao plano Pro'}
-                      className={`brutal-btn px-3 py-2 text-xs gap-1.5 transition-all ${theme.proOnly ? 'bg-bioyellow' : 'bg-white'}`}
+                      title={theme.proOnly ? 'Somente Pro (clique para liberar a todos)' : 'Todos os planos (clique para restringir ao Pro)'}
+                      className={`w-8 h-8 brutal-border flex items-center justify-center shrink-0 ${theme.proOnly ? 'bg-bioyellow' : 'bg-white'}`}
                     >
                       {theme.proOnly ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
-                      <span className="hidden sm:inline">{theme.proOnly ? 'Pro' : 'Todos'}</span>
                     </button>
                     <button
                       onClick={() => toggleDisabled(theme)}
                       disabled={saving === theme.key + '_disabled'}
-                      title={theme.disabled ? 'Ativar tema' : 'Desativar tema'}
-                      className={`brutal-btn px-3 py-2 text-xs gap-1.5 transition-all ${theme.disabled ? 'bg-red-100 border-red-400' : 'bg-white'}`}
+                      title={theme.disabled ? 'Desativado (clique para ativar)' : 'Ativo (clique para desativar)'}
+                      className={`w-8 h-8 brutal-border flex items-center justify-center shrink-0 ${theme.disabled ? 'bg-red-100' : 'bg-white'}`}
                     >
-                      {theme.disabled ? <Eye className="w-3.5 h-3.5 text-red-600" /> : <EyeOff className="w-3.5 h-3.5" />}
-                      <span className="hidden sm:inline">{theme.disabled ? 'Ativar' : 'Desativar'}</span>
+                      {theme.disabled ? <EyeOff className="w-3.5 h-3.5 text-red-600" /> : <Eye className="w-3.5 h-3.5" />}
                     </button>
                   </div>
+                );
+              })}
+            </div>
+          </aside>
+
+          {selected && (
+            <section className="brutal-card p-4 bg-white">
+              <div className="flex items-start justify-between gap-3 mb-3 flex-wrap">
+                <div>
+                  <h2 className="font-display text-xl">{THEMES[selectedKey]?.meta.name}</h2>
+                  <p className="text-xs text-gray-500 max-w-md">{THEMES[selectedKey]?.meta.description}</p>
                 </div>
+                <button onClick={saveDemo} disabled={savingDemo} className="brutal-btn bg-bioyellow px-4 py-2 font-bold text-sm gap-2 disabled:opacity-60">
+                  <Save className="w-4 h-4" /> {savingDemo ? 'Salvando...' : dirty ? 'Salvar demonstração *' : 'Salvar demonstração'}
+                </button>
               </div>
-            );
-          })}
+              <label className="flex items-center gap-2 text-xs font-bold brutal-border bg-[#FAFAFA] px-3 py-2 mb-2">
+                <input type="checkbox" checked={!!selected.show_in_catalog} onChange={e => patchSelected(() => ({ show_in_catalog: e.target.checked }))} />
+                Usar esta demonstração no catálogo (desmarcado: perfil de exemplo padrão)
+              </label>
+              <ShowcaseDemoEditor kind="catalog" preset={selected} onPatch={patchSelected} onToast={flashToast} />
+            </section>
+          )}
+
+          {selected && <ShowcasePreview kind="catalog" preset={selected} title="Como aparece em Aparência" />}
         </div>
       )}
     </div>

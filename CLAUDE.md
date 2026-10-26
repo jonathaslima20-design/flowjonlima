@@ -24,7 +24,8 @@ Plataforma de link in bio (bioflowzy.com). Originalmente gerada no Bolt.new (tem
 ## Estrutura
 - `app/[username]` — página pública do bio
 - `app/dashboard/*` — painel do usuário (links, banners, vídeos, socials, customize, analytics, domain, integrations, referral, help, settings)
-- `app/admin/*` — painel admin (users, plans, themes, theme-showcase)
+- `app/admin/*` — painel admin (users, plans, metrics, payments, payouts, themes, landing). `/admin/theme-showcase`, `/admin/niches` e `/admin/testimonials` só redirecionam para `/admin/landing?tab=…`
+- Admin → Temas: catálogo do painel (ativo/oculto, Pro, ordem `catalog_order`, demonstração do catálogo com prévia "Como aparece em Aparência"). Admin → Landing page: abas Hero (slides do carrossel com demonstração da landing, animação, prova social), Para quem é (nichos), Galeria de temas e Depoimentos
 - `app/api/revalidate-bio` — revalida a página pública após edições no painel
 - `middleware.ts` — domínios personalizados: hosts fora de `PRIMARY_SUFFIXES` são resolvidos via RPC `lookup_domain` e reescritos para `/{username}`
 - `themes/<nome>` + `themes/registry.ts` — temas visuais do bio; `components/themes`, `components/bio` renderizam
@@ -85,10 +86,10 @@ Plataforma de link in bio (bioflowzy.com). Originalmente gerada no Bolt.new (tem
 - Home e `/exemplos` são ISR (`revalidate = 300`): edições do admin aparecem em até 5 minutos
 - Perguntas do FAQ em `components/landing/faq-data.ts` (usadas também no JSON-LD)
 - `app/sitemap.ts` (páginas do site + páginas principais ativas) e `public/robots.txt` (bloqueia /dashboard, /admin, /api, /convite)
-- Galeria de temas usa as demonstrações do catálogo (Admin → Vitrine) e `admin_settings` `pro_only_themes`/`disabled_themes` (leitura pública, assim como `social_proof`)
-- Depoimentos: tabela `landing_testimonials` (Admin → Depoimentos); a seção some sem depoimentos ativos
-- Nichos: tabela `landing_niches` (leitura pública dos ativos, escrita só admin), editados em Admin → Nichos da landing; o celular usa `ThemeMockup` como o carrossel do hero
-- `components/admin/DemoPageEditor.tsx`: editor de página de demonstração compartilhado pela Vitrine e pelos nichos
+- Galeria de temas: seleção e ordem manuais em `admin_settings.landing_gallery` (vazia = automática, ordem do catálogo); cada tema usa a demonstração da landing se houver, senão a do catálogo (`landingOrCatalogDemoFor`). Lê também `pro_only_themes`/`disabled_themes` (leitura pública, assim como `social_proof` e `landing_gallery`)
+- Depoimentos: tabela `landing_testimonials` (Admin → Landing page → Depoimentos); a seção some sem depoimentos ativos
+- Nichos: tabela `landing_niches` (leitura pública dos ativos, escrita só admin), editados em Admin → Landing page → Para quem é; o celular usa `ThemeMockup` como o carrossel do hero
+- `components/admin/DemoPageEditor.tsx`: editor de página de demonstração compartilhado; `ShowcaseDemoEditor.tsx` o liga às colunas `catalog_*` ou `landing_*` de `theme_showcase_presets`. Abas da landing em `components/admin/landing/`
 - Comparativos citam "outras ferramentas", nunca concorrentes pelo nome
 - Páginas legais: `/termos` e `/privacidade` (`components/legal/LegalPage.tsx`); dados do responsável (razão social, CNPJ, e-mail) em `lib/legal.ts`, campos vazios não aparecem
 

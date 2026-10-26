@@ -5,25 +5,27 @@ import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { ThemeMockup } from '@/components/themes/ThemeMockup';
 import { THEMES } from '@/themes/registry';
-import { catalogDemoFor } from '@/lib/theme-showcase';
+import { landingOrCatalogDemoFor } from '@/lib/theme-showcase';
 import type { ThemeGalleryData } from '@/lib/landing-content';
 
 const INITIAL = 8;
 
-// Galeria com os temas disponíveis, usando as demonstrações do catálogo (Admin → Vitrine)
+// Galeria com os temas disponíveis (Admin → Landing page → Galeria): demonstração da landing quando existe, senão a do catálogo
 export function ThemeGallery({ data }: { data: ThemeGalleryData }) {
   const [showAll, setShowAll] = useState(false);
   const byKey = new Map(data.presets.map(p => [p.theme_key, p]));
 
-  // Ordem do catálogo primeiro, depois os temas sem demonstração cadastrada
-  const ordered = [
-    ...data.presets.filter(p => p.show_in_catalog !== false).map(p => p.theme_key),
+  // Seleção manual quando existe; senão, ordem do catálogo e depois os temas sem demonstração cadastrada
+  const ordered = (data.selection.length > 0 ? data.selection : [
+    ...[...data.presets].sort((a, b) => a.catalog_order - b.catalog_order).map(p => p.theme_key),
     ...Object.keys(THEMES).filter(k => !byKey.has(k)),
-  ].filter((k, i, arr) => THEMES[k] && THEMES[k].meta.available !== false && !data.disabled.includes(k) && arr.indexOf(k) === i);
+  ]).filter((k, i, arr) => THEMES[k] && THEMES[k].meta.available !== false && !data.disabled.includes(k) && arr.indexOf(k) === i);
 
   if (ordered.length === 0) return null;
   const visible = showAll ? ordered : ordered.slice(0, INITIAL);
-  const freeCount = ordered.filter(k => !data.proOnly.includes(k)).length;
+  // Os números do texto contam todo o catálogo ativo, mesmo com seleção manual na galeria
+  const catalog = Object.keys(THEMES).filter(k => THEMES[k].meta.available !== false && !data.disabled.includes(k));
+  const freeCount = catalog.filter(k => !data.proOnly.includes(k)).length;
 
   return (
     <section id="temas" className="py-24 bg-bioyellow/20 border-y-2 border-black">
@@ -32,13 +34,13 @@ export function ThemeGallery({ data }: { data: ThemeGalleryData }) {
           <span className="inline-block bg-black text-white px-3 py-1 text-xs font-bold">TEMAS</span>
           <h2 className="font-display text-4xl md:text-5xl mt-4">Uma página com a cara da sua marca.</h2>
           <p className="mt-4 text-base text-black/70">
-            {ordered.length} temas prontos para personalizar cores, fontes e estilo. {freeCount} deles são grátis.
+            {catalog.length} temas prontos para personalizar cores, fontes e estilo. {freeCount} deles são grátis.
           </p>
         </div>
 
         <div className="mt-12 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-10">
           {visible.map(key => {
-            const demo = catalogDemoFor(byKey.get(key));
+            const demo = landingOrCatalogDemoFor(byKey.get(key));
             const pro = data.proOnly.includes(key);
             return (
               <div key={key} className="flex flex-col items-center">
