@@ -14,6 +14,7 @@ import { ChatTheme, chatMeta } from './chat';
 import { NoirTheme, noirMeta } from './noir';
 import { MemphisTheme, memphisMeta } from './memphis';
 import { EsportsTheme, esportsMeta } from './esports';
+import { IdcardTheme, idcardMeta } from './idcard';
 
 // Coleção 2026: temas novos, registrados em themes/registry.ts
 export const COLLECTION_2026: BioThemeDefinition[] = [
@@ -32,4 +33,5 @@ export const COLLECTION_2026: BioThemeDefinition[] = [
   { meta: noirMeta, component: NoirTheme },
   { meta: memphisMeta, component: MemphisTheme },
   { meta: esportsMeta, component: EsportsTheme },
+  { meta: idcardMeta, component: IdcardTheme },
 ];
