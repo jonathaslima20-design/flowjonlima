@@ -26,7 +26,7 @@ const TEMPLATES: Template[] = [
   },
   {
     key: 'criador', label: 'Criador de conteúdo', description: 'Vídeos, parcerias e redes', icon: Sparkles,
-    theme: 'aurora', bio: 'Conteúdo novo toda semana ✨ Parcerias pelo e-mail ou WhatsApp.',
+    theme: 'bento', bio: 'Conteúdo novo toda semana ✨ Parcerias pelo e-mail ou WhatsApp.',
     links: ['Meu último vídeo', 'Parcerias e publis', 'Meu canal no YouTube'],
     whatsappMessage: 'Olá! Vim pelo seu link na bio.',
   },

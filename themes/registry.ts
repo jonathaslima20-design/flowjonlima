@@ -1,21 +1,11 @@
 import { BrutalistTheme, brutalistMeta } from './brutalist';
-import { AuroraTheme, auroraMeta } from './aurora';
 import { CyberTheme, cyberMeta } from './cyber';
-import { RetrowaveTheme, retrowaveMeta } from './retrowave';
 import { AtlasTheme, atlasMeta } from './atlas';
-import { ConversionTheme, conversionMeta } from './conversion';
 import { CreatorTheme, creatorMeta } from './creator';
 import { AgencyTheme, agencyMeta } from './agency';
-import { PrismTheme, prismMeta } from './prism';
-import { NeonLabTheme, neonlabMeta } from './neonlab';
 import { ChromeTheme, chromeMeta } from './chrome';
-import { TerminalTheme, terminalMeta } from './terminal';
 import { GraphiteTheme, graphiteMeta } from './graphite';
 import { SunsetTheme, sunsetMeta } from './sunset';
-import { ForestTheme, forestMeta } from './forest';
-import { LavaTheme, lavaMeta } from './lava';
-import { GlitchTheme, glitchMeta } from './glitch';
-import { CosmosTheme, cosmosMeta } from './cosmos';
 import { CupertinoTheme, cupertinoMeta } from './cupertino';
 import { COLLECTION_2026 } from './collection';
 import type { BioThemeDefaults, BioThemeDefinition, BioThemeMeta, ControlDef } from './types';
@@ -44,23 +34,13 @@ function withCoreControls(meta: BioThemeMeta): BioThemeMeta {
 export const THEMES: Record<string, BioThemeDefinition> = {
   cupertino: { meta: withCoreControls(cupertinoMeta), component: CupertinoTheme },
   brutalist: { meta: withCoreControls(brutalistMeta), component: BrutalistTheme },
-  aurora: { meta: withCoreControls(auroraMeta), component: AuroraTheme },
   atlas: { meta: withCoreControls(atlasMeta), component: AtlasTheme },
-  conversion: { meta: withCoreControls(conversionMeta), component: ConversionTheme },
-  terminal: { meta: withCoreControls(terminalMeta), component: TerminalTheme },
   chrome: { meta: withCoreControls(chromeMeta), component: ChromeTheme },
-  prism: { meta: withCoreControls(prismMeta), component: PrismTheme },
   cyber: { meta: withCoreControls(cyberMeta), component: CyberTheme },
-  retrowave: { meta: withCoreControls(retrowaveMeta), component: RetrowaveTheme },
-  neonlab: { meta: withCoreControls(neonlabMeta), component: NeonLabTheme },
   creator: { meta: withCoreControls(creatorMeta), component: CreatorTheme },
   agency: { meta: withCoreControls(agencyMeta), component: AgencyTheme },
   graphite: { meta: withCoreControls(graphiteMeta), component: GraphiteTheme },
   sunset: { meta: withCoreControls(sunsetMeta), component: SunsetTheme },
-  forest: { meta: withCoreControls(forestMeta), component: ForestTheme },
-  lava: { meta: withCoreControls(lavaMeta), component: LavaTheme },
-  glitch: { meta: withCoreControls(glitchMeta), component: GlitchTheme },
-  cosmos: { meta: withCoreControls(cosmosMeta), component: CosmosTheme },
   // Coleção 2026 (themes/collection.ts)
   ...Object.fromEntries(COLLECTION_2026.map(t => [t.meta.key, { meta: withCoreControls(t.meta), component: t.component }])),
 };
