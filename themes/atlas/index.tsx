@@ -37,22 +37,12 @@ export const atlasMeta: BioThemeMeta = {
       { value: 'soft', label: 'Suave' },
       { value: 'elevated', label: 'Elevada' },
     ], default: 'soft', group: 'Layout' },
-    { key: 'showStatus', label: 'Chip de status', type: 'toggle', default: true, group: 'Cabecalho' },
-    { key: 'statusText', label: 'Texto do status', type: 'select', options: [
-      { value: 'available', label: 'Disponivel para projetos' },
-      { value: 'hiring', label: 'Contratando' },
-      { value: 'building', label: 'Construindo algo novo' },
-      { value: 'speaking', label: 'Aberto a palestras' },
-    ], default: 'available', group: 'Cabecalho' },
     { key: 'cardStyle', label: 'Estilo dos cards', type: 'select', options: [
       { value: 'outline', label: 'Apenas borda' },
       { value: 'filled', label: 'Preenchido suave' },
       { value: 'primary', label: 'Primario destacado' },
     ], default: 'filled', group: 'Links' },
-    { key: 'customStatus', label: 'Texto do status (personalizado)', type: 'text', default: '', placeholder: 'Deixe vazio para usar preset', maxLength: 60, group: 'Textos' },
     { key: 'tagline', label: 'Subtítulo abaixo do nome', type: 'textarea', default: '', placeholder: 'Ex: Head of Design @ Acme', maxLength: 120, rows: 2, group: 'Textos' },
-    { key: 'statusColorCustom', label: 'Cor do status (personalizada)', type: 'colorPicker', default: '#10B981', group: 'Cores' },
-    { key: 'useStatusColorCustom', label: 'Usar cor personalizada de status', type: 'toggle', default: false, group: 'Cores' },
     { key: 'accentCustom', label: 'Cor de destaque (hex livre)', type: 'colorPicker', default: '#2563EB', group: 'Cores' },
     { key: 'useAccentCustom', label: 'Usar cor personalizada de destaque', type: 'toggle', default: false, group: 'Cores' },
     { key: 'titleFont', label: 'Fonte do título', type: 'fontFamily', default: 'inter', group: 'Tipografia' },
@@ -70,13 +60,6 @@ const DENSITY: Record<string, { headerPad: string; gap: string; linkPad: string;
   comfortable: { headerPad: 'pt-[72px] pb-10', gap: 'gap-4', linkPad: 'px-6 py-5', maxW: 'max-w-lg' },
 };
 
-const STATUS_MAP: Record<string, { text: string; color: string }> = {
-  available: { text: 'Disponivel para projetos', color: '#10B981' },
-  hiring: { text: 'Contratando', color: '#F59E0B' },
-  building: { text: 'Construindo algo novo', color: '#2563EB' },
-  speaking: { text: 'Aberto a palestras', color: '#8B5CF6' },
-};
-
 const BANNER_H: Record<string, string> = { sm: 'aspect-[6/1]', md: 'aspect-[3/1]', lg: 'aspect-[5/2]' };
 
 const SHADOWS: Record<string, string> = {
@@ -91,11 +74,6 @@ export function AtlasTheme({ profile, links, socials, videos, banners, sectionOr
   const bg = profile.bg_color || '#F7F9FC';
   const text = profile.text_color || '#0F172A';
   const d = DENSITY[s.density] || DENSITY.default;
-  const presetStatus = STATUS_MAP[s.statusText] || STATUS_MAP.available;
-  const status = {
-    text: (s.customStatus && s.customStatus.trim()) || presetStatus.text,
-    color: s.useStatusColorCustom && s.statusColorCustom ? s.statusColorCustom : presetStatus.color,
-  };
   const shadow = SHADOWS[s.shadow] || SHADOWS.soft;
   const t = (a: string, b: string | null) => track?.(a, b);
 
@@ -176,28 +154,6 @@ export function AtlasTheme({ profile, links, socials, videos, banners, sectionOr
             </p>
           )}
 
-          {s.showStatus && (
-            <div
-              className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium"
-              style={{
-                backgroundColor: `${status.color}14`,
-                color: status.color,
-                border: `1px solid ${status.color}33`,
-              }}
-            >
-              <span className="relative flex w-2 h-2">
-                <span
-                  className="absolute inline-flex h-full w-full rounded-full opacity-75 atlas-ping"
-                  style={{ backgroundColor: status.color }}
-                />
-                <span
-                  className="relative inline-flex rounded-full h-2 w-2"
-                  style={{ backgroundColor: status.color }}
-                />
-              </span>
-              {status.text}
-            </div>
-          )}
 
         </div>
 
@@ -348,14 +304,6 @@ export function AtlasTheme({ profile, links, socials, videos, banners, sectionOr
         <BioflowzyBadge profile={profile} bgColor={profile.bg_color} />
       </div>
 
-      <style jsx>{`
-        :global(.atlas-ping) {
-          animation: atlas-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
-        }
-        @keyframes atlas-ping {
-          75%, 100% { transform: scale(2); opacity: 0; }
-        }
-      `}</style>
     </div>
   );
 }

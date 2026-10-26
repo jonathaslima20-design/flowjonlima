@@ -32,13 +32,13 @@ const TEMPLATES: Template[] = [
   },
   {
     key: 'profissional', label: 'Profissional liberal', description: 'Agendamento, portfólio e depoimentos', icon: Briefcase,
-    theme: 'graphite', bio: 'Atendimento presencial e online. Agende sua consulta pelo WhatsApp.',
+    theme: 'atlas', bio: 'Atendimento presencial e online. Agende sua consulta pelo WhatsApp.',
     links: ['Agendar atendimento', 'Conheça meu trabalho', 'Depoimentos de clientes'],
     whatsappMessage: 'Olá! Gostaria de agendar um atendimento.',
   },
   {
     key: 'restaurante', label: 'Restaurante / delivery', description: 'Cardápio, delivery e localização', icon: UtensilsCrossed,
-    theme: 'sunset', bio: 'Delivery e retirada. Cardápio completo no link 🍔',
+    theme: 'receipt', bio: 'Delivery e retirada. Cardápio completo no link 🍔',
     links: ['Cardápio', 'Pedir pelo delivery', 'Como chegar'],
     whatsappMessage: 'Olá! Quero fazer um pedido.',
   },

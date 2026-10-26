@@ -137,7 +137,7 @@ export default function CustomizePage() {
   function updateCoreField(field: string, value: any) {
     const coreKey = `_core_${field}`;
     setProfile((prev: any) => {
-      const activeKey = prev?.theme || 'brutalist';
+      const activeKey = prev?.theme || 'cupertino';
       const current = (prev?.theme_settings && typeof prev.theme_settings === 'object') ? prev.theme_settings : {};
       const nextSettings = { ...current, [activeKey]: { ...(current[activeKey] || {}), [coreKey]: value } };
       return { ...prev, [field]: value, theme_settings: nextSettings };
@@ -145,7 +145,7 @@ export default function CustomizePage() {
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(async () => {
       const current = (profile?.theme_settings && typeof profile.theme_settings === 'object') ? profile.theme_settings : {};
-      const activeKey = profile?.theme || 'brutalist';
+      const activeKey = profile?.theme || 'cupertino';
       const nextSettings = { ...current, [activeKey]: { ...(current[activeKey] || {}), [coreKey]: value } };
       await supabase.from('profiles').update({ [field]: value, theme_settings: nextSettings }).eq('id', profileId);
       setSaved(true);
@@ -154,7 +154,7 @@ export default function CustomizePage() {
   }
 
   async function applyTheme(themeKey: string) {
-    const currentKey = profile?.theme || 'brutalist';
+    const currentKey = profile?.theme || 'cupertino';
     const currentSettings = (profile?.theme_settings && typeof profile.theme_settings === 'object') ? profile.theme_settings : {};
 
     const savedCore: Record<string, any> = {};
@@ -183,7 +183,7 @@ export default function CustomizePage() {
     });
   }
 
-  const activeKey = profile?.theme || 'brutalist';
+  const activeKey = profile?.theme || 'cupertino';
 
   if (!profile) return <div>Carregando...</div>;
 

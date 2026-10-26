@@ -259,7 +259,7 @@ export default function AdminUsersPage() {
                       </div>
                     </td>
                     <td className="px-4 py-3 hidden md:table-cell">
-                      <span className="text-xs text-gray-500 capitalize">{p.theme || 'brutalist'}</span>
+                      <span className="text-xs text-gray-500 capitalize">{p.theme || 'cupertino'}</span>
                     </td>
                     <td className="px-4 py-3 text-center">
                       {(() => {
@@ -449,7 +449,7 @@ export default function AdminUsersPage() {
             </div>
 
             <div className="text-xs text-gray-400 space-y-1 mb-4">
-              <div>Tema: <span className="font-bold text-black capitalize">{detail.theme || 'brutalist'}</span></div>
+              <div>Tema: <span className="font-bold text-black capitalize">{detail.theme || 'cupertino'}</span></div>
               <div>Plano: <span className="font-bold text-black">{planLabel(detail.plan)}</span></div>
               {detail.plan_expires_at && (
                 <div>Expira em: <span className="font-bold text-black">{new Date(detail.plan_expires_at).toLocaleDateString('pt-BR')}</span></div>

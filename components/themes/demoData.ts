@@ -6,7 +6,7 @@ export const DEMO_PROFILE: Partial<BioProfile> = {
   display_name: '@maria.cria',
   bio: 'Criadora de conteudo - SP',
   avatar_url: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=256',
-  theme: 'brutalist',
+  theme: 'cupertino',
   theme_settings: {},
   avatar_size: 90,
   is_pro: false,
