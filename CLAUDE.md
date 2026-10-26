@@ -79,7 +79,10 @@ Plataforma de link in bio (bioflowzy.com). Originalmente gerada no Bolt.new (tem
 
 ## Landing
 - Hero (`components/landing/Hero.tsx`) não deve ter o texto alterado; melhorias da landing entram como seções novas
-- Ordem: Hero, Marquee, HowItWorks, NicheShowcase ("Para quem é"), Features, FeatureShowcase, ThemeGallery, BusinessSection, Comparison, Testimonials, Pricing, ReferralCalculator, FAQ, Footer
+- Ordem: Hero, Marquee, HowItWorks, NicheShowcase ("Para quem é"), Features, FeatureShowcase, ThemeGallery, BusinessSection, Comparison, Testimonials, Pricing, ReferralCalculator, FAQ, FinalCTA, Footer (+ StickyMobileCTA e StructuredData com schema.org de produto e FAQ)
+- Home e `/exemplos` são ISR (`revalidate = 300`): edições do admin aparecem em até 5 minutos
+- Perguntas do FAQ em `components/landing/faq-data.ts` (usadas também no JSON-LD)
+- `app/sitemap.ts` (páginas do site + páginas principais ativas) e `public/robots.txt` (bloqueia /dashboard, /admin, /api, /convite)
 - Galeria de temas usa as demonstrações do catálogo (Admin → Vitrine) e `admin_settings` `pro_only_themes`/`disabled_themes` (leitura pública, assim como `social_proof`)
 - Depoimentos: tabela `landing_testimonials` (Admin → Depoimentos); a seção some sem depoimentos ativos
 - Nichos: tabela `landing_niches` (leitura pública dos ativos, escrita só admin), editados em Admin → Nichos da landing; o celular usa `ThemeMockup` como o carrossel do hero

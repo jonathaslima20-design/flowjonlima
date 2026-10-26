@@ -37,7 +37,7 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://bioflowzy.com';
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: 'BioFlowzy — Sua bio, seu link, seu universo',
-  description: 'Plataforma brutalista de bio links. Compartilhe tudo em um só lugar.',
+  description: 'Crie sua página de link na bio em minutos: WhatsApp, redes sociais, contatos, analytics e domínio próprio.',
   icons: {
     icon: '/favicon-48.png',
     apple: '/apple-touch-icon.png',

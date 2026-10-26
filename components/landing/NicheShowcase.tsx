@@ -54,9 +54,12 @@ export function NicheShowcase({ niches }: { niches: LandingNiche[] }) {
                 ))}
               </ul>
             )}
-            <Link href="/register" className="mt-8 brutal-btn bg-bioblue text-white px-6 py-3 gap-2 inline-flex">
-              Criar minha página <ArrowRight className="w-4 h-4" />
-            </Link>
+            <div className="mt-8 flex flex-wrap items-center gap-4">
+              <Link href="/register" className="brutal-btn bg-bioblue text-white px-6 py-3 gap-2 inline-flex">
+                Criar minha página <ArrowRight className="w-4 h-4" />
+              </Link>
+              <Link href="/exemplos" className="text-sm font-bold underline underline-offset-4">Ver todos os exemplos</Link>
+            </div>
           </div>
 
           <div className="flex justify-center">

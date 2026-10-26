@@ -1,5 +1,9 @@
 User-agent: *
 Allow: /
+Disallow: /dashboard
+Disallow: /admin
+Disallow: /api/
+Disallow: /convite/
 
 User-agent: facebookexternalhit
 Allow: /

@@ -2,16 +2,7 @@
 
 import { useState } from 'react';
 import { Plus, X } from 'lucide-react';
-
-const faqs = [
-  { q: 'Preciso de cartão de crédito?', a: 'Não. O plano Free é gratuito para sempre e não pede cartão. Você só informa pagamento quando decidir fazer upgrade.' },
-  { q: 'Posso usar meu domínio?', a: 'Sim. Assinantes Pro podem conectar um domínio customizado diretamente pelo painel, em poucos minutos.' },
-  { q: 'Como funciona o analytics?', a: 'Registramos cada clique em links, redes sociais e banners. Você acompanha tudo em tempo real com gráficos claros no dashboard.' },
-  { q: 'Posso cancelar quando quiser?', a: 'Sim, sem multa, sem burocracia e sem ligação chata. Seus dados e sua página continuam acessíveis no plano Free.' },
-  { q: 'Minha página fica no ar 24 horas por dia?', a: 'Sim. Sua bio link fica online o tempo todo, mesmo que você não esteja logado. Qualquer pessoa com o link consegue acessar normalmente.' },
-  { q: 'Posso vender ou divulgar meus produtos pela bio?', a: 'Com certeza. Você pode adicionar links para sua loja, WhatsApp, checkout ou qualquer destino. Banners e botões de destaque ajudam a converter visitantes em clientes.' },
-  { q: 'Como funciona o Indique e Ganhe?', a: 'Ao assinar o plano Pro, você recebe um link de indicação exclusivo. Cada vez que alguém se cadastrar e assinar pelo seu link, você ganha dinheiro de verdade — direto na sua conta. Quanto mais você indica, mais você fatura. Sua bio link pode virar uma fonte de renda passiva.' },
-];
+import { FAQS } from './faq-data';
 
 export function FAQ() {
   const [open, setOpen] = useState<number | null>(0);
@@ -23,7 +14,7 @@ export function FAQ() {
           <h2 className="font-display text-4xl md:text-5xl mt-4">Perguntas frequentes</h2>
         </div>
         <div className="mt-10 flex flex-col gap-4">
-          {faqs.map((f, i) => {
+          {FAQS.map((f, i) => {
             const isOpen = open === i;
             return (
               <div
