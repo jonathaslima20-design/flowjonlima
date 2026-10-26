@@ -79,7 +79,9 @@ Plataforma de link in bio (bioflowzy.com). Originalmente gerada no Bolt.new (tem
 
 ## Landing
 - Hero (`components/landing/Hero.tsx`) não deve ter o texto alterado; melhorias da landing entram como seções novas
-- Ordem: Hero, Marquee, HowItWorks, NicheShowcase ("Para quem é"), Features, FeatureShowcase, Pricing, FAQ, Footer
+- Ordem: Hero, Marquee, HowItWorks, NicheShowcase ("Para quem é"), Features, FeatureShowcase, ThemeGallery, BusinessSection, Comparison, Testimonials, Pricing, ReferralCalculator, FAQ, Footer
+- Galeria de temas usa as demonstrações do catálogo (Admin → Vitrine) e `admin_settings` `pro_only_themes`/`disabled_themes` (leitura pública, assim como `social_proof`)
+- Depoimentos: tabela `landing_testimonials` (Admin → Depoimentos); a seção some sem depoimentos ativos
 - Nichos: tabela `landing_niches` (leitura pública dos ativos, escrita só admin), editados em Admin → Nichos da landing; o celular usa `ThemeMockup` como o carrossel do hero
 - `components/admin/DemoPageEditor.tsx`: editor de página de demonstração compartilhado pela Vitrine e pelos nichos
 - Comparativos citam "outras ferramentas", nunca concorrentes pelo nome

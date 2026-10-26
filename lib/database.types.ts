@@ -359,6 +359,42 @@ export type Database = {
         }
         Relationships: []
       }
+      landing_testimonials: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          page_url: string | null
+          position: number
+          quote: string
+          role: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          page_url?: string | null
+          position?: number
+          quote: string
+          role?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          page_url?: string | null
+          position?: number
+          quote?: string
+          role?: string
+        }
+        Relationships: []
+      }
       leads: {
         Row: {
           created_at: string | null
