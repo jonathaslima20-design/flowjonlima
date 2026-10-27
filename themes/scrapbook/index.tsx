@@ -2,7 +2,7 @@
 
 import type { BioThemeMeta, BioThemeProps } from '@/themes/types';
 import { orderedSections } from '@/themes/types';
-import { useThemeKit, SocialRow, BannerList, VideoList, KitLinkIcon, ThemeFooter, linkAttrs, fontControls, footerControl, alpha } from '@/themes/_kit';
+import { useThemeKit, SocialRow, BannerList, VideoList, KitLinkIcon, ThemeFooter, linkAttrs, fontControls, footerControl, alpha, buttonControls, exactButton } from '@/themes/_kit';
 
 const SURFACES: Record<string, { bg: string; img?: string; size?: string }> = {
   kraft: { bg: '#C9A57A', img: 'radial-gradient(rgba(90,60,30,0.12) 1px, transparent 1px)', size: '6px 6px' },
@@ -26,6 +26,7 @@ export const scrapbookMeta: BioThemeMeta = {
     ], default: 'kraft', group: 'Aparência', category: 'cores' },
     { key: 'caption', label: 'Legenda da foto', type: 'text', default: 'eu ♥', maxLength: 24, group: 'Textos', category: 'textos' },
     { key: 'doodles', label: 'Rabiscos', type: 'toggle', default: true, group: 'Efeitos', category: 'efeitos' },
+    ...buttonControls('#FFF59D', '#2B2118'),
     footerControl('Ex: feito com carinho'),
     ...fontControls('caveat', 'dmsans'),
   ],
@@ -35,6 +36,7 @@ export function ScrapbookTheme(props: BioThemeProps) {
   const { profile, links, socials, videos, banners, sectionOrder, preview } = props;
   const { s, bg, text, accent, titleFont, bodyFont, t } = useThemeKit(props, scrapbookMeta, 'var(--font-caveat), cursive');
   const sf = s.surface === 'solid' ? { bg } : (SURFACES[s.surface] || SURFACES.kraft);
+  const eb = exactButton(s);
   const tape = (rot: number) => ({ background: alpha('#FFFFFF', 0.55), boxShadow: `0 1px 2px ${alpha('#000', 0.15)}`, transform: `rotate(${rot}deg)` });
 
   return (
@@ -61,7 +63,7 @@ export function ScrapbookTheme(props: BioThemeProps) {
             socials: (
               <SocialRow key="socials" socials={socials} t={t} className="flex justify-center gap-3 flex-wrap"
                 render={({ Icon, label, attrs, index }) => (
-                  <a {...attrs} aria-label={label} className="sb-wiggle w-12 h-12 rounded-full flex items-center justify-center" style={{ background: NOTES[(index + 2) % NOTES.length], color: '#2B2118', boxShadow: `0 4px 8px ${alpha('#000', 0.2)}`, transform: `rotate(${index % 2 ? 6 : -6}deg)` }}>
+                  <a {...attrs} aria-label={label} className="sb-wiggle w-12 h-12 rounded-full flex items-center justify-center" style={{ background: eb ? eb.bg : NOTES[(index + 2) % NOTES.length], color: eb ? eb.fg : '#2B2118', boxShadow: `0 4px 8px ${alpha('#000', 0.2)}`, transform: `rotate(${index % 2 ? 6 : -6}deg)` }}>
                     <Icon className="w-5 h-5" />
                   </a>
                 )}
@@ -71,7 +73,7 @@ export function ScrapbookTheme(props: BioThemeProps) {
               <div key="links" className="flex flex-col gap-6 px-2">
                 {links.map((l: any, i: number) => (
                   <a key={l.id} {...linkAttrs(l.url, t, 'link', l.id)} className="sb-wiggle relative flex items-center gap-3 px-4 pt-5 pb-4"
-                    style={{ background: NOTES[i % NOTES.length], color: '#2B2118', boxShadow: `2px 8px 14px -6px ${alpha('#000', 0.4)}`, transform: `rotate(${i % 2 ? 1.2 : -1.2}deg)` }}>
+                    style={{ background: eb ? eb.bg : NOTES[i % NOTES.length], color: eb ? eb.fg : '#2B2118', boxShadow: `2px 8px 14px -6px ${alpha('#000', 0.4)}`, transform: `rotate(${i % 2 ? 1.2 : -1.2}deg)` }}>
                     <span aria-hidden className="absolute -top-2.5 w-4 h-4 rounded-full" style={{ left: i % 2 ? '85%' : '10%', background: accent, boxShadow: `inset -2px -2px 0 ${alpha('#000', 0.25)}, 0 2px 3px ${alpha('#000', 0.3)}` }} />
                     <KitLinkIcon link={l} size={32} radius={6} style={{ background: alpha('#FFFFFF', 0.6) }} />
                     <span className="flex-1 min-w-0">

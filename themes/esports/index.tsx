@@ -3,7 +3,7 @@
 import { ChevronsRight, Trophy } from 'lucide-react';
 import type { BioThemeMeta, BioThemeProps } from '@/themes/types';
 import { orderedSections } from '@/themes/types';
-import { useThemeKit, Avatar, SocialRow, BannerList, VideoList, KitLinkIcon, ThemeFooter, linkAttrs, fontControls, footerControl, motionControl, alpha, onColor } from '@/themes/_kit';
+import { useThemeKit, Avatar, SocialRow, BannerList, VideoList, KitLinkIcon, ThemeFooter, linkAttrs, fontControls, footerControl, motionControl, alpha, onColor, buttonControls, exactButton } from '@/themes/_kit';
 
 export const esportsMeta: BioThemeMeta = {
   key: 'esports',
@@ -17,6 +17,7 @@ export const esportsMeta: BioThemeMeta = {
     { key: 'glow', label: 'Brilho neon', type: 'slider', min: 0, max: 100, step: 10, suffix: '%', default: 60, group: 'Efeitos', category: 'efeitos' },
     { key: 'rank', label: 'Patente / título', type: 'text', default: 'PRO PLAYER', maxLength: 20, group: 'Textos', category: 'textos' },
     { key: 'tag', label: 'Tag do time', type: 'text', default: '', placeholder: 'Ex: [BFZ]', maxLength: 8, group: 'Textos', category: 'textos' },
+    ...buttonControls('#1A1F2B', '#F4F6FA'),
     motionControl(),
     footerControl('Ex: GG WP'),
     ...fontControls('anton', 'grotesk'),
@@ -29,6 +30,7 @@ export function EsportsTheme(props: BioThemeProps) {
   const c = Number(s.cut ?? 14);
   const g = (Number(s.glow ?? 60) / 100);
   const anim = s.motion !== 'off';
+  const eb = exactButton(s);
   const clip = `polygon(${c}px 0, 100% 0, 100% calc(100% - ${c}px), calc(100% - ${c}px) 100%, 0 100%, 0 ${c}px)`;
   const glow = `0 0 ${24 * g}px ${alpha(accent, 0.55 * g)}`;
 
@@ -67,7 +69,7 @@ export function EsportsTheme(props: BioThemeProps) {
               <div key="links" className="flex flex-col gap-3">
                 {links.map((l: any, i: number) => (
                   <a key={l.id} {...linkAttrs(l.url, t, 'link', l.id)} className={`es-hit relative flex items-center gap-3 px-4 py-3.5 overflow-hidden ${anim ? 'es-sheen' : ''}`}
-                    style={{ background: i === 0 ? accent : alpha(text, 0.07), color: i === 0 ? onColor(accent) : text, clipPath: clip, borderLeft: i === 0 ? undefined : `3px solid ${accent}` }}>
+                    style={{ background: eb ? eb.bg : i === 0 ? accent : alpha(text, 0.07), color: eb ? eb.fg : i === 0 ? onColor(accent) : text, clipPath: clip, borderLeft: i === 0 ? undefined : `3px solid ${accent}` }}>
                     <KitLinkIcon link={l} size={34} radius={0} style={{ background: i === 0 ? alpha(onColor(accent), 0.18) : alpha(accent, 0.18), color: i === 0 ? onColor(accent) : accent }} />
                     <span className="flex-1 min-w-0">
                       <span className="block text-[18px] uppercase tracking-wide truncate" style={{ fontFamily: titleFont }}>{l.title}</span>

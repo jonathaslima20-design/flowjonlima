@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Search, RotateCcw } from 'lucide-react';
 import type { ControlDef } from '@/themes/types';
 import { CURATED_FONTS } from '@/themes/types';
@@ -23,6 +23,32 @@ const CATEGORY_LABELS: Record<string, string> = {
   efeitos: 'Efeitos',
   geral: 'Geral',
 };
+
+const HEX = /^#[0-9a-f]{6}$/i;
+
+// Campo para digitar a cor exata (#RRGGBB); aplica quando o código fica válido
+function HexInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [draft, setDraft] = useState(value || '');
+  useEffect(() => { setDraft(value || ''); }, [value]);
+  return (
+    <input
+      type="text"
+      value={draft}
+      maxLength={7}
+      spellCheck={false}
+      aria-label="Código da cor"
+      placeholder="#000000"
+      onChange={(e) => {
+        let v = e.target.value.trim();
+        if (v && !v.startsWith('#')) v = '#' + v;
+        setDraft(v);
+        if (HEX.test(v)) onChange(v.toUpperCase());
+      }}
+      onBlur={() => { if (!HEX.test(draft)) setDraft(value || ''); }}
+      className="w-[84px] brutal-input py-1.5 px-2 text-xs font-mono font-normal uppercase"
+    />
+  );
+}
 
 function inferCategory(c: ControlDef): string {
   if ((c as any).category) return (c as any).category;
@@ -57,7 +83,7 @@ export function ThemeControls({ controls, values, coreValues, onChange, onCoreCh
   const [query, setQuery] = useState('');
   const [activeCat, setActiveCat] = useState<string>('all');
 
-  const enriched = useMemo(() => controls.filter(c => c.type !== 'colorPicker').map(c => ({ c, cat: inferCategory(c) })), [controls]);
+  const enriched = useMemo(() => controls.map(c => ({ c, cat: inferCategory(c) })), [controls]);
 
   const categories = useMemo(() => {
     const set = new Set<string>();
@@ -186,6 +212,7 @@ function Control({ def, value, onChange }: { def: ControlDef; value: any; onChan
               className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
             />
           </label>
+          <HexInput value={value} onChange={onChange} />
         </div>
       </div>
     );
@@ -337,13 +364,29 @@ function Control({ def, value, onChange }: { def: ControlDef; value: any; onChan
               className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
             />
           </label>
+          <HexInput value={value} onChange={onChange} />
         </div>
       </div>
     );
   }
 
   if (def.type === 'colorPicker') {
-    return null;
+    return (
+      <div className="text-xs font-bold">
+        <div className="mb-2">{def.label}</div>
+        <div className="flex items-center gap-2">
+          <label className="w-9 h-9 brutal-border cursor-pointer relative overflow-hidden" style={{ backgroundColor: value }} title="Escolher cor">
+            <input
+              type="color"
+              value={HEX.test(value || '') ? value : '#000000'}
+              onChange={(e) => onChange(e.target.value)}
+              className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+            />
+          </label>
+          <HexInput value={value} onChange={onChange} />
+        </div>
+      </div>
+    );
   }
 
   if (def.type === 'text') {

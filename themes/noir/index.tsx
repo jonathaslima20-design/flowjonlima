@@ -18,7 +18,7 @@ export const noirMeta: BioThemeMeta = {
   defaults: { bg_color: '#0A0908', button_color: '#C9A75D', text_color: '#EDE6D6' },
   palettes: { bg: ['#0A0908', '#000000', '#14110E', '#0E1012', '#F3EEE4'], accent: ['#C9A75D', '#C0C4C8', '#C99382'], text: ['#EDE6D6', '#FFFFFF', '#1A1612'] },
   controls: [
-    { key: 'metal', label: 'Metal', type: 'radio', options: [{ value: 'gold', label: 'Ouro' }, { value: 'silver', label: 'Prata' }, { value: 'rose', label: 'Ouro rosé' }], default: 'gold', group: 'Cores', category: 'cores' },
+    { key: 'metal', label: 'Metal', type: 'radio', options: [{ value: 'gold', label: 'Ouro' }, { value: 'silver', label: 'Prata' }, { value: 'rose', label: 'Ouro rosé' }, { value: 'custom', label: 'Minhas cores' }], default: 'gold', group: 'Cores', category: 'cores' },
     { key: 'ornaments', label: 'Ornamentos', type: 'toggle', default: true, group: 'Efeitos', category: 'efeitos' },
     { key: 'monogram', label: 'Monograma', type: 'text', default: '', placeholder: 'Ex: MC', maxLength: 3, group: 'Textos', category: 'textos' },
     footerControl('Ex: Atendimento exclusivo'),
@@ -28,8 +28,11 @@ export const noirMeta: BioThemeMeta = {
 
 export function NoirTheme(props: BioThemeProps) {
   const { profile, links, socials, videos, banners, sectionOrder, preview } = props;
-  const { s, bg, text, titleFont, bodyFont, t } = useThemeKit(props, noirMeta, 'var(--font-cormorant), Georgia, serif');
-  const metal = METALS[s.metal] || METALS.gold;
+  const { s, bg, text, accent, titleFont, bodyFont, t } = useThemeKit(props, noirMeta, 'var(--font-cormorant), Georgia, serif');
+  // Minhas cores: o brilho metálico é feito com a cor de destaque do painel
+  const metal = s.metal === 'custom'
+    ? `linear-gradient(135deg, ${accent} 0%, color-mix(in srgb, ${accent} 55%, #fff) 45%, ${accent} 60%, color-mix(in srgb, ${accent} 70%, #000) 100%)`
+    : (METALS[s.metal] || METALS.gold);
   const foil = { backgroundImage: metal, WebkitBackgroundClip: 'text' as const, backgroundClip: 'text' as const, color: 'transparent' };
   const hairline = { height: 1, backgroundImage: metal, opacity: 0.7 };
 

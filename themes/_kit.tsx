@@ -155,6 +155,21 @@ export function motionControl() {
   ], default: 'full', group: 'Efeitos', category: 'efeitos' as const };
 }
 
+// "Cor exata dos botões": troca o estilo pronto do tema (paletas, vidro, tons) por cores escolhidas
+export function buttonControls(bgDefault = '#FFFFFF', textDefault = '#111111') {
+  return [
+    { key: 'btnExact', label: 'Cor exata dos botões', type: 'toggle' as const, default: false, group: 'Botões', category: 'cores' as const, help: 'Usa as cores abaixo em todos os botões, no lugar do estilo do tema' },
+    { key: 'btnBg', label: 'Fundo dos botões', type: 'colorPicker' as const, default: bgDefault, group: 'Botões', category: 'cores' as const },
+    { key: 'btnText', label: 'Texto dos botões', type: 'colorPicker' as const, default: textDefault, group: 'Botões', category: 'cores' as const },
+  ];
+}
+
+export function exactButton(s: Record<string, any>): { bg: string; fg: string } | null {
+  if (!s.btnExact) return null;
+  const bg = s.btnBg || '#FFFFFF';
+  return { bg, fg: s.btnText || onColor(bg) };
+}
+
 // Cor com transparência a partir de #RRGGBB
 export function alpha(hex: string, a: number) {
   const h = (hex || '#000000').replace('#', '');

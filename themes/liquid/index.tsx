@@ -3,7 +3,7 @@
 import { ArrowUpRight } from 'lucide-react';
 import type { BioThemeMeta, BioThemeProps } from '@/themes/types';
 import { orderedSections } from '@/themes/types';
-import { useThemeKit, Avatar, SocialRow, BannerList, VideoList, KitLinkIcon, ThemeFooter, linkAttrs, fontControls, footerControl, motionControl, alpha } from '@/themes/_kit';
+import { useThemeKit, Avatar, SocialRow, BannerList, VideoList, KitLinkIcon, ThemeFooter, linkAttrs, fontControls, footerControl, motionControl, alpha, buttonControls, exactButton } from '@/themes/_kit';
 
 export const liquidMeta: BioThemeMeta = {
   key: 'liquid',
@@ -22,6 +22,7 @@ export const liquidMeta: BioThemeMeta = {
     { key: 'blobSize', label: 'Intensidade das bolhas', type: 'slider', min: 20, max: 100, step: 5, suffix: '%', default: 70, group: 'Efeitos', category: 'efeitos' },
     { key: 'frost', label: 'Desfoque do vidro', type: 'slider', min: 8, max: 40, step: 2, suffix: 'px', default: 22, group: 'Efeitos', category: 'efeitos' },
     { key: 'radius', label: 'Arredondamento', type: 'slider', min: 14, max: 40, step: 2, suffix: 'px', default: 28, group: 'Layout', category: 'layout' },
+    ...buttonControls('#7C5CFF', '#FFFFFF'),
     motionControl(),
     footerControl(),
     ...fontControls('manrope', 'manrope'),
@@ -36,6 +37,7 @@ export function LiquidTheme(props: BioThemeProps) {
   const size = (Number(s.blobSize) || 70) / 100;
   const anim = s.motion !== 'off';
   const slow = s.motion === 'subtle' ? 1.8 : 1;
+  const eb = exactButton(s);
   const glass = {
     background: `linear-gradient(135deg, ${alpha(text, 0.16)}, ${alpha(text, 0.04)})`,
     backdropFilter: `blur(${frost}px) saturate(180%)`,
@@ -75,7 +77,7 @@ export function LiquidTheme(props: BioThemeProps) {
             links: links.length > 0 ? (
               <div key="links" className="flex flex-col gap-3">
                 {links.map((l: any) => (
-                  <a key={l.id} {...linkAttrs(l.url, t, 'link', l.id)} className="lq-press lq-shine relative flex items-center gap-3 px-4 py-3.5 overflow-hidden" style={{ ...glass, borderRadius: radius }}>
+                  <a key={l.id} {...linkAttrs(l.url, t, 'link', l.id)} className="lq-press lq-shine relative flex items-center gap-3 px-4 py-3.5 overflow-hidden" style={{ ...glass, borderRadius: radius, ...(eb ? { background: eb.bg, color: eb.fg } : null) }}>
                     <KitLinkIcon link={l} size={38} radius={radius / 2} style={{ background: `linear-gradient(135deg, ${accent}, ${alpha(accent, 0.55)})`, color: '#fff', boxShadow: `0 6px 18px -6px ${accent}` }} />
                     <span className="flex-1 min-w-0">
                       <span className="block font-bold truncate" style={{ fontFamily: titleFont }}>{l.title}</span>

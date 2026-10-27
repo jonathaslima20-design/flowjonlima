@@ -3,6 +3,7 @@
 import { SOCIALS_BY_KEY, getSocialHref } from '@/lib/socials';
 import type { BioThemeProps, BioThemeMeta } from '@/themes/types';
 import { getThemeSettings, getFontStack, orderedSections } from '@/themes/types';
+import { buttonControls, exactButton } from '@/themes/_kit';
 import { BioflowzyBadge } from '@/components/bio/BioflowzyBadge';
 import { VideoEmbed } from '@/components/themes/VideoEmbed';
 import { LinkIcon } from '@/components/themes/LinkIcon';
@@ -45,6 +46,7 @@ export const cupertinoMeta: BioThemeMeta = {
     { key: 'footerText', label: 'Rodapé', type: 'text', default: '', placeholder: 'Ex: Feito em Cupertino', maxLength: 60, group: 'Textos', category: 'textos' },
     { key: 'titleFont', label: 'Fonte do título', type: 'fontFamily', default: 'inter', group: 'Tipografia', category: 'tipografia' },
     { key: 'bodyFont', label: 'Fonte do corpo', type: 'fontFamily', default: 'inter', group: 'Tipografia', category: 'tipografia' },
+    ...buttonControls('#FFFFFF', '#1D1D1F'),
   ],
 };
 
@@ -52,6 +54,7 @@ const BANNER_H: Record<string, string> = { sm: 'aspect-[6/1]', md: 'aspect-[3/1]
 
 export function CupertinoTheme({ profile, links, socials, videos, banners, sectionOrder, track, preview }: BioThemeProps) {
   const s = getThemeSettings(profile, 'cupertino', cupertinoMeta.controls);
+  const eb = exactButton(s);
   const isDark = s.appearance === 'dark';
   const bg = profile.bg_color || (isDark ? '#000000' : '#F5F5F7');
   const text = profile.text_color || (isDark ? '#F5F5F7' : '#1D1D1F');
@@ -196,7 +199,7 @@ export function CupertinoTheme({ profile, links, socials, videos, banners, secti
                     style={{
                       padding: `${pad}px ${pad + 2}px`,
                       borderRadius: radius,
-                      background: s.glass ? glassBg : (isDark ? 'rgba(28,28,30,0.95)' : '#FFFFFF'),
+                      background: eb ? eb.bg : s.glass ? glassBg : (isDark ? 'rgba(28,28,30,0.95)' : '#FFFFFF'),
                       border: `1px solid ${cardBorder}`,
                       backdropFilter: s.glass ? 'blur(20px) saturate(180%)' : undefined,
                       WebkitBackdropFilter: s.glass ? 'blur(20px) saturate(180%)' : undefined,
@@ -230,14 +233,14 @@ export function CupertinoTheme({ profile, links, socials, videos, banners, secti
                             fontSize: 16,
                             fontWeight: 600,
                             letterSpacing: '-0.01em',
-                            color: text,
+                            color: eb ? eb.fg : text,
                             fontFamily: titleFamily,
                           }}
                         >
                           {l.title}
                         </div>
                         {l.subtitle && (
-                          <div className="truncate mt-0.5 text-[13px]" style={{ color: subText }}>{l.subtitle}</div>
+                          <div className="truncate mt-0.5 text-[13px]" style={{ color: eb ? eb.fg : subText, opacity: eb ? 0.7 : undefined }}>{l.subtitle}</div>
                         )}
                       </div>
                     </div>

@@ -7,6 +7,7 @@ import { ThemeControls } from '@/components/dashboard/ThemeControls';
 import { MediaUploader } from '@/components/admin/MediaUploader';
 import { parseVideoUrl } from '@/lib/embed';
 import { supabase } from '@/lib/supabase';
+import { SOCIALS } from '@/lib/socials';
 
 // Página de demonstração editada no admin (vitrine de temas e exemplos por nicho da landing)
 export type DemoPageValue = {
@@ -31,7 +32,6 @@ type Props = {
   afterProfile?: ReactNode;
 };
 
-const SOCIAL_PLATFORMS = ['instagram', 'youtube', 'tiktok', 'x', 'facebook', 'linkedin', 'github', 'twitch', 'whatsapp', 'telegram', 'threads', 'pinterest', 'spotify', 'soundcloud', 'discord', 'email', 'website'];
 
 export function DemoPageEditor({ themeKey, value, onChange, pathBase, onToast, afterProfile }: Props) {
   const profileOverride = value.profile;
@@ -250,11 +250,12 @@ export function DemoPageEditor({ themeKey, value, onChange, pathBase, onToast, a
           <div key={idx} className="grid grid-cols-[160px_1fr_auto] gap-2 items-center">
             <select value={s.platform ?? 'instagram'} onChange={(e) => setSocialField(idx, 'platform', e.target.value)}
               className="brutal-input py-1.5 px-2 text-xs bg-white">
-              {SOCIAL_PLATFORMS.map(p => (
-                <option key={p} value={p}>{p}</option>
+              {/* Mesma lista do painel (lib/socials.ts), incluindo Localização */}
+              {SOCIALS.map(p => (
+                <option key={p.key} value={p.key}>{p.label}</option>
               ))}
             </select>
-            <input type="text" value={s.url ?? ''} placeholder="https://..."
+            <input type="text" value={s.url ?? ''} placeholder={s.platform === 'location' ? 'Endereço ou cidade (abre no Google Maps)' : 'https://...'}
               onChange={(e) => setSocialField(idx, 'url', e.target.value)}
               className="brutal-input py-1.5 px-2 text-xs" />
             <IconBtn onClick={() => removeItem('socials', idx)} />

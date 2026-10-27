@@ -4,6 +4,7 @@ import { Sparkles, Heart, Star, Zap } from 'lucide-react';
 import { SOCIALS_BY_KEY, getSocialHref } from '@/lib/socials';
 import type { BioThemeProps, BioThemeMeta } from '@/themes/types';
 import { getThemeSettings, getFontStack, orderedSections } from '@/themes/types';
+import { buttonControls, exactButton } from '@/themes/_kit';
 import { BioflowzyBadge } from '@/components/bio/BioflowzyBadge';
 import { VideoEmbed } from '@/components/themes/VideoEmbed';
 
@@ -64,6 +65,7 @@ export const creatorMeta: BioThemeMeta = {
     { key: 'titleFont', label: 'Fonte do título', type: 'fontFamily', default: 'dmsans', group: 'Tipografia' },
     { key: 'bodyFont', label: 'Fonte do corpo', type: 'fontFamily', default: 'dmsans', group: 'Tipografia' },
     { key: 'showSocials', label: 'Mostrar redes sociais', type: 'toggle', default: true, group: 'Elementos' },
+    ...buttonControls('#FFFFFF', '#1A1A1A'),
   ],
 };
 
@@ -119,6 +121,7 @@ function buildStickers(mode: string, type: string, accent: string): StickerSpec[
 
 export function CreatorTheme({ profile, links, socials, videos, banners, sectionOrder, track, preview }: BioThemeProps) {
   const s = getThemeSettings(profile, 'creator', creatorMeta.controls);
+  const eb = exactButton(s);
   const accent = s.useAccentCustom && s.accentCustom ? s.accentCustom : (profile.button_color || '#FF6B9D');
   const highlightColor = s.useHighlightCustom && s.highlightCustom ? s.highlightCustom : (s.highlightColor || '#FDE047');
   const bg = profile.bg_color || '#FFF0F5';
@@ -274,10 +277,10 @@ export function CreatorTheme({ profile, links, socials, videos, banners, section
                         borderRadius: shape,
                         background: isCta
                           ? `linear-gradient(135deg, ${accent}, #5EEAD4, #FDE047, #B794F6)`
-                          : '#FFFFFF',
+                          : eb ? eb.bg : '#FFFFFF',
                         backgroundSize: isCta ? '300% 300%' : 'auto',
                         animation: isCta ? 'creator-holo 4s ease infinite' : undefined,
-                        color: isCta ? '#FFFFFF' : text,
+                        color: isCta ? '#FFFFFF' : eb ? eb.fg : text,
                         border: `3px solid ${text}`,
                         boxShadow: `6px 6px 0 ${cardColor}`,
                         fontWeight: 700,

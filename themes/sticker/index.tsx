@@ -3,7 +3,7 @@
 import { ArrowUpRight } from 'lucide-react';
 import type { BioThemeMeta, BioThemeProps } from '@/themes/types';
 import { orderedSections } from '@/themes/types';
-import { useThemeKit, Avatar, SocialRow, BannerList, VideoList, KitLinkIcon, ThemeFooter, linkAttrs, fontControls, footerControl, onColor } from '@/themes/_kit';
+import { useThemeKit, Avatar, SocialRow, BannerList, VideoList, KitLinkIcon, ThemeFooter, linkAttrs, fontControls, footerControl, onColor, buttonControls, exactButton } from '@/themes/_kit';
 
 const PALETTES: Record<string, string[]> = {
   candy: ['#FF8FC7', '#FFD84D', '#7CE0FF', '#B8F26B', '#C9A7FF'],
@@ -30,6 +30,7 @@ export const stickerMeta: BioThemeMeta = {
     { key: 'tilt', label: 'Inclinação', type: 'slider', min: 0, max: 4, step: 0.5, suffix: '°', default: 2, group: 'Layout', category: 'layout' },
     { key: 'bubble', label: 'Bolha de fala', type: 'text', default: 'Oi! 👋', maxLength: 18, group: 'Textos', category: 'textos' },
     { key: 'dots', label: 'Fundo pontilhado', type: 'toggle', default: true, group: 'Efeitos', category: 'efeitos' },
+    ...buttonControls('#FFE14D', '#111111'),
     footerControl(),
     ...fontControls('bricolage', 'grotesk'),
   ],
@@ -39,11 +40,12 @@ export function StickerTheme(props: BioThemeProps) {
   const { profile, links, socials, videos, banners, sectionOrder, preview } = props;
   const { s, bg, text, accent, titleFont, bodyFont, t } = useThemeKit(props, stickerMeta, 'var(--font-bricolage), sans-serif');
   const colors = PALETTES[s.palette] || PALETTES.candy;
+  const eb = exactButton(s);
   const tilt = Number(s.tilt ?? 2);
   const ink = accent;
   const sticker = (i: number) => ({
-    background: colors[i % colors.length],
-    color: onColor(colors[i % colors.length]),
+    background: eb ? eb.bg : colors[i % colors.length],
+    color: eb ? eb.fg : onColor(colors[i % colors.length]),
     border: `3px solid ${ink}`,
     boxShadow: `5px 5px 0 ${ink}`,
     borderRadius: 18,

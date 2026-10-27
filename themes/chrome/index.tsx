@@ -4,6 +4,7 @@ import { ChevronRight } from 'lucide-react';
 import { SOCIALS_BY_KEY, getSocialHref } from '@/lib/socials';
 import type { BioThemeProps, BioThemeMeta } from '@/themes/types';
 import { getThemeSettings, getFontStack, orderedSections } from '@/themes/types';
+import { buttonControls, exactButton } from '@/themes/_kit';
 import { BioflowzyBadge } from '@/components/bio/BioflowzyBadge';
 import { VideoEmbed } from '@/components/themes/VideoEmbed';
 
@@ -38,6 +39,7 @@ export const chromeMeta: BioThemeMeta = {
     { key: 'bodyFont', label: 'Fonte do corpo', type: 'fontFamily', default: 'inter', group: 'Tipografia' },
     { key: 'showSocials', label: 'Mostrar redes sociais', type: 'toggle', default: true, group: 'Elementos' },
     { key: 'cardRadius', label: 'Raio dos cards', type: 'slider', min: 8, max: 32, step: 2, suffix: 'px', default: 16, group: 'Layout' },
+    ...buttonControls('#1C1C22', '#FFFFFF'),
   ],
 };
 
@@ -45,6 +47,7 @@ const BANNER_H: Record<string, string> = { sm: 'aspect-[6/1]', md: 'aspect-[3/1]
 
 export function ChromeTheme({ profile, links, socials, videos, banners, sectionOrder, track, preview }: BioThemeProps) {
   const s = getThemeSettings(profile, 'chrome', chromeMeta.controls);
+  const eb = exactButton(s);
   const accent = s.useAccentCustom && s.accentCustom ? s.accentCustom : (profile.button_color || '#60A5FA');
   const bg = profile.bg_color || '#0D1117';
   const text = profile.text_color || '#F1F5F9';
@@ -109,12 +112,12 @@ export function ChromeTheme({ profile, links, socials, videos, banners, sectionO
                     className="relative group px-5 py-4 flex items-center justify-between chrome-card overflow-hidden"
                     style={{
                       borderRadius: s.cardRadius ?? 16,
-                      background: 'rgba(255,255,255,0.06)',
+                      background: eb ? eb.bg : 'rgba(255,255,255,0.06)',
                       backdropFilter: `blur(${s.blur}px) saturate(180%)`,
                       WebkitBackdropFilter: `blur(${s.blur}px) saturate(180%)`,
                       border: '1px solid rgba(255,255,255,0.12)',
                       boxShadow: `0 ${s.depth}px ${s.depth * 1.5}px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.15)`,
-                      color: text,
+                      color: eb ? eb.fg : text,
                       transform: `translateZ(0)`,
                       animationDelay: `${i * 80}ms`,
                     }}>

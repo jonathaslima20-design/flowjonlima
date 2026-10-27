@@ -3,7 +3,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import type { BioThemeMeta, BioThemeProps } from '@/themes/types';
 import { orderedSections } from '@/themes/types';
-import { useThemeKit, Avatar, SocialRow, BannerList, VideoList, KitLinkIcon, ThemeFooter, linkAttrs, fontControls, footerControl } from '@/themes/_kit';
+import { useThemeKit, Avatar, SocialRow, BannerList, VideoList, KitLinkIcon, ThemeFooter, linkAttrs, fontControls, footerControl, buttonControls, exactButton } from '@/themes/_kit';
 
 export const retroosMeta: BioThemeMeta = {
   key: 'retroos',
@@ -20,6 +20,7 @@ export const retroosMeta: BioThemeMeta = {
     { key: 'os', label: 'Sistema', type: 'radio', options: [{ value: 'win', label: 'Clássico Windows' }, { value: 'mac', label: 'Clássico Mac' }], default: 'win', group: 'Aparência', category: 'geral' },
     { key: 'windowTitle', label: 'Título da janela de links', type: 'text', default: 'Links.exe', maxLength: 24, group: 'Textos', category: 'textos' },
     { key: 'taskbar', label: 'Barra de tarefas com relógio', type: 'toggle', default: true, group: 'Layout', category: 'layout' },
+    ...buttonControls('#C0C0C0', '#000000'),
     footerControl(),
     ...fontControls('ibmplex', 'ibmplex'),
   ],
@@ -43,6 +44,7 @@ export function RetroosTheme(props: BioThemeProps) {
   const bevelOut = mac ? { border: '2px solid #000', boxShadow: '2px 2px 0 #000' } : { borderTop: '2px solid #FFF', borderLeft: '2px solid #FFF', borderRight: '2px solid #404040', borderBottom: '2px solid #404040', boxShadow: 'inset -1px -1px 0 #808080, inset 1px 1px 0 #DFDFDF' };
   const bevelIn = mac ? { border: '2px solid #000' } : { borderTop: '2px solid #808080', borderLeft: '2px solid #808080', borderRight: '2px solid #FFF', borderBottom: '2px solid #FFF' };
   const face = mac ? '#FFFFFF' : '#C0C0C0';
+  const eb = exactButton(s);
 
   const Window = ({ title, children }: { title: string; children: ReactNode }) => (
     <section className="w-full" style={{ background: face, ...bevelOut, padding: mac ? 0 : 2 }}>
@@ -97,7 +99,7 @@ export function RetroosTheme(props: BioThemeProps) {
             <Window key="links" title={s.windowTitle || 'Links.exe'}>
               <div className="flex flex-col gap-2">
                 {links.map((l: any) => (
-                  <a key={l.id} {...linkAttrs(l.url, t, 'link', l.id)} className="ro-btn flex items-center gap-2 px-2 py-2 text-[14px] font-bold" style={{ background: face, ...bevelOut, borderRadius: mac ? 8 : 0 }}>
+                  <a key={l.id} {...linkAttrs(l.url, t, 'link', l.id)} className="ro-btn flex items-center gap-2 px-2 py-2 text-[14px] font-bold" style={{ background: eb ? eb.bg : face, color: eb?.fg, ...bevelOut, borderRadius: mac ? 8 : 0 }}>
                     <KitLinkIcon link={l} size={24} radius={0} style={{ background: mac ? '#FFF' : accent, color: mac ? '#000' : '#FFF' }} />
                     <span className="flex-1 min-w-0 truncate">{l.title}</span>
                     {l.subtitle && <span className="text-[11px] font-normal truncate max-w-[40%]">{l.subtitle}</span>}

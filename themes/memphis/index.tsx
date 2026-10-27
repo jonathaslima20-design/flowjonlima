@@ -2,7 +2,7 @@
 
 import type { BioThemeMeta, BioThemeProps } from '@/themes/types';
 import { orderedSections } from '@/themes/types';
-import { useThemeKit, Avatar, SocialRow, BannerList, VideoList, KitLinkIcon, ThemeFooter, linkAttrs, fontControls, footerControl, motionControl, onColor } from '@/themes/_kit';
+import { useThemeKit, Avatar, SocialRow, BannerList, VideoList, KitLinkIcon, ThemeFooter, linkAttrs, fontControls, footerControl, motionControl, onColor, buttonControls, exactButton } from '@/themes/_kit';
 
 const SETS: Record<string, string[]> = {
   classic: ['#FF4F9A', '#FFD23F', '#3BCEAC', '#5B5FFF', '#FF7A3D'],
@@ -20,6 +20,7 @@ export const memphisMeta: BioThemeMeta = {
   controls: [
     { key: 'set', label: 'Cores', type: 'select', options: [{ value: 'classic', label: 'Clássico 80s' }, { value: 'pastel', label: 'Pastel' }, { value: 'primary', label: 'Primárias' }], default: 'classic', group: 'Cores', category: 'cores' },
     { key: 'shapes', label: 'Quantidade de formas', type: 'slider', min: 0, max: 12, step: 1, suffix: '', default: 8, group: 'Efeitos', category: 'efeitos' },
+    ...buttonControls('#FFE14D', '#111111'),
     motionControl(),
     footerControl(),
     ...fontControls('archivo', 'grotesk'),
@@ -45,6 +46,7 @@ export function MemphisTheme(props: BioThemeProps) {
   const { profile, links, socials, videos, banners, sectionOrder, preview } = props;
   const { s, bg, text, accent, titleFont, bodyFont, t } = useThemeKit(props, memphisMeta, 'var(--font-archivo-black), Impact, sans-serif');
   const C = SETS[s.set] || SETS.classic;
+  const eb = exactButton(s);
   const count = Number(s.shapes ?? 8);
   const anim = s.motion !== 'off';
   const ink = accent;
@@ -74,7 +76,7 @@ export function MemphisTheme(props: BioThemeProps) {
                 render={({ Icon, label, attrs, index }) => (
                   <a {...attrs} aria-label={label} className="mp-press relative w-12 h-12" >
                     <span aria-hidden className="absolute inset-0 translate-x-1.5 translate-y-1.5" style={{ backgroundImage: stripes(ink) }} />
-                    <span className="relative w-full h-full flex items-center justify-center" style={{ background: C[(index + 2) % C.length], color: onColor(C[(index + 2) % C.length]), border: `3px solid ${ink}` }}><Icon className="w-5 h-5" /></span>
+                    <span className="relative w-full h-full flex items-center justify-center" style={{ background: eb ? eb.bg : C[(index + 2) % C.length], color: eb ? eb.fg : onColor(C[(index + 2) % C.length]), border: `3px solid ${ink}` }}><Icon className="w-5 h-5" /></span>
                   </a>
                 )}
               />
@@ -84,7 +86,7 @@ export function MemphisTheme(props: BioThemeProps) {
                 {links.map((l: any, i: number) => (
                   <a key={l.id} {...linkAttrs(l.url, t, 'link', l.id)} className="mp-press relative block">
                     <span aria-hidden className="absolute inset-0 translate-x-2 translate-y-2" style={{ backgroundImage: stripes(C[(i + 3) % C.length]) }} />
-                    <span className="relative flex items-center gap-3 px-4 py-3.5" style={{ background: i % 2 ? '#FFFFFF' : C[i % C.length], color: i % 2 ? '#111' : onColor(C[i % C.length]), border: `3px solid ${ink}` }}>
+                    <span className="relative flex items-center gap-3 px-4 py-3.5" style={{ background: eb ? eb.bg : i % 2 ? '#FFFFFF' : C[i % C.length], color: eb ? eb.fg : i % 2 ? '#111' : onColor(C[i % C.length]), border: `3px solid ${ink}` }}>
                       <KitLinkIcon link={l} size={34} radius={0} style={{ background: '#FFF', color: '#111', border: `2px solid ${ink}` }} />
                       <span className="flex-1 min-w-0">
                         <span className="block text-[16px] uppercase truncate" style={{ fontFamily: titleFont }}>{l.title}</span>

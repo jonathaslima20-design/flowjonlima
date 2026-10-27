@@ -2,7 +2,7 @@
 
 import type { BioThemeMeta, BioThemeProps } from '@/themes/types';
 import { orderedSections } from '@/themes/types';
-import { useThemeKit, Avatar, SocialRow, BannerList, VideoList, KitLinkIcon, ThemeFooter, linkAttrs, fontControls, footerControl, alpha } from '@/themes/_kit';
+import { useThemeKit, Avatar, SocialRow, BannerList, VideoList, KitLinkIcon, ThemeFooter, linkAttrs, fontControls, footerControl, alpha, buttonControls, exactButton } from '@/themes/_kit';
 
 const PASTELS: Record<string, string[]> = {
   peach: ['#FFD8C2', '#FFC6D9', '#D9E7FF', '#D7F5E4'],
@@ -28,6 +28,7 @@ export const clayMeta: BioThemeMeta = {
     ], default: 'lilac', group: 'Cores', category: 'cores' },
     { key: 'puff', label: 'Volume (3D)', type: 'slider', min: 2, max: 14, step: 1, suffix: '', default: 8, group: 'Efeitos', category: 'efeitos' },
     { key: 'radius', label: 'Arredondamento', type: 'slider', min: 18, max: 40, step: 2, suffix: 'px', default: 30, group: 'Layout', category: 'layout' },
+    ...buttonControls('#FFFFFF', '#2A2340'),
     footerControl(),
     ...fontControls('bricolage', 'dmsans'),
   ],
@@ -37,6 +38,7 @@ export function ClayTheme(props: BioThemeProps) {
   const { profile, links, socials, videos, banners, sectionOrder, preview } = props;
   const { s, bg, text, accent, titleFont, bodyFont, t } = useThemeKit(props, clayMeta, 'var(--font-bricolage), sans-serif');
   const tones = PASTELS[s.pastel] || PASTELS.lilac;
+  const eb = exactButton(s);
   const puff = Number(s.puff) || 8;
   const radius = Number(s.radius) || 30;
   const clay = (color: string) => ({
@@ -61,7 +63,7 @@ export function ClayTheme(props: BioThemeProps) {
             socials: (
               <SocialRow key="socials" socials={socials} t={t} className="flex justify-center gap-4 flex-wrap"
                 render={({ Icon, label, attrs, index }) => (
-                  <a {...attrs} aria-label={label} className="cl-squish w-14 h-14 flex items-center justify-center" style={{ ...clay(tones[(index + 1) % tones.length]), borderRadius: 20 }}>
+                  <a {...attrs} aria-label={label} className="cl-squish w-14 h-14 flex items-center justify-center" style={{ ...clay(eb ? eb.bg : tones[(index + 1) % tones.length]), borderRadius: 20, color: eb?.fg }}>
                     <Icon className="w-6 h-6" />
                   </a>
                 )}
@@ -70,7 +72,7 @@ export function ClayTheme(props: BioThemeProps) {
             links: links.length > 0 ? (
               <div key="links" className="flex flex-col gap-5">
                 {links.map((l: any, i: number) => (
-                  <a key={l.id} {...linkAttrs(l.url, t, 'link', l.id)} className="cl-squish flex items-center gap-4 px-5 py-4" style={clay(tones[i % tones.length])}>
+                  <a key={l.id} {...linkAttrs(l.url, t, 'link', l.id)} className="cl-squish flex items-center gap-4 px-5 py-4" style={{ ...clay(eb ? eb.bg : tones[i % tones.length]), color: eb?.fg }}>
                     <KitLinkIcon link={l} size={42} radius={radius * 0.5} style={{ ...clay(accent), borderRadius: radius * 0.5, color: '#FFF', boxShadow: `inset 3px 3px 6px ${alpha('#FFFFFF', 0.45)}, inset -3px -3px 6px ${alpha('#000000', 0.2)}` }} />
                     <span className="flex-1 min-w-0">
                       <span className="block font-extrabold text-[17px] truncate" style={{ fontFamily: titleFont }}>{l.title}</span>
