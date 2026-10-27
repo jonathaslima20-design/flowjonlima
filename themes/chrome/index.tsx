@@ -7,6 +7,7 @@ import { getThemeSettings, getFontStack, orderedSections } from '@/themes/types'
 import { buttonControls, exactButton } from '@/themes/_kit';
 import { BioflowzyBadge } from '@/components/bio/BioflowzyBadge';
 import { VideoEmbed } from '@/components/themes/VideoEmbed';
+import { LinkGlyph } from '@/components/themes/LinkIcon';
 
 export const chromeMeta: BioThemeMeta = {
   key: 'chrome',
@@ -124,7 +125,7 @@ export function ChromeTheme({ profile, links, socials, videos, banners, sectionO
                     {s.highlight && <div className="absolute inset-x-6 top-0 h-px pointer-events-none" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)' }} aria-hidden />}
                     <div className="relative flex items-center gap-3 min-w-0 flex-1">
                       {l.show_icon && l.icon && (
-                        <img src={l.icon} alt="" className="w-8 h-8 rounded-md object-cover shrink-0" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }} referrerPolicy="no-referrer" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                        <LinkGlyph link={l} className="w-8 h-8 rounded-md object-cover shrink-0" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }} />
                       )}
                       <span className="font-medium truncate">{l.title}</span>
                     </div>

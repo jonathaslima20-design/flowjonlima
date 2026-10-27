@@ -48,6 +48,7 @@ Plataforma de link in bio (bioflowzy.com). Originalmente gerada no Bolt.new (tem
 - `app/[username]/page.tsx` é ISR (`revalidate = 30` + `generateStaticParams` vazio); o layout do painel chama `/api/revalidate-bio` (via `lib/revalidate-bio.ts`) ao trocar de página ou sair da aba, para o usuário ver as edições na hora
 - Fontes dos temas em `app/layout.tsx` têm `preload: false` (só Archivo Black e Space Grotesk, usadas no site, são pré-carregadas)
 - Uploads de banner e ícone passam por `lib/compress-image.ts` (WebP, 1600px / 256px)
+- Ícones dos links: `icon_source` = `none` | `auto` (favicon via `fetch-link-icon`) | `custom` (upload) | `library` (`icon = "lib:<chave>"`, lista em `lib/link-icon-library.tsx`, escolha em `IconLibraryPicker`). Temas desenham com `LinkIcon`/`KitLinkIcon` ou `LinkGlyph` (ícone da biblioteca usa currentColor e segue as cores do tema). Editor de demos tem as mesmas quatro opções (upload no bucket `theme-showcase`)
 
 ## Analytics e recursos Pro da página
 - Visitas: `page_views` via RPC `track_view` (origem detectada em `lib/visit-source.ts`, dispositivo, país do header `cf-ipcountry`); cliques: `clicks` via `track_click`

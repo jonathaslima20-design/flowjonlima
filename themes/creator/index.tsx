@@ -7,6 +7,7 @@ import { getThemeSettings, getFontStack, orderedSections } from '@/themes/types'
 import { buttonControls, exactButton } from '@/themes/_kit';
 import { BioflowzyBadge } from '@/components/bio/BioflowzyBadge';
 import { VideoEmbed } from '@/components/themes/VideoEmbed';
+import { LinkGlyph } from '@/components/themes/LinkIcon';
 
 export const creatorMeta: BioThemeMeta = {
   key: 'creator',
@@ -288,7 +289,7 @@ export function CreatorTheme({ profile, links, socials, videos, banners, section
                     >
                       <div className="flex items-center justify-between gap-3">
                         {l.show_icon && l.icon && (
-                          <img src={l.icon} alt="" className="w-9 h-9 object-cover shrink-0" style={{ borderRadius: shape, border: `2px solid ${text}` }} referrerPolicy="no-referrer" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                          <LinkGlyph link={l} className="w-9 h-9 object-cover shrink-0" style={{ borderRadius: shape, border: `2px solid ${text}` }} />
                         )}
                         <div className="flex-1 min-w-0 text-left">
                           <div className="text-[16px] truncate" style={{ fontWeight: 800 }}>

@@ -6,6 +6,7 @@ import type { BioThemeProps, BioThemeMeta } from '@/themes/types';
 import { getThemeSettings, getFontStack, orderedSections } from '@/themes/types';
 import { BioflowzyBadge } from '@/components/bio/BioflowzyBadge';
 import { VideoEmbed } from '@/components/themes/VideoEmbed';
+import { LinkGlyph } from '@/components/themes/LinkIcon';
 
 export const cyberMeta: BioThemeMeta = {
   key: 'cyber',
@@ -203,7 +204,7 @@ export function CyberTheme({ profile, links, socials, videos, banners, sectionOr
                         [{String(i + 1).padStart(2, '0')}]
                       </span>
                       {l.show_icon && l.icon && (
-                        <img src={l.icon} alt="" className="w-6 h-6 object-cover shrink-0" style={{ border: `1px solid ${accent}44` }} referrerPolicy="no-referrer" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                        <LinkGlyph link={l} className="w-6 h-6 object-cover shrink-0" style={{ border: `1px solid ${accent}44`, color: accent }} />
                       )}
                       <span
                         className={`flex-1 truncate ${s.glitch > 0 ? 'cyber-hover-glitch' : ''}`}

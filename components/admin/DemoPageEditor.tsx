@@ -1,13 +1,16 @@
 'use client';
 
-import type { ReactNode } from 'react';
-import { Plus, Trash2 } from 'lucide-react';
+import { useRef, useState, type ReactNode } from 'react';
+import { Library, Plus, Trash2, Upload } from 'lucide-react';
 import { getTheme } from '@/themes/registry';
 import { ThemeControls } from '@/components/dashboard/ThemeControls';
 import { MediaUploader } from '@/components/admin/MediaUploader';
 import { parseVideoUrl } from '@/lib/embed';
 import { supabase } from '@/lib/supabase';
 import { SOCIALS } from '@/lib/socials';
+import { compressImage } from '@/lib/compress-image';
+import { getLibraryIcon } from '@/lib/link-icon-library';
+import { IconLibraryPicker } from '@/components/dashboard/IconLibraryPicker';
 
 // Página de demonstração editada no admin (vitrine de temas e exemplos por nicho da landing)
 export type DemoPageValue = {
@@ -58,6 +61,29 @@ export function DemoPageEditor({ themeKey, value, onChange, pathBase, onToast, a
   }
 
   const setLinksField = (idx: number, field: string, v: any) => setItemField('links', idx, field, v);
+  const patchLink = (idx: number, patch: Record<string, any>) => mutateArr('links', (arr) => { const next = [...arr]; next[idx] = { ...next[idx], ...patch }; return next; });
+
+  // Ícones dos links: biblioteca (janela) e envio de imagem (comprimida para 256px, bucket das demonstrações)
+  const [pickerFor, setPickerFor] = useState<number | null>(null);
+  const [uploadingIcon, setUploadingIcon] = useState<number | null>(null);
+  const iconInput = useRef<HTMLInputElement>(null);
+  const iconTarget = useRef<number | null>(null);
+
+  async function uploadIcon(idx: number, original: File) {
+    if (!original.type.startsWith('image/')) { onToast?.('Envie uma imagem válida.'); return; }
+    setUploadingIcon(idx);
+    try {
+      const file = await compressImage(original, { maxSize: 256, fallbackType: 'image/png' });
+      const ext = (file.name.split('.').pop() || 'png').toLowerCase();
+      const path = `${pathBase}/icons/${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase.storage.from('theme-showcase').upload(path, file, { contentType: file.type, upsert: false });
+      if (error) { onToast?.('Erro no envio: ' + error.message); return; }
+      const { data } = supabase.storage.from('theme-showcase').getPublicUrl(path);
+      patchLink(idx, { icon: data.publicUrl, icon_source: 'custom', show_icon: true });
+    } finally {
+      setUploadingIcon(null);
+    }
+  }
   const setSocialField = (idx: number, field: string, v: any) => setItemField('socials', idx, field, v);
   const setBannerField = (idx: number, field: string, v: any) => setItemField('banners', idx, field, v);
   const setVideoField = (idx: number, field: string, v: any) => setItemField('videos', idx, field, v);
@@ -211,36 +237,68 @@ export function DemoPageEditor({ themeKey, value, onChange, pathBase, onToast, a
             <input type="text" value={l.url ?? ''} placeholder="URL (https://...)"
               onChange={(e) => setLinksField(idx, 'url', e.target.value)}
               className="brutal-input py-1.5 px-2 text-xs" />
-            <div className="grid grid-cols-[auto_auto_1fr_auto] gap-2 items-center">
+            <div className="flex flex-wrap gap-2 items-center">
               <label className="flex items-center gap-1 text-[11px]">
                 <input type="checkbox" checked={!!l.show_icon}
                   onChange={(e) => setLinksField(idx, 'show_icon', e.target.checked)} />
                 Ícone
               </label>
               <select value={l.icon_source ?? 'auto'}
-                onChange={(e) => setLinksField(idx, 'icon_source', e.target.value)}
+                onChange={(e) => patchLink(idx, { icon_source: e.target.value, ...(e.target.value === 'library' && !getLibraryIcon(l.icon) ? { icon: '' } : {}) })}
                 className="brutal-input py-1 px-2 text-[11px] bg-white">
                 <option value="none">Nenhum</option>
-                <option value="auto">Auto</option>
-                <option value="custom">Custom</option>
+                <option value="auto">Automático (site do link)</option>
+                <option value="library">Biblioteca</option>
+                <option value="custom">Enviar imagem</option>
               </select>
-              <input type="text" value={l.icon ?? ''} placeholder="URL do ícone"
-                onChange={(e) => setLinksField(idx, 'icon', e.target.value)}
-                className="brutal-input py-1 px-2 text-[11px]" />
-              <button type="button" onClick={() => detectLinkIcon(idx)}
-                className="brutal-border bg-white px-2 py-1 text-[11px] font-semibold hover:bg-black hover:text-white transition-colors">
-                Detectar
-              </button>
+              {(l.icon_source ?? 'auto') === 'auto' && (
+                <>
+                  <input type="text" value={getLibraryIcon(l.icon) ? '' : (l.icon ?? '')} placeholder="URL do ícone"
+                    onChange={(e) => setLinksField(idx, 'icon', e.target.value)}
+                    className="brutal-input py-1 px-2 text-[11px] flex-1 min-w-[120px]" />
+                  <button type="button" onClick={() => detectLinkIcon(idx)}
+                    className="brutal-border bg-white px-2 py-1 text-[11px] font-semibold hover:bg-black hover:text-white transition-colors">
+                    Detectar
+                  </button>
+                </>
+              )}
+              {l.icon_source === 'library' && (
+                <button type="button" onClick={() => setPickerFor(idx)}
+                  className="brutal-border bg-white px-2 py-1 text-[11px] font-semibold hover:bg-bioyellow inline-flex items-center gap-1">
+                  <Library className="w-3.5 h-3.5" /> {getLibraryIcon(l.icon) ? 'Trocar ícone' : 'Escolher ícone'}
+                </button>
+              )}
+              {l.icon_source === 'custom' && (
+                <button type="button" disabled={uploadingIcon === idx} onClick={() => { iconTarget.current = idx; iconInput.current?.click(); }}
+                  className="brutal-border bg-white px-2 py-1 text-[11px] font-semibold hover:bg-bioyellow inline-flex items-center gap-1 disabled:opacity-50">
+                  <Upload className="w-3.5 h-3.5" /> {uploadingIcon === idx ? 'Enviando...' : 'Enviar imagem'}
+                </button>
+              )}
             </div>
-            {l.icon && (
-              <div className="flex items-center gap-2 text-[11px] text-black/60">
-                <img src={l.icon} alt="" className="w-6 h-6 object-cover brutal-border" />
-                <span className="truncate">{l.icon}</span>
-              </div>
-            )}
+            {l.icon && l.icon_source !== 'none' && (() => {
+              const lib = getLibraryIcon(l.icon);
+              return (
+                <div className="flex items-center gap-2 text-[11px] text-black/60">
+                  {lib
+                    ? <span className="w-6 h-6 brutal-border flex items-center justify-center bg-white"><lib.Icon className="w-4 h-4" /></span>
+                    : <img src={l.icon} alt="" className="w-6 h-6 object-cover brutal-border" />}
+                  <span className="truncate">{lib ? `Biblioteca: ${lib.label}` : l.icon}</span>
+                </div>
+              );
+            })()}
           </div>
         ))}
       </div>
+
+      <input ref={iconInput} type="file" accept="image/*" className="hidden"
+        onChange={(e) => { const f = e.target.files?.[0]; if (f && iconTarget.current !== null) void uploadIcon(iconTarget.current, f); e.target.value = ''; }} />
+      {pickerFor !== null && (
+        <IconLibraryPicker
+          value={(value.links || [])[pickerFor]?.icon}
+          onPick={(icon) => patchLink(pickerFor, { icon, icon_source: 'library', show_icon: true })}
+          onClose={() => setPickerFor(null)}
+        />
+      )}
 
       {/* SOCIALS */}
       <SectionHeader title="Redes sociais demo" onAdd={addSocial} />

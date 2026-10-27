@@ -6,7 +6,7 @@ import { usePageId, useCurrentPage } from '@/lib/page-context';
 import { toLocalInput, fromLocalInput } from '@/lib/datetime-local';
 import { CountdownCard } from '@/components/dashboard/CountdownCard';
 import { toast } from 'sonner';
-import { GripVertical, Plus, Trash2, ExternalLink, Image as ImageIcon, RefreshCw, Upload, X, Clock, Lock } from 'lucide-react';
+import { GripVertical, Plus, Trash2, ExternalLink, Image as ImageIcon, RefreshCw, Upload, X, Clock, Lock, Library } from 'lucide-react';
 import { BioPreview } from '@/components/dashboard/BioPreview';
 import { usePlan } from '@/hooks/use-plan';
 import { LimitBadge, UpgradeBanner } from '@/components/dashboard/LimitBadge';
@@ -15,6 +15,8 @@ import { isUnlimited } from '@/lib/plans';
 import { toSafeUrl } from '@/lib/url';
 import { compressImage } from '@/lib/compress-image';
 import { isLeadFormUrl } from '@/lib/leads';
+import { getLibraryIcon } from '@/lib/link-icon-library';
+import { IconLibraryPicker } from '@/components/dashboard/IconLibraryPicker';
 
 type Link = {
   id: string;
@@ -23,7 +25,7 @@ type Link = {
   position: number;
   is_active: boolean;
   icon?: string | null;
-  icon_source?: 'none' | 'auto' | 'custom' | null;
+  icon_source?: 'none' | 'auto' | 'custom' | 'library' | null;
   show_icon?: boolean | null;
   icon_fetched_at?: string | null;
   starts_at?: string | null;
@@ -276,6 +278,7 @@ function LinkRow({
   const isLeadForm = isLeadFormUrl(link.url);
   const hasSchedule = !!(link.starts_at || link.ends_at);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [libraryOpen, setLibraryOpen] = useState(false);
   const lastAutoUrl = useRef<string | null>(link.icon_source === 'auto' ? link.url : null);
 
   function handleUrlBlur() {
@@ -292,6 +295,7 @@ function LinkRow({
   }
 
   const hasIcon = !!(link.show_icon && link.icon);
+  const libIcon = getLibraryIcon(link.icon);
 
   return (
     <div
@@ -305,7 +309,9 @@ function LinkRow({
         <div className="flex items-start gap-3 flex-1 min-w-0">
           <GripVertical className="w-5 h-5 cursor-grab text-black/60 mt-2 shrink-0" />
           <div className="shrink-0 mt-1">
-            {hasIcon ? (
+            {hasIcon && libIcon ? (
+              <div className="w-10 h-10 border-2 border-black rounded-md bg-white flex items-center justify-center"><libIcon.Icon className="w-5 h-5" /></div>
+            ) : hasIcon ? (
               <img src={link.icon as string} alt="" className="w-10 h-10 object-cover border-2 border-black rounded-md bg-white" onError={(e) => (e.currentTarget.style.display = 'none')} />
             ) : (
               <div className="w-10 h-10 border-2 border-dashed border-black/30 rounded-md flex items-center justify-center text-black/40">
@@ -436,6 +442,7 @@ function LinkRow({
             >
               <option value="none">Nenhum (padrao do tema)</option>
               <option value="auto">Automatico (detectar na URL)</option>
+              <option value="library">Biblioteca de icones</option>
               <option value="custom">Customizado (upload)</option>
             </select>
           </div>
@@ -450,6 +457,24 @@ function LinkRow({
                 <RefreshCw className={`w-3.5 h-3.5 ${fetching ? 'animate-spin' : ''}`} />
                 {fetching ? 'Detectando...' : 'Detectar agora'}
               </button>
+            )}
+            {link.icon_source === 'library' && (
+              <>
+                <button
+                  onClick={() => setLibraryOpen(true)}
+                  className="brutal-btn bg-white px-3 py-2 gap-2 text-xs"
+                >
+                  <Library className="w-3.5 h-3.5" />
+                  {libIcon ? `Trocar ícone (${libIcon.label})` : 'Escolher ícone'}
+                </button>
+                {libraryOpen && (
+                  <IconLibraryPicker
+                    value={link.icon}
+                    onPick={(icon) => onUpdate({ icon, icon_source: 'library', show_icon: true })}
+                    onClose={() => setLibraryOpen(false)}
+                  />
+                )}
+              </>
             )}
             {link.icon_source === 'custom' && (
               <>
