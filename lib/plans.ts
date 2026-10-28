@@ -65,7 +65,7 @@ export const PLANS: Record<PlanSlug, PlanDefinition> = {
       'Links ilimitados',
       'Redes sociais ilimitadas',
       '1 banner e 1 vídeo',
-      '4 temas',
+      'Temas grátis',
       'Analytics dos últimos 7 dias',
     ],
     limits: {

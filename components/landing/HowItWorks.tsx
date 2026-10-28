@@ -51,7 +51,7 @@ export function HowItWorks() {
           <Link href="/register" className="brutal-btn bg-bioblue text-white px-6 py-3 gap-2">
             Criar minha página grátis <ArrowRight className="w-4 h-4" />
           </Link>
-          <span className="text-sm font-bold text-black/60">Grátis para sempre · Sem cartão de crédito</span>
+          <span className="text-sm font-bold text-black/60">Comece grátis · Sem cartão de crédito</span>
         </div>
       </div>
     </section>

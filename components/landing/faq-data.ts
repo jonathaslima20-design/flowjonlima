@@ -1,9 +1,9 @@
 // Perguntas da landing; também alimentam os dados estruturados (FAQPage) da página inicial
 export const FAQS = [
-  { q: 'Preciso de cartão de crédito?', a: 'Não. O plano Free é gratuito para sempre e não pede cartão. Você só informa pagamento quando decidir fazer upgrade.' },
+  { q: 'Preciso de cartão de crédito?', a: 'Não para começar. Você cria sua página no plano Free sem cartão e, quando quiser liberar os recursos do Pro ou do Business, paga por PIX, cartão ou boleto.' },
   { q: 'Posso usar meu domínio?', a: 'Sim. Assinantes Pro podem conectar um domínio customizado diretamente pelo painel, em poucos minutos.' },
   { q: 'Como funciona o analytics?', a: 'Registramos cada clique em links, redes sociais e banners. Você acompanha tudo em tempo real com gráficos claros no dashboard.' },
-  { q: 'Posso cancelar quando quiser?', a: 'Sim, sem multa, sem burocracia e sem ligação chata. Seus dados e sua página continuam acessíveis no plano Free.' },
+  { q: 'Tem fidelidade ou cobrança automática?', a: 'Não. Você paga pelo período escolhido (trimestral ou anual) e usa todos os recursos do plano até o fim dele. Para continuar com eles, é só renovar antes do vencimento: sem renovação, a conta volta aos limites do Free e recursos como domínio próprio, temas Pro, SEO e analytics completo ficam bloqueados.' },
   { q: 'Minha página fica no ar 24 horas por dia?', a: 'Sim. Sua bio link fica online o tempo todo, mesmo que você não esteja logado. Qualquer pessoa com o link consegue acessar normalmente.' },
   { q: 'Posso vender ou divulgar meus produtos pela bio?', a: 'Com certeza. Você pode adicionar links para sua loja, WhatsApp, checkout ou qualquer destino. Banners e botões de destaque ajudam a converter visitantes em clientes.' },
   { q: 'Como funciona o Indique e Ganhe?', a: 'Ao assinar o plano Pro, você recebe um link de indicação exclusivo. Cada vez que alguém se cadastrar e assinar pelo seu link, você ganha dinheiro de verdade — direto na sua conta. Quanto mais você indica, mais você fatura. Sua bio link pode virar uma fonte de renda passiva.' },

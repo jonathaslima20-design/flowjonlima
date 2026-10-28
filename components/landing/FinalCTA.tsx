@@ -19,7 +19,7 @@ export function FinalCTA() {
     <section id="comecar" className="py-24 bg-bioyellow border-y-2 border-black">
       <div className="max-w-4xl mx-auto px-4 md:px-6 text-center">
         <h2 className="font-display text-4xl md:text-6xl leading-[0.95]">Seu endereço ainda está livre?</h2>
-        <p className="mt-5 text-base md:text-lg text-black/75">Garanta agora o seu bioflowzy.com/seunome. Leva 2 minutos e é grátis para sempre.</p>
+        <p className="mt-5 text-base md:text-lg text-black/75">Garanta agora o seu bioflowzy.com/seunome. Leva 2 minutos e você começa grátis, sem cartão.</p>
         <form onSubmit={submit} className="mt-8 flex flex-col sm:flex-row gap-3 max-w-2xl mx-auto">
           <div className="flex flex-1 brutal-border bg-white brutal-shadow">
             <span className="bg-black text-white px-3 flex items-center text-sm font-bold shrink-0">bioflowzy.com/</span>
