@@ -57,7 +57,7 @@ export function useUpgradeModal() {
 }
 
 function UpgradeModal({ onClose }: { onClose: () => void }) {
-  const [period, setPeriod] = useState<BillingPeriod>('annual');
+  const [period, setPeriod] = useState<BillingPeriod>('quarterly');
   const [buttons, setButtons] = useState<Partial<Record<PaidPlanSlug, PlanButton>>>({});
   const [pending, setPending] = useState<PaidPlanSlug | null>(null);
   const router = useRouter();

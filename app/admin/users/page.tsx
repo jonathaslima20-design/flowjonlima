@@ -5,6 +5,8 @@ import { supabase } from '@/lib/supabase';
 import type { Json } from '@/lib/database.types';
 import { Search, Shield, ShieldOff, Ban, CircleCheck as CheckCircle2, ExternalLink, ChevronLeft, ChevronRight, RefreshCw, Filter, X, Eye, Crown } from 'lucide-react';
 import { PLANS, PlanSlug, isPlanSlug, planLabel } from '@/lib/plans';
+import { IconWhatsapp } from '@/lib/social-icons';
+import { formatWhatsapp, whatsappLink } from '@/lib/whatsapp';
 
 interface Profile {
   id: string;
@@ -54,6 +56,8 @@ export default function AdminUsersPage() {
   const [planEditSlug, setPlanEditSlug] = useState<PlanSlug>('free');
   const [planEditExpires, setPlanEditExpires] = useState<string>('');
   const [planSaving, setPlanSaving] = useState(false);
+  // WhatsApp do cadastro (profile_private, leitura liberada para admin)
+  const [phones, setPhones] = useState<Record<string, string>>({});
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -84,6 +88,11 @@ export default function AdminUsersPage() {
 
     setProfiles(data ?? []);
     setTotal(count ?? 0);
+    const ids = (data ?? []).map(p => p.id);
+    if (ids.length) {
+      const { data: priv } = await supabase.from('profile_private').select('profile_id, whatsapp').in('profile_id', ids);
+      setPhones(Object.fromEntries((priv ?? []).filter(r => r.whatsapp).map(r => [r.profile_id, r.whatsapp])));
+    }
     setLoading(false);
   }, [search, filterRole, filterPlan, filterStatus, page]);
 
@@ -301,6 +310,21 @@ export default function AdminUsersPage() {
                         >
                           <Eye className="w-4 h-4 text-gray-500" />
                         </button>
+                        {phones[p.id] ? (
+                          <a
+                            href={whatsappLink(phones[p.id], greeting(p)) ?? undefined}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title={`Conversar no WhatsApp: ${formatWhatsapp(phones[p.id])}`}
+                            className="p-1.5 hover:bg-green-50 rounded transition-colors"
+                          >
+                            <IconWhatsapp className="w-4 h-4 text-green-600" />
+                          </a>
+                        ) : (
+                          <span title="Sem WhatsApp cadastrado" className="p-1.5 opacity-30 cursor-not-allowed">
+                            <IconWhatsapp className="w-4 h-4 text-gray-500" />
+                          </span>
+                        )}
                         <a
                           href={`/${p.username}`}
                           target="_blank"
@@ -459,7 +483,19 @@ export default function AdminUsersPage() {
               )}
               <div>Cadastro: <span className="font-bold text-black">{detail.created_at ? new Date(detail.created_at).toLocaleDateString('pt-BR') : '—'}</span></div>
               <div>Status: <span className="font-bold text-black">{detail.suspended_at ? 'Suspenso' : 'Ativo'}</span></div>
+              <div>WhatsApp: <span className="font-bold text-black">{phones[detail.id] ? formatWhatsapp(phones[detail.id]) : 'não cadastrado'}</span></div>
             </div>
+
+            {phones[detail.id] && (
+              <a
+                href={whatsappLink(phones[detail.id], greeting(detail)) ?? undefined}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="brutal-btn bg-biolime px-4 py-2 text-sm w-full justify-center gap-2 mb-2"
+              >
+                <IconWhatsapp className="w-4 h-4" /> Conversar no WhatsApp
+              </a>
+            )}
 
             <a
               href={`/${detail.username}`}
@@ -542,4 +578,8 @@ export default function AdminUsersPage() {
       )}
     </div>
   );
+}
+
+function greeting(p: { display_name: string | null; username: string }) {
+  return `Olá, ${p.display_name || p.username}! Aqui é da equipe BioFlowzy.`;
 }

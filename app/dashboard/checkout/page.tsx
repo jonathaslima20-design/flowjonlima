@@ -84,7 +84,7 @@ export default function CheckoutPage() {
 function Checkout() {
   const params = useSearchParams();
   const plan = (PAID.includes(params.get('plan') as PaidPlanSlug) ? params.get('plan') : 'pro') as PaidPlanSlug;
-  const period = (PERIODS.includes(params.get('period') as BillingPeriod) ? params.get('period') : 'annual') as BillingPeriod;
+  const period = (PERIODS.includes(params.get('period') as BillingPeriod) ? params.get('period') : 'quarterly') as BillingPeriod;
   const { userId, email } = useAuth();
 
   const [config, setConfig] = useState<Config | null>(null);

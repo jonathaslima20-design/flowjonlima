@@ -6,6 +6,7 @@ import { Suspense, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Waypoints } from 'lucide-react';
 import { captureAttribution, readAttribution } from '@/lib/attribution';
+import { maskWhatsapp, normalizeWhatsapp } from '@/lib/whatsapp';
 
 // useSearchParams exige um Suspense boundary no build do Next 14
 export default function RegisterPage() {
@@ -31,6 +32,7 @@ function RegisterForm() {
   const [username, setUsername] = useState(initialUsername);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [whatsapp, setWhatsapp] = useState('');
   const [err, setErr] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -41,6 +43,9 @@ function RegisterForm() {
 
     const clean = username.replace(/[^a-z0-9_.-]/gi, '').toLowerCase();
     if (!clean) { setErr('Escolha um @ válido'); setLoading(false); return; }
+
+    const phone = normalizeWhatsapp(whatsapp);
+    if (!phone) { setErr('Informe um WhatsApp válido com DDD.'); setLoading(false); return; }
 
     const { data: reserved } = await supabase.rpc('is_reserved_username', { p_username: clean });
     if (reserved) { setErr('Este @ não está disponível.'); setLoading(false); return; }
@@ -58,6 +63,7 @@ function RegisterForm() {
         data: {
           username: clean,
           display_name: clean,
+          whatsapp: phone,
           ...(refCode ? { referred_by_code: refCode.toUpperCase() } : {}),
           ...(attribution ? { signup_source: attribution.source, signup_campaign: attribution.campaign } : {}),
         },
@@ -123,6 +129,7 @@ function RegisterForm() {
             <input className="flex-1 px-3 py-3 outline-none" placeholder="seunome" value={username} onChange={e => setUsername(e.target.value)} />
           </div>
           <input className="brutal-input" type="email" required placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} />
+          <input className="brutal-input" type="tel" required inputMode="numeric" autoComplete="tel-national" placeholder="WhatsApp com DDD" value={whatsapp} onChange={e => setWhatsapp(maskWhatsapp(e.target.value))} />
           <input className="brutal-input" type="password" required minLength={6} placeholder="Senha (min 6)" value={password} onChange={e => setPassword(e.target.value)} />
           {err && <div className="text-sm text-biored font-bold">{err}</div>}
           <button disabled={loading} className="brutal-btn bg-bioblue text-white py-3 mt-2">

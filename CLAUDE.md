@@ -36,7 +36,8 @@ Plataforma de link in bio (bioflowzy.com). Originalmente gerada no Bolt.new (tem
 - `supabase/migrations` — schema completo (perfis, planos, referral/PIX, help center, domínios, temas)
 
 ## Segurança do banco
-- `profiles` é legível publicamente: nunca guardar dados sensíveis nela. Pix e saldo de comissão ficam em `profile_private` (só dono/admin)
+- `profiles` é legível publicamente: nunca guardar dados sensíveis nela. Pix, saldo de comissão e WhatsApp ficam em `profile_private` (só dono/admin)
+- WhatsApp: obrigatório no cadastro (`raw_user_meta_data.whatsapp` → `handle_new_user` grava `profile_private.whatsapp` normalizado por `normalize_whatsapp`, só dígitos com DDI); dono edita em Configurações (`WhatsAppAccountSection`), admin abre a conversa em Usuários; helpers em `lib/whatsapp.ts`
 - Trigger `trg_protect_profile_columns` bloqueia usuários comuns de alterar `role`, `plan*`, `is_pro`, `suspended_at`, `referred_by`, `referral_code`
 - Saque só via RPC `request_payout()` (valor calculado no servidor)
 - URLs de links/banners precisam de `http(s)://`, `mailto:` ou `tel:` (CHECK no banco + `lib/url.ts` na tela)
@@ -107,6 +108,7 @@ Plataforma de link in bio (bioflowzy.com). Originalmente gerada no Bolt.new (tem
 
 ## Pagamentos (Mercado Pago, Checkout Pro)
 - Planos: `free`, `pro`, `business` (todos à venda; `plans.is_active` e `PLANS[x].available` controlam o que aparece para compra)
+- Telas de planos (landing, modal de upgrade, checkout) abrem no Trimestral por padrão
 - Pagamento por período, sem renovação automática: pacote `quarterly` (3 meses, `plans.price_cents`) ou `annual` (1 ano, `plans.price_annual_cents`)
 - Comissão de indicação: 30% do primeiro pagamento aprovado do indicado, calculada em `grant_paid_plan`
 - Temas Pro: lista em `admin_settings.pro_only_themes` (editável em Admin → Temas); o banco bloqueia a troca para quem não tem `pro_themes`

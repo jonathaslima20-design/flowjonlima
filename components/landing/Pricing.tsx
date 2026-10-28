@@ -31,7 +31,7 @@ const STYLES: Record<PlanSlug, CardStyle> = {
 };
 
 export function Pricing() {
-  const [period, setPeriod] = useState<BillingPeriod>('annual');
+  const [period, setPeriod] = useState<BillingPeriod>('quarterly');
 
   return (
     <section id="pricing" className="py-24 bg-white border-y-2 border-black">

@@ -786,6 +786,7 @@ export type Database = {
           pix_key: string
           profile_id: string
           updated_at: string
+          whatsapp: string
         }
         Insert: {
           commission_balance?: number
@@ -793,6 +794,7 @@ export type Database = {
           pix_key?: string
           profile_id: string
           updated_at?: string
+          whatsapp?: string
         }
         Update: {
           commission_balance?: number
@@ -800,6 +802,7 @@ export type Database = {
           pix_key?: string
           profile_id?: string
           updated_at?: string
+          whatsapp?: string
         }
         Relationships: [
           {

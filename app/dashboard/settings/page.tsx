@@ -11,6 +11,7 @@ import { AvatarCropModal } from '@/components/dashboard/AvatarCropModal';
 import { CustomDomainSection } from '@/components/dashboard/CustomDomainSection';
 import { SeoSection } from '@/components/dashboard/SeoSection';
 import { MonthlyReportSection } from '@/components/dashboard/MonthlyReportSection';
+import { WhatsAppAccountSection } from '@/components/dashboard/WhatsAppAccountSection';
 import { can } from '@/lib/plans';
 
 export default function SettingsPage() {
@@ -180,6 +181,8 @@ export default function SettingsPage() {
 
       {/* Relatório da conta: só na página principal */}
       {isMainPage && <MonthlyReportSection profileId={profile.id} enabled={profile.monthly_report_enabled !== false} />}
+
+      {isMainPage && accountId && <WhatsAppAccountSection accountId={accountId} />}
 
       {canHideBranding && (
         <section>
