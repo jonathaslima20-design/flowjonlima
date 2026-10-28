@@ -110,6 +110,8 @@ Plataforma de link in bio (bioflowzy.com). Originalmente gerada no Bolt.new (tem
 - Pagamento por período, sem renovação automática: pacote `quarterly` (3 meses, `plans.price_cents`) ou `annual` (1 ano, `plans.price_annual_cents`)
 - Comissão de indicação: 30% do primeiro pagamento aprovado do indicado, calculada em `grant_paid_plan`
 - Temas Pro: lista em `admin_settings.pro_only_themes` (editável em Admin → Temas); o banco bloqueia a troca para quem não tem `pro_themes`
+- Checkout transparente em `/dashboard/checkout?plan=&period=` (o modal de upgrade leva para lá): PIX com QR code na tela e cartão pelo Card Payment Brick (SDK `sdk.mercadopago.com/js/v2`, precisa da Public Key); edge function `mp-payment` (`config` / `pix` / `card`) cria o pagamento em `/v1/payments` com `external_reference = payments.id`; cartão aprovado chama `grant_paid_plan` na hora, o resto segue pelo `mp-webhook`. Boleto e cartão sem Public Key caem no Checkout Pro (`mp-checkout`); sem Access Token a página oferece `plans.button_url`
+- Aviso de retorno do Checkout Pro (`PaymentReturnNotice`) segue o status do pagamento no banco, não o `?payment=` da URL
 - `supabase/functions/mp-checkout`: cria linha `pending` em `payments` + preferência (`external_reference = payments.id`); recebe `{ plan, period }` e lê o preço do pacote no banco
 - Troca de plano com o atual vigente (ex.: Pro → Business): `grant_paid_plan` converte os dias restantes pelo preço anual de cada plano e soma o novo período; renovação do mesmo plano soma a partir da expiração
 - `supabase/functions/mp-webhook` (deploy com `verify_jwt = false`): consulta o pagamento na API do MP e chama `grant_paid_plan()` (só service_role; idempotente; estende a partir da expiração vigente)

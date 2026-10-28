@@ -1,19 +1,19 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { Check, Star, X, Crown, Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import {
   PLANS, PERIOD_LABELS, annualDiscount, brl, monthlyPrice,
   type BillingPeriod, type PaidPlanSlug,
 } from '@/lib/plans';
-import { startCheckout } from '@/lib/checkout';
 import { usePlan } from '@/hooks/use-plan';
 import { WhatsAppSupport } from '@/components/shared/WhatsAppSupport';
 
 const PAID_PLANS: PaidPlanSlug[] = ['pro', 'business'];
 
-type PlanButton = { label: string; fallbackUrl: string | null };
+type PlanButton = { label: string };
 
 type ModalCtx = { open: () => void; close: () => void; isOpen: boolean };
 
@@ -60,7 +60,7 @@ function UpgradeModal({ onClose }: { onClose: () => void }) {
   const [period, setPeriod] = useState<BillingPeriod>('annual');
   const [buttons, setButtons] = useState<Partial<Record<PaidPlanSlug, PlanButton>>>({});
   const [pending, setPending] = useState<PaidPlanSlug | null>(null);
-  const [error, setError] = useState('');
+  const router = useRouter();
 
   const plans = PAID_PLANS.filter(slug => PLANS[slug].available);
   const { accountPlan, profile } = usePlan();
@@ -70,7 +70,7 @@ function UpgradeModal({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     supabase
       .from('plans')
-      .select('slug, button_label, button_url')
+      .select('slug, button_label')
       .in('slug', PAID_PLANS)
       .then(({ data }) => {
         if (!data) return;
@@ -78,27 +78,17 @@ function UpgradeModal({ onClose }: { onClose: () => void }) {
         for (const p of data) {
           next[p.slug as PaidPlanSlug] = {
             label: p.button_label || `Assinar ${PLANS[p.slug as PaidPlanSlug].name}`,
-            fallbackUrl: p.button_url?.startsWith('https://') ? p.button_url : null,
           };
         }
         setButtons(next);
       });
   }, []);
 
-  async function subscribe(plan: PaidPlanSlug) {
-    setError('');
+  // Checkout dentro do painel (PIX e cartão); sem as chaves do Mercado Pago, a página oferece o link cadastrado no admin
+  function subscribe(plan: PaidPlanSlug) {
     setPending(plan);
-    const result = await startCheckout(plan, period);
-    // Em caso de sucesso a página é redirecionada para o Mercado Pago
-    if (result.ok) return;
-    setPending(null);
-    // Enquanto a integração não está configurada, usa o link de pagamento cadastrado no admin
-    const fallback = buttons[plan]?.fallbackUrl;
-    if (result.notConfigured && fallback) {
-      window.open(fallback, '_blank', 'noopener,noreferrer');
-      return;
-    }
-    setError(result.message);
+    router.push(`/dashboard/checkout?plan=${plan}&period=${period}`);
+    onClose();
   }
 
   return (
@@ -161,12 +151,6 @@ function UpgradeModal({ onClose }: { onClose: () => void }) {
             <p className="text-center text-xs font-bold bg-biolime brutal-border px-3 py-2">
               Já é Pro? Ao assinar o Business, os dias que faltam do seu Pro viram dias de Business, proporcionais ao preço de cada plano.
             </p>
-          </div>
-        )}
-
-        {error && (
-          <div className="px-6 pb-3 -mt-2">
-            <p className="text-center text-sm font-bold text-biored">{error}</p>
           </div>
         )}
 

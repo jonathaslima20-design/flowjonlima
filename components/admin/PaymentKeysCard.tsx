@@ -7,7 +7,7 @@ import { Check, Copy, Eye, EyeOff, KeyRound, PlugZap, Trash2 } from 'lucide-reac
 // Chaves do Mercado Pago guardadas no Vault do Supabase. O valor nunca volta para o navegador:
 // a tela só mostra se a chave existe e os últimos caracteres.
 
-type SecretName = 'mp_access_token' | 'mp_webhook_secret';
+type SecretName = 'mp_access_token' | 'mp_public_key' | 'mp_webhook_secret';
 type Status = { name: SecretName; is_set: boolean; hint: string | null; updated_at: string | null };
 
 const FIELDS: { name: SecretName; label: string; placeholder: string; help: string }[] = [
@@ -16,6 +16,12 @@ const FIELDS: { name: SecretName; label: string; placeholder: string; help: stri
     label: 'Access Token de produção',
     placeholder: 'APP_USR-...',
     help: 'Mercado Pago Developers → Suas integrações → sua aplicação → Credenciais de produção.',
+  },
+  {
+    name: 'mp_public_key',
+    label: 'Public Key de produção',
+    placeholder: 'APP_USR-...',
+    help: 'Na mesma tela das credenciais. Libera o pagamento com cartão dentro do painel; sem ela, o checkout mostra só o PIX.',
   },
   {
     name: 'mp_webhook_secret',
@@ -80,7 +86,7 @@ export function PaymentKeysCard() {
         <div>
           <h2 className="font-display text-xl flex items-center gap-2"><KeyRound className="w-5 h-5" /> Chaves do Mercado Pago</h2>
           <p className="text-xs text-gray-500 mt-1">
-            Ficam criptografadas no banco e não são exibidas depois de salvas. Sem o Access Token, o botão de upgrade usa os links cadastrados em Planos.
+            Ficam criptografadas no banco e não são exibidas depois de salvas. Sem o Access Token, o checkout oferece os links de pagamento cadastrados em Planos.
           </p>
         </div>
         <span className={`text-[10px] font-bold px-2 py-1 border ${tokenSet ? 'bg-green-100 text-green-800 border-green-300' : 'bg-bioyellow border-black'}`}>
