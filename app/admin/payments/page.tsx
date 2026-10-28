@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { PERIOD_LABELS, planLabel, type BillingPeriod } from '@/lib/plans';
 import { RefreshCw, ExternalLink } from 'lucide-react';
+import { PaymentKeysCard } from '@/components/admin/PaymentKeysCard';
 
 type Payment = {
   id: string;
@@ -96,6 +97,8 @@ export default function AdminPaymentsPage() {
           <RefreshCw className="w-4 h-4" />
         </button>
       </div>
+
+      <PaymentKeysCard />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <Kpi label="Receita do mês" value={brl(stats.revenueMonth)} bg="bg-biolime" />

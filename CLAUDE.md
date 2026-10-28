@@ -113,7 +113,7 @@ Plataforma de link in bio (bioflowzy.com). Originalmente gerada no Bolt.new (tem
 - `supabase/functions/mp-checkout`: cria linha `pending` em `payments` + preferência (`external_reference = payments.id`); recebe `{ plan, period }` e lê o preço do pacote no banco
 - Troca de plano com o atual vigente (ex.: Pro → Business): `grant_paid_plan` converte os dias restantes pelo preço anual de cada plano e soma o novo período; renovação do mesmo plano soma a partir da expiração
 - `supabase/functions/mp-webhook` (deploy com `verify_jwt = false`): consulta o pagamento na API do MP e chama `grant_paid_plan()` (só service_role; idempotente; estende a partir da expiração vigente)
-- Secrets das edge functions (painel do Supabase): `MP_ACCESS_TOKEN`, `MP_WEBHOOK_SECRET`, `SITE_URL`
+- Chaves do Mercado Pago: Admin → Pagamentos (`PaymentKeysCard`) grava no Vault via `admin_set_payment_secret` (só admin, valor nunca volta à tela; `admin_payment_secrets_status` mostra só o final); `mp-checkout`/`mp-webhook` leem por `get_payment_secrets()` (só service_role) e caem nos secrets `MP_ACCESS_TOKEN`/`MP_WEBHOOK_SECRET` das edge functions. `mp-checkout` com `{ action: "check" }` (só admin) testa o token. `SITE_URL` segue como secret
 - Sem os secrets, o modal de upgrade cai no `plans.button_url` (links mpago.la cadastrados no admin)
 
 ## Convenções

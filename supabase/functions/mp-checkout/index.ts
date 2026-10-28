@@ -2,7 +2,8 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.58.0";
 
 // Cria um pagamento pendente e uma preferência do Checkout Pro do Mercado Pago.
-// Secrets: MP_ACCESS_TOKEN (obrigatório), SITE_URL (opcional).
+// Access Token: Admin → Pagamentos (Vault, via get_payment_secrets) ou secret MP_ACCESS_TOKEN. SITE_URL opcional.
+// { action: "check" } (só admin) confere o token na API do Mercado Pago.
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -30,10 +31,11 @@ Deno.serve(async (req: Request) => {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  const mpToken = Deno.env.get("MP_ACCESS_TOKEN");
   const siteUrl = (Deno.env.get("SITE_URL") || "https://bioflowzy.com").replace(/\/$/, "");
+  const admin = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
 
-  if (!mpToken) return json({ error: "Pagamentos ainda não configurados." }, 503);
+  const { data: secrets } = await admin.rpc("get_payment_secrets");
+  const mpToken = (secrets as Record<string, string> | null)?.mp_access_token || Deno.env.get("MP_ACCESS_TOKEN");
 
   const userClient = createClient(supabaseUrl, anonKey, {
     global: { headers: { Authorization: req.headers.get("Authorization") ?? "" } },
@@ -42,13 +44,25 @@ Deno.serve(async (req: Request) => {
   if (!user) return json({ error: "Faça login para assinar." }, 401);
 
   const body = await req.json().catch(() => ({}));
+
+  // Botão "Testar conexão" do Admin → Pagamentos
+  if (body?.action === "check") {
+    const { data: me } = await admin.from("profiles").select("role").eq("id", user.id).maybeSingle();
+    if (me?.role !== "admin") return json({ error: "forbidden" }, 403);
+    if (!mpToken) return json({ ok: false, error: "Access Token não configurado." });
+    const res = await fetch("https://api.mercadopago.com/users/me", { headers: { Authorization: `Bearer ${mpToken}` } });
+    const info = await res.json().catch(() => null);
+    if (!res.ok) return json({ ok: false, error: "O Mercado Pago recusou o Access Token." });
+    return json({ ok: true, account: info?.nickname ?? info?.email ?? String(info?.id ?? ""), test: mpToken.startsWith("TEST-") || !!info?.test_data });
+  }
+
+  if (!mpToken) return json({ error: "Pagamentos ainda não configurados." }, 503);
+
   const plan = String(body?.plan ?? "");
   const period = String(body?.period ?? "");
   if (!PAID_PLANS.includes(plan)) return json({ error: "Plano inválido." }, 400);
   const periodInfo = PERIODS[period];
   if (!periodInfo) return json({ error: "Período inválido." }, 400);
-
-  const admin = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
 
   const { data: profile } = await admin
     .from("profiles")

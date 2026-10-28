@@ -3,7 +3,8 @@ import { createClient } from "npm:@supabase/supabase-js@2.58.0";
 
 // Recebe notificações do Mercado Pago. A fonte da verdade é sempre a consulta do
 // pagamento na API do Mercado Pago, então uma notificação forjada não libera plano.
-// Secrets: MP_ACCESS_TOKEN (obrigatório), MP_WEBHOOK_SECRET (valida x-signature).
+// Chaves: Admin → Pagamentos (Vault, via get_payment_secrets) ou secrets MP_ACCESS_TOKEN / MP_WEBHOOK_SECRET.
+// A assinatura secreta valida o x-signature.
 // Deploy com verify_jwt = false (o Mercado Pago não envia JWT).
 
 const KNOWN_STATUSES = ["pending", "approved", "authorized", "in_process", "in_mediation", "rejected", "cancelled", "refunded", "charged_back"];
@@ -54,8 +55,13 @@ async function validSignature(req: Request, dataIdFromUrl: string | null, secret
 Deno.serve(async (req: Request) => {
   if (req.method !== "POST") return ok();
 
-  const mpToken = Deno.env.get("MP_ACCESS_TOKEN");
-  const webhookSecret = Deno.env.get("MP_WEBHOOK_SECRET");
+  const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, {
+    auth: { persistSession: false },
+  });
+  const { data: secrets } = await admin.rpc("get_payment_secrets");
+  const vault = (secrets ?? {}) as Record<string, string>;
+  const mpToken = vault.mp_access_token || Deno.env.get("MP_ACCESS_TOKEN");
+  const webhookSecret = vault.mp_webhook_secret || Deno.env.get("MP_WEBHOOK_SECRET");
   if (!mpToken) return new Response("not configured", { status: 503 });
 
   const url = new URL(req.url);
@@ -86,10 +92,6 @@ Deno.serve(async (req: Request) => {
 
   const reference = mp.external_reference;
   if (!reference) return ok("no reference");
-
-  const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, {
-    auth: { persistSession: false },
-  });
 
   const { data: payment } = await admin
     .from("payments")

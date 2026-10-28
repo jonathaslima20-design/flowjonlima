@@ -1241,6 +1241,19 @@ export type Database = {
     Functions: {
       admin_dashboard_stats: { Args: never; Returns: Json }
       admin_growth_metrics: { Args: { p_days?: number }; Returns: Json }
+      admin_payment_secrets_status: {
+        Args: never
+        Returns: {
+          hint: string
+          is_set: boolean
+          name: string
+          updated_at: string
+        }[]
+      }
+      admin_set_payment_secret: {
+        Args: { p_name: string; p_value: string }
+        Returns: undefined
+      }
       admin_resolve_payout: {
         Args: { p_action: string; p_note?: string; p_payout_id: string }
         Returns: {
