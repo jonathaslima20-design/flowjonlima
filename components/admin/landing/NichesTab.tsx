@@ -1,12 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ArrowDown, ArrowUp, Eye, EyeOff, Plus, Save, Trash2 } from 'lucide-react';
+import { ArrowDown, ArrowUp, Copy, Eye, EyeOff, Plus, Save, Trash2 } from 'lucide-react';
 import { THEMES } from '@/themes/registry';
 import { ThemeMockup } from '@/components/themes/ThemeMockup';
 import { DemoPageEditor, Field, type DemoPageValue } from '@/components/admin/DemoPageEditor';
 import { supabase } from '@/lib/supabase';
 import { EMPTY_DEMO, fetchLandingNiches, nicheDemoFor, nicheDemoValue, type LandingNiche } from '@/lib/landing-niches';
+import { fetchAllShowcasePresets, hasCatalogDemo, hasLandingDemo, type ShowcasePreset } from '@/lib/theme-showcase';
+import { readShowcaseDemo, type ShowcaseKind } from '@/components/admin/ShowcaseDemoEditor';
 
 const MAX_BENEFITS = 4;
 
@@ -17,6 +19,9 @@ export function NichesTab() {
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [toast, setToast] = useState('');
+  const [presets, setPresets] = useState<ShowcasePreset[]>([]);
+  const [copySource, setCopySource] = useState('');
+  const [disabled, setDisabled] = useState<string[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -32,6 +37,32 @@ export function NichesTab() {
   function flashToast(message: string) {
     setToast(message);
     setTimeout(() => setToast(''), 2500);
+  }
+
+  // Mockups já montados em Admin → Temas (catálogo) e no Hero, para reaproveitar no nicho
+  // Só temas ativos em Admin → Temas, na ordem definida lá
+  useEffect(() => {
+    fetchAllShowcasePresets().then(setPresets);
+    supabase.from('admin_settings').select('value').eq('key', 'disabled_themes').maybeSingle()
+      .then(({ data }) => setDisabled(Array.isArray(data?.value) ? (data!.value as string[]) : []));
+  }, []);
+  const isActive = (key: string) => !!THEMES[key] && THEMES[key].meta.available !== false && !disabled.includes(key);
+  const catalogSources = presets.filter(p => isActive(p.theme_key) && hasCatalogDemo(p));
+  const heroSources = presets.filter(p => isActive(p.theme_key) && (hasLandingDemo(p) || p.show_in_landing_carousel)).sort((a, b) => a.landing_order - b.landing_order);
+  const themeChoices = [
+    ...presets.map(p => p.theme_key),
+    ...Object.keys(THEMES),
+  ].filter((k, i, arr) => arr.indexOf(k) === i && THEMES[k] && (isActive(k) || k === selected?.theme_key));
+
+  function copyMockup() {
+    const [kind, key] = copySource.split(':') as [ShowcaseKind, string];
+    const preset = presets.find(p => p.theme_key === key);
+    if (!selected || !preset) return;
+    if (!window.confirm(`Substituir o celular de "${selected.label}" pelo mockup de ${THEMES[key]?.meta.name} (${kind === 'catalog' ? 'Temas' : 'Hero'})? Os textos da aba continuam.`)) return;
+    // Cópia independente: editar o nicho depois não altera o mockup de origem
+    patchSelected({ theme_key: key, demo: JSON.parse(JSON.stringify(readShowcaseDemo(preset, kind))) });
+    setCopySource('');
+    flashToast('Mockup copiado. Salve o nicho para publicar.');
   }
 
   function patchSelected(patch: Partial<LandingNiche>) {
@@ -177,7 +208,7 @@ export function NichesTab() {
               </Field>
               <Field label="Tema do celular">
                 <select value={selected.theme_key} onChange={e => patchSelected({ theme_key: e.target.value, demo: { ...nicheDemoValue(selected), theme_core: {}, theme_settings: {} } })} className="brutal-input py-2 px-3 text-sm w-full bg-white">
-                  {Object.values(THEMES).map(t => <option key={t.meta.key} value={t.meta.key}>{t.meta.name}</option>)}
+                  {themeChoices.map(k => <option key={k} value={k}>{THEMES[k].meta.name}{isActive(k) ? '' : ' (inativo)'}</option>)}
                 </select>
               </Field>
               <Field label="Título" full>
@@ -203,6 +234,29 @@ export function NichesTab() {
                   <Plus className="w-3 h-3" /> Adicionar benefício
                 </button>
               )}
+            </div>
+
+            <div className="brutal-border bg-bioyellow/30 p-3 mb-4">
+              <h3 className="font-display text-base">Copiar mockup pronto</h3>
+              <p className="text-[11px] text-black/70 mb-2">Usa o tema e o celular já montados em Admin → Temas ou no Hero da landing. Depois dá para ajustar aqui sem mexer no original.</p>
+              <div className="flex gap-2">
+                <select value={copySource} onChange={e => setCopySource(e.target.value)} className="brutal-input py-1.5 px-2 text-xs bg-white flex-1">
+                  <option value="">Escolher mockup…</option>
+                  {catalogSources.length > 0 && (
+                    <optgroup label="Temas (catálogo do painel)">
+                      {catalogSources.map(p => <option key={'c' + p.theme_key} value={`catalog:${p.theme_key}`}>{THEMES[p.theme_key].meta.name}</option>)}
+                    </optgroup>
+                  )}
+                  {heroSources.length > 0 && (
+                    <optgroup label="Landing page → Hero">
+                      {heroSources.map(p => <option key={'l' + p.theme_key} value={`landing:${p.theme_key}`}>{THEMES[p.theme_key].meta.name}{p.landing_tagline ? ` — ${p.landing_tagline}` : ''}</option>)}
+                    </optgroup>
+                  )}
+                </select>
+                <button onClick={copyMockup} disabled={!copySource} className="brutal-btn bg-white px-3 text-xs gap-1 disabled:opacity-50">
+                  <Copy className="w-3.5 h-3.5" /> Copiar
+                </button>
+              </div>
             </div>
 
             <DemoPageEditor

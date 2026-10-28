@@ -20,7 +20,8 @@ const FIELDS: Record<ShowcaseKind, Record<keyof DemoPageValue, keyof ShowcasePre
   },
 };
 
-function readDemo(preset: ShowcasePreset, kind: ShowcaseKind): DemoPageValue {
+// Demonstração salva de um tema (catálogo ou hero), no formato do editor
+export function readShowcaseDemo(preset: ShowcasePreset, kind: ShowcaseKind): DemoPageValue {
   const f = FIELDS[kind];
   const p = preset as any;
   return {
@@ -46,7 +47,7 @@ export function ShowcaseDemoEditor({ kind, preset, onPatch, onToast, afterProfil
   const other: ShowcaseKind = kind === 'catalog' ? 'landing' : 'catalog';
 
   function copyFromOther() {
-    onPatch(prev => toFields(readDemo(prev, other), kind));
+    onPatch(prev => toFields(readShowcaseDemo(prev, other), kind));
     onToast(kind === 'catalog' ? 'Copiado da demonstração da landing' : 'Copiado da demonstração do catálogo');
   }
 
@@ -69,8 +70,8 @@ export function ShowcaseDemoEditor({ kind, preset, onPatch, onToast, afterProfil
       </div>
       <DemoPageEditor
         themeKey={preset.theme_key}
-        value={readDemo(preset, kind)}
-        onChange={fn => onPatch(prev => toFields(fn(readDemo(prev, kind)), kind))}
+        value={readShowcaseDemo(preset, kind)}
+        onChange={fn => onPatch(prev => toFields(fn(readShowcaseDemo(prev, kind)), kind))}
         pathBase={`${preset.theme_key}/${kind}`}
         onToast={onToast}
         afterProfile={afterProfile}

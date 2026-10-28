@@ -1,6 +1,7 @@
 'use client';
 
 import { Suspense } from 'react';
+import { refreshLanding } from '@/lib/revalidate-landing';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { ExternalLink } from 'lucide-react';
@@ -34,9 +35,21 @@ function LandingAdmin() {
       <div className="flex items-start justify-between gap-4 flex-wrap mb-4">
         <div>
           <h1 className="font-display text-3xl md:text-4xl">Landing page</h1>
-          <p className="text-sm text-black/70 mt-1">Conteúdo configurável da página inicial. As alterações aparecem no site em até 5 minutos.</p>
+          <p className="text-sm text-black/70 mt-1">Conteúdo configurável da página inicial. As alterações vão para o site ao sair desta tela ou ao clicar em “Ver na landing”.</p>
         </div>
-        <a href={`/${active.anchor}`} target="_blank" rel="noreferrer" className="brutal-btn bg-white px-4 py-2 text-sm gap-2">
+        <a
+          href={`/${active.anchor}`}
+          target="_blank"
+          rel="noreferrer"
+          onClick={async (e) => {
+            // Regenera a home antes de abrir, para mostrar as últimas edições
+            e.preventDefault();
+            const w = window.open('about:blank', '_blank');
+            await refreshLanding(true);
+            if (w) w.location.href = `/${active.anchor}`;
+          }}
+          className="brutal-btn bg-white px-4 py-2 text-sm gap-2"
+        >
           <ExternalLink className="w-4 h-4" /> Ver na landing
         </a>
       </div>

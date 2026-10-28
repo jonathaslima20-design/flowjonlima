@@ -212,6 +212,13 @@ export async function upsertShowcasePreset(preset: ShowcasePreset) {
   return { error };
 }
 
+// A demonstração do catálogo foi personalizada?
+export function hasCatalogDemo(preset: ShowcasePreset | null | undefined): boolean {
+  if (!preset) return false;
+  const filled = (v: unknown) => (Array.isArray(v) ? v.length > 0 : !!v && typeof v === 'object' && Object.keys(v as object).length > 0);
+  return [preset.catalog_profile, preset.catalog_links, preset.catalog_socials, preset.catalog_banners, preset.catalog_videos, preset.catalog_theme_core, preset.catalog_theme_settings].some(filled);
+}
+
 // A demonstração da landing foi personalizada? (senão a landing usa a do catálogo)
 export function hasLandingDemo(preset: ShowcasePreset | null | undefined): boolean {
   if (!preset) return false;

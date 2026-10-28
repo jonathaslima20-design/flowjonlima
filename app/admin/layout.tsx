@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { refreshLanding } from '@/lib/revalidate-landing';
 import { useAuth } from '@/lib/auth-context';
 import {
   LayoutDashboard,
@@ -47,6 +48,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   useEffect(() => {
     setMobileOpen(false);
   }, [path]);
+
+  // Telas que alimentam a landing: ao sair delas (ou da aba, ex.: "Ver na landing"), a home é regenerada na hora
+  const affectsLanding = (p: string | null) => !!p && (p.startsWith('/admin/themes') || p.startsWith('/admin/landing'));
+  const prevPath = useRef(path);
+  useEffect(() => {
+    if (role === 'admin' && affectsLanding(prevPath.current) && prevPath.current !== path) refreshLanding();
+    prevPath.current = path;
+  }, [path, role]);
+
+  useEffect(() => {
+    function onVisibility() {
+      if (document.visibilityState === 'hidden' && role === 'admin' && affectsLanding(window.location.pathname)) refreshLanding();
+    }
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
+  }, [role]);
 
   async function signOut() {
     await ctxSignOut();

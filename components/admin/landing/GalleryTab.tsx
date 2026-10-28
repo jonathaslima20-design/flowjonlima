@@ -62,7 +62,7 @@ export function GalleryTab() {
     const value = manual ? selection : [];
     const { error } = await supabase.from('admin_settings').upsert({ key: 'landing_gallery', value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
     setSaving(false);
-    flashToast(error ? 'Erro ao salvar: ' + error.message : 'Galeria salva. Aparece na landing em até 5 minutos.');
+    flashToast(error ? 'Erro ao salvar: ' + error.message : 'Galeria salva.');
   }
 
   if (loading) return <div className="font-bold">Carregando galeria...</div>;
