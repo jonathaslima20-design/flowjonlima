@@ -2,6 +2,7 @@
 
 import Script from 'next/script';
 import { validatePixelId, validateGaId } from '@/lib/tracking';
+import { useConsent } from '@/lib/consent';
 
 export function BioAnalytics({
   metaPixelId,
@@ -14,8 +15,10 @@ export function BioAnalytics({
   metaEnabled?: boolean;
   gaEnabled?: boolean;
 }) {
-  const pixelOk = metaEnabled !== false && validatePixelId(metaPixelId || '');
-  const gaOk = gaEnabled !== false && validateGaId(gaId || '');
+  // Só carregam depois do aceite no banner de cookies (marketing = Pixel, estatísticas = GA)
+  const { consent } = useConsent();
+  const pixelOk = !!consent?.marketing && metaEnabled !== false && validatePixelId(metaPixelId || '');
+  const gaOk = !!consent?.analytics && gaEnabled !== false && validateGaId(gaId || '');
 
   return (
     <>

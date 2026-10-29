@@ -13,6 +13,7 @@ import {
   CreditCard,
   Receipt,
   Wallet,
+  Radar,
   LogOut,
   Waypoints,
   ShieldCheck,
@@ -31,6 +32,7 @@ const nav = [
   { href: '/admin/plans', label: 'Planos', icon: CreditCard, exact: false },
   { href: '/admin/payments', label: 'Pagamentos', icon: Receipt, exact: false },
   { href: '/admin/payouts', label: 'Saques', icon: Wallet, exact: false },
+  { href: '/admin/tracking', label: 'Rastreamento', icon: Radar, exact: false },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

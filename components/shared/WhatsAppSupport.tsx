@@ -1,7 +1,7 @@
 import { MessageCircle } from 'lucide-react';
+import { LEGAL } from '@/lib/legal';
 
-const WA_URL =
-  'https://wa.me/5591982465495?text=Ol%C3%A1%2C%20gostaria%20de%20auxilio%20do%20suporte%20para%20o%20sistema%20BioFlowzy';
+const WA_URL = `${LEGAL.whatsapp}?text=${encodeURIComponent('Olá, gostaria de auxílio do suporte para o sistema BioFlowzy')}`;
 
 export function WhatsAppSupport() {
   return (

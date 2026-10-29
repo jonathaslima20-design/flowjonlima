@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.58.0";
+import { paymentMetaContext, sendPurchase } from "../_shared/meta.ts";
 
 // Checkout transparente (dentro do painel) pela API de Pagamentos do Mercado Pago.
 // Ações (usuário logado):
@@ -120,7 +121,7 @@ Deno.serve(async (req: Request) => {
 
   const { data: payment, error: payErr } = await admin
     .from("payments")
-    .insert({ profile_id: user.id, plan_slug: plan, period, amount_cents: amount })
+    .insert({ profile_id: user.id, plan_slug: plan, period, amount_cents: amount, meta_context: paymentMetaContext(req, body?.meta) })
     .select("id")
     .single();
   if (payErr || !payment) {
@@ -182,6 +183,7 @@ Deno.serve(async (req: Request) => {
     if (mp.currency_id === "BRL" && paidCents >= amount) {
       const { error } = await admin.rpc("grant_paid_plan", { p_payment_id: payment.id });
       if (error) console.error("grant_paid_plan failed", error);
+      else await sendPurchase(admin, payment.id);
     }
   }
 

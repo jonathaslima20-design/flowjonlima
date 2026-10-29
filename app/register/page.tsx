@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { Waypoints } from 'lucide-react';
 import { captureAttribution, readAttribution } from '@/lib/attribution';
 import { maskWhatsapp, normalizeWhatsapp } from '@/lib/whatsapp';
+import { trackMeta } from '@/lib/meta-pixel';
 
 // useSearchParams exige um Suspense boundary no build do Next 14
 export default function RegisterPage() {
@@ -105,6 +106,7 @@ function RegisterForm() {
     }
 
     setLoading(false);
+    trackMeta('CompleteRegistration', { content_name: 'Cadastro', status: 'completed' }, { capi: true });
     router.push(afterSignup);
   }
 

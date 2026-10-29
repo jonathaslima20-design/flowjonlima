@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
 import { PLANS, PERIOD_LABELS, brl, monthlyPrice, type BillingPeriod, type PaidPlanSlug } from '@/lib/plans';
 import { startCheckout } from '@/lib/checkout';
+import { getMetaContext, planEventData, trackMeta, trackPurchase } from '@/lib/meta-pixel';
 import { WhatsAppSupport } from '@/components/shared/WhatsAppSupport';
 
 // Checkout transparente: PIX (QR code na tela) e cartão (Card Payment Brick do Mercado Pago),
@@ -110,7 +111,19 @@ function Checkout() {
     if (!res.ok) setRedirecting(false);
   }
 
-  const pixApproved = useCallback(() => setResult({ kind: 'approved', text: 'Seu plano já está ativo. Aproveite todos os recursos!' }), []);
+  // Meta: início do checkout (uma vez por plano/período)
+  const initiated = useRef('');
+  useEffect(() => {
+    const key = plan + '_' + period;
+    if (initiated.current === key) return;
+    initiated.current = key;
+    trackMeta('InitiateCheckout', planEventData(plan, period, PLANS[plan].prices[period]), { capi: true });
+  }, [plan, period]);
+
+  const pixApproved = useCallback((paymentId: string) => {
+    trackPurchase(paymentId, planEventData(plan, period, price));
+    setResult({ kind: 'approved', text: 'Seu plano já está ativo. Aproveite todos os recursos!' });
+  }, [plan, period, price]);
   const def = PLANS[plan];
 
   return (
@@ -201,7 +214,7 @@ function Checkout() {
 }
 
 function PixForm({ plan, period, userId, email, onApproved }: {
-  plan: PaidPlanSlug; period: BillingPeriod; userId: string | null; email: string | null; onApproved: () => void;
+  plan: PaidPlanSlug; period: BillingPeriod; userId: string | null; email: string | null; onApproved: (paymentId: string) => void;
 }) {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -228,7 +241,7 @@ function PixForm({ plan, period, userId, email, onApproved }: {
     if (!pix) return;
     const poll = setInterval(async () => {
       const { data } = await supabase.from('payments').select('status').eq('id', pix.paymentId).maybeSingle();
-      if (data?.status === 'approved') { clearInterval(poll); onApproved(); }
+      if (data?.status === 'approved') { clearInterval(poll); onApproved(pix.paymentId); }
     }, 4000);
     const tick = setInterval(() => setNow(Date.now()), 1000);
     return () => { clearInterval(poll); clearInterval(tick); };
@@ -241,12 +254,13 @@ function PixForm({ plan, period, userId, email, onApproved }: {
     if (digits.length !== 11 && digits.length !== 14) { setError('Informe um CPF ou CNPJ válido.'); return; }
     setLoading(true);
     const { data, error } = await callPayment({
-      action: 'pix', plan, period,
+      action: 'pix', plan, period, meta: getMetaContext(),
       payer: { first_name: firstName, last_name: lastName, document: digits },
     });
     setLoading(false);
     if (error || !data?.qrCode) { setError(error ?? 'Não foi possível gerar o PIX.'); return; }
     setPix(data);
+    trackMeta('AddPaymentInfo', { ...planEventData(plan, period, PLANS[plan].prices[period]), payment_type: 'pix' }, { capi: true });
   }
 
   function copy() {
@@ -330,9 +344,11 @@ function CardForm({ publicKey, plan, period, amount, email, onResult }: {
 
   const submit = useCallback(async (formData: any) => {
     setError('');
-    const { data, error } = await callPayment({ action: 'card', plan, period, card: formData });
+    trackMeta('AddPaymentInfo', { ...planEventData(plan, period, amount), payment_type: 'card' }, { capi: true });
+    const { data, error } = await callPayment({ action: 'card', plan, period, card: formData, meta: getMetaContext() });
     if (error) { setError(error); throw new Error(error); }
     if (data.status === 'approved') {
+      trackPurchase(data.paymentId, planEventData(plan, period, amount));
       onResultRef.current({ kind: 'approved', text: 'Pagamento aprovado e plano ativado. Aproveite todos os recursos!' });
     } else if (data.status === 'in_process' || data.status === 'pending' || data.status === 'authorized') {
       onResultRef.current({ kind: 'pending', text: 'O Mercado Pago está analisando o pagamento. Assim que for aprovado, seu plano é ativado automaticamente e você recebe a confirmação por e-mail.' });
@@ -341,7 +357,7 @@ function CardForm({ publicKey, plan, period, amount, email, onResult }: {
       setError(message);
       throw new Error(message);
     }
-  }, [plan, period]);
+  }, [plan, period, amount]);
 
   useEffect(() => {
     let controller: any;

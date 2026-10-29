@@ -21,6 +21,7 @@ import {
   Unbounded,
 } from 'next/font/google';
 import { AuthProvider } from '@/lib/auth-context';
+import { SiteTracking } from '@/components/shared/SiteTracking';
 
 const archivo = Archivo_Black({ subsets: ['latin'], weight: '400', variable: '--font-archivo-black', display: 'swap', preload: true });
 const grotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-space-grotesk', display: 'swap', preload: true });
@@ -44,7 +45,7 @@ const unbounded = Unbounded({ subsets: ['latin'], variable: '--font-unbounded', 
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://bioflowzy.com';
 
-export const metadata: Metadata = {
+const baseMetadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: 'BioFlowzy — Sua bio, seu link, seu universo',
   description: 'Crie sua página de link na bio em minutos: WhatsApp, redes sociais, contatos, analytics e domínio próprio.',
@@ -77,7 +78,38 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+type MetaPixelSetting = { pixel_id?: string; enabled?: boolean; domain_verification?: string };
+
+// Meta Pixel do site (Admin → Rastreamento). Leitura pública pela REST com cache de 5 min,
+// sem o cliente do Supabase para não tirar as páginas do ISR.
+async function readMetaPixel(): Promise<MetaPixelSetting | null> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return null;
+  try {
+    const res = await fetch(`${url}/rest/v1/admin_settings?key=eq.meta_pixel&select=value`, {
+      headers: { apikey: key, Authorization: `Bearer ${key}` },
+      next: { revalidate: 300 },
+    });
+    if (!res.ok) return null;
+    const rows = await res.json();
+    return rows?.[0]?.value ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const meta = await readMetaPixel();
+  const code = meta?.domain_verification?.trim();
+  return code && /^[a-z0-9]{10,64}$/i.test(code)
+    ? { ...baseMetadata, other: { 'facebook-domain-verification': code } }
+    : baseMetadata;
+}
+
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const meta = await readMetaPixel();
+  const pixelId = meta?.enabled && /^\d{6,20}$/.test(meta.pixel_id ?? '') ? meta.pixel_id! : null;
   const classes = [
     archivo.variable, grotesk.variable, playfair.variable, inter.variable,
     jetbrains.variable, dmsans.variable, fraunces.variable, manrope.variable,
@@ -86,7 +118,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   ].join(' ');
   return (
     <html lang="pt-BR" className={classes}>
-      <body className="antialiased bg-white text-black"><AuthProvider>{children}</AuthProvider></body>
+      <body className="antialiased bg-white text-black"><AuthProvider>{children}<SiteTracking pixelId={pixelId} /></AuthProvider></body>
     </html>
   );
 }

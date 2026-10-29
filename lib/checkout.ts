@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 import type { BillingPeriod, PaidPlanSlug } from './plans';
+import { getMetaContext } from './meta-pixel';
 
 export type CheckoutResult =
   | { ok: true }
@@ -7,7 +8,7 @@ export type CheckoutResult =
 
 // Cria o pagamento na edge function mp-checkout e redireciona para o Checkout Pro
 export async function startCheckout(plan: PaidPlanSlug, period: BillingPeriod): Promise<CheckoutResult> {
-  const { data, error } = await supabase.functions.invoke('mp-checkout', { body: { plan, period } });
+  const { data, error } = await supabase.functions.invoke('mp-checkout', { body: { plan, period, meta: getMetaContext() } });
   if (!error && data?.url) {
     window.location.href = data.url;
     return { ok: true };

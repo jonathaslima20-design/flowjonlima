@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.58.0";
+import { paymentMetaContext } from "../_shared/meta.ts";
 
 // Cria um pagamento pendente e uma preferência do Checkout Pro do Mercado Pago.
 // Access Token: Admin → Pagamentos (Vault, via get_payment_secrets) ou secret MP_ACCESS_TOKEN. SITE_URL opcional.
@@ -85,7 +86,7 @@ Deno.serve(async (req: Request) => {
 
   const { data: payment, error: payErr } = await admin
     .from("payments")
-    .insert({ profile_id: user.id, plan_slug: plan, period, amount_cents: amount })
+    .insert({ profile_id: user.id, plan_slug: plan, period, amount_cents: amount, meta_context: paymentMetaContext(req, body?.meta) })
     .select("id")
     .single();
   if (payErr || !payment) {

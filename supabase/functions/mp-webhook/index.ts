@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.58.0";
+import { sendPurchase } from "../_shared/meta.ts";
 
 // Recebe notificações do Mercado Pago. A fonte da verdade é sempre a consulta do
 // pagamento na API do Mercado Pago, então uma notificação forjada não libera plano.
@@ -125,6 +126,8 @@ Deno.serve(async (req: Request) => {
       console.error("grant_paid_plan failed", error);
       return new Response("grant failed", { status: 500 });
     }
+    // Conversão no Meta (só se o comprador aceitou cookies de marketing ao pagar)
+    await sendPurchase(admin, payment.id);
   }
 
   return ok();

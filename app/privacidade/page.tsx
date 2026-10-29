@@ -52,7 +52,8 @@ export default function PrivacyPage() {
           <li><strong>Netlify:</strong> hospedagem do site e das páginas;</li>
           <li><strong>Mercado Pago:</strong> processamento de pagamentos;</li>
           <li><strong>Resend:</strong> envio de e-mails, como o relatório mensal;</li>
-          <li><strong>Meta Pixel e Google Analytics:</strong> apenas nas páginas cujos donos ativaram essas integrações, sob responsabilidade deles.</li>
+          <li><strong>Meta (Facebook e Instagram):</strong> no site da {LEGAL.brand}, para medir nossos anúncios, com o Meta Pixel e a API de Conversões, só para quem aceitar os cookies de marketing. Ao criar conta ou pagar, enviamos e-mail, WhatsApp e identificador da conta criptografados (hash SHA-256), junto com IP, navegador e o valor da compra;</li>
+          <li><strong>Meta Pixel e Google Analytics nas páginas dos usuários:</strong> apenas nas páginas cujos donos ativaram essas integrações, sob responsabilidade deles, e só depois do consentimento do visitante.</li>
         </ul>
         <p>Alguns desses fornecedores podem armazenar dados fora do Brasil, com as garantias exigidas pela LGPD. Também podemos compartilhar dados quando a lei ou uma ordem judicial exigir.</p>
       </Section>
@@ -60,9 +61,11 @@ export default function PrivacyPage() {
       <Section id="cookies" title="5. Cookies e armazenamento no navegador">
         <ul>
           <li>usamos o armazenamento do navegador para manter você conectado, lembrar a página que você está editando e registrar de onde veio a sua primeira visita (por até 30 dias);</li>
-          <li>as páginas dos usuários só carregam Meta Pixel ou Google Analytics quando o dono da página ativa essas integrações; esses serviços podem usar cookies próprios.</li>
+          <li><strong>essenciais</strong> (sempre ativos): login, segurança e a sua escolha de cookies;</li>
+          <li><strong>estatísticas</strong> (opcionais): Google Analytics nas páginas dos usuários que ativaram essa integração;</li>
+          <li><strong>marketing</strong> (opcionais): Meta Pixel no site da {LEGAL.brand} e nas páginas dos usuários que ativaram essa integração; o Meta pode usar cookies próprios, como _fbp e _fbc.</li>
         </ul>
-        <p>Você pode apagar esses dados nas configurações do seu navegador a qualquer momento.</p>
+        <p>Cookies de estatísticas e de marketing só são usados depois que você aceita no banner. Você pode mudar sua escolha a qualquer momento em &quot;Preferências de cookies&quot;, no rodapé do site, ou apagar esses dados nas configurações do seu navegador.</p>
       </Section>
 
       <Section title="6. Por quanto tempo guardamos">

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { CircleCheck, Clock, X, CircleAlert, Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { planEventData, trackPurchase } from '@/lib/meta-pixel';
 
 type Kind = 'checking' | 'success' | 'pending' | 'failure';
 
@@ -56,15 +57,16 @@ export function PaymentReturnNotice() {
 
     async function check() {
       attempts++;
-      const base = supabase.from('payments').select('status, mp_payment_id');
+      const base = supabase.from('payments').select('id, status, mp_payment_id, plan_slug, period, amount_cents');
       const { data } = await (reference
         ? base.eq('id', reference).maybeSingle()
         : base.order('created_at', { ascending: false }).limit(1).maybeSingle());
       if (cancelled) return;
       const status = data?.status;
 
-      if (status === 'approved') {
+      if (status === 'approved' && data) {
         show('success');
+        trackPurchase(data.id, planEventData(data.plan_slug, data.period, data.amount_cents));
         timer = setTimeout(() => window.location.reload(), 1500);
         return;
       }

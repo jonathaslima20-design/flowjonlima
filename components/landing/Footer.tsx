@@ -1,10 +1,15 @@
 import Link from 'next/link';
-import { Waypoints } from 'lucide-react';
+import { Mail, Waypoints } from 'lucide-react';
+import { IconInstagram, IconWhatsapp } from '@/lib/social-icons';
+import { LEGAL } from '@/lib/legal';
+import { CookiePreferencesLink } from '@/components/shared/CookieConsent';
+
+const SUPPORT_TEXT = encodeURIComponent('Olá, gostaria de falar com o suporte do BioFlowzy');
 
 export function Footer() {
   return (
     <footer className="bg-black text-white border-t-2 border-black">
-      <div className="max-w-7xl mx-auto px-4 md:px-6 py-14 grid md:grid-cols-3 gap-10">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-14 grid sm:grid-cols-2 md:grid-cols-4 gap-10">
         <div>
           <div className="flex items-center gap-2">
             <span className="w-9 h-9 bg-bioyellow brutal-border flex items-center justify-center">
@@ -20,12 +25,36 @@ export function Footer() {
           { label: 'Exemplos', href: '/exemplos' },
           { label: 'Para agências', href: '/#agencias' },
         ]} />
-        <FooterCol title="Legal" items={[
-          { label: 'Termos de Uso', href: '/termos' },
-          { label: 'Privacidade', href: '/privacidade' },
-          { label: 'Cookies', href: '/privacidade#cookies' },
-          { label: 'Direitos autorais', href: '/termos#direitos-autorais' },
-        ]} />
+        <div>
+          <h4 className="font-display text-sm mb-4">Contato</h4>
+          <ul className="space-y-3 text-sm text-white/80">
+            <li>
+              <a href={`${LEGAL.whatsapp}?text=${SUPPORT_TEXT}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 hover:text-bioyellow">
+                <IconWhatsapp className="w-4 h-4" /> Suporte no WhatsApp
+              </a>
+            </li>
+            <li>
+              <a href={LEGAL.instagram} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 hover:text-bioyellow">
+                <IconInstagram className="w-4 h-4" /> {LEGAL.instagramLabel}
+              </a>
+            </li>
+            <li>
+              <a href={`mailto:${LEGAL.email}`} className="inline-flex items-center gap-2 hover:text-bioyellow">
+                <Mail className="w-4 h-4" /> {LEGAL.email}
+              </a>
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h4 className="font-display text-sm mb-4">Legal</h4>
+          <ul className="space-y-2 text-sm text-white/80">
+            <li><Link href="/termos" className="hover:text-bioyellow">Termos de Uso</Link></li>
+            <li><Link href="/privacidade" className="hover:text-bioyellow">Privacidade</Link></li>
+            <li><Link href="/privacidade#cookies" className="hover:text-bioyellow">Política de cookies</Link></li>
+            <li><CookiePreferencesLink className="hover:text-bioyellow text-left" /></li>
+            <li><Link href="/termos#direitos-autorais" className="hover:text-bioyellow">Direitos autorais</Link></li>
+          </ul>
+        </div>
       </div>
       <div className="border-t-2 border-white/20">
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-5 flex items-center justify-center text-xs">

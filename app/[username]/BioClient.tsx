@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { getTheme } from '@/themes/registry';
 import { BioAnalytics } from '@/components/bio/BioAnalytics';
+import { CookieConsent } from '@/components/shared/CookieConsent';
 import { firePixel, fireGa, TrackEntity, validatePixelId, validateGaId } from '@/lib/tracking';
 import { can, getPlanFor } from '@/lib/plans';
 import { isLeadFormUrl, LEAD_FORM_URL } from '@/lib/leads';
@@ -72,6 +73,7 @@ export function BioClient({ profile, links, socials, videos, banners }: any) {
         metaEnabled={profile?.meta_pixel_enabled !== false}
         gaEnabled={profile?.ga_enabled !== false}
       />
+      <CookieConsent variant="bio" />
       <CountdownProvider value={countdownFromProfile(profile)}>
         <Theme
           profile={profile}

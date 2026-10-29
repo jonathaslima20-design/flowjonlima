@@ -10,6 +10,7 @@ import {
 } from '@/lib/plans';
 import { usePlan } from '@/hooks/use-plan';
 import { WhatsAppSupport } from '@/components/shared/WhatsAppSupport';
+import { trackMeta } from '@/lib/meta-pixel';
 
 const PAID_PLANS: PaidPlanSlug[] = ['pro', 'business'];
 
@@ -61,6 +62,9 @@ function UpgradeModal({ onClose }: { onClose: () => void }) {
   const [buttons, setButtons] = useState<Partial<Record<PaidPlanSlug, PlanButton>>>({});
   const [pending, setPending] = useState<PaidPlanSlug | null>(null);
   const router = useRouter();
+
+  // Meta: viu os planos (só no navegador)
+  useEffect(() => { trackMeta('ViewContent', { content_name: 'Planos', content_type: 'product' }); }, []);
 
   const plans = PAID_PLANS.filter(slug => PLANS[slug].available);
   const { accountPlan, profile } = usePlan();

@@ -1,11 +1,14 @@
-// Dados do responsável pelo serviço exibidos nos Termos e na Política de Privacidade.
-// Campos vazios não aparecem nas páginas; preencha razão social, CNPJ e e-mail quando tiver.
+// Dados do responsável pelo serviço exibidos nos Termos, na Política de Privacidade e no rodapé.
+// Campos vazios não aparecem nas páginas; preencha razão social e CNPJ quando tiver.
 export const LEGAL = {
   brand: 'BioFlowzy',
   site: 'bioflowzy.com',
   company: '',
   cnpj: '',
-  email: '',
-  whatsapp: 'https://wa.me/5591982465495',
-  updatedAt: '26 de outubro de 2026',
+  email: 'contato@bioflowzy.com',
+  whatsapp: 'https://wa.me/5565984140436',
+  whatsappLabel: '(65) 98414-0436',
+  instagram: 'https://www.instagram.com/bioflowzy',
+  instagramLabel: '@bioflowzy',
+  updatedAt: '29 de outubro de 2026',
 };
