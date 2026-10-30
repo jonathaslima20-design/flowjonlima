@@ -2,12 +2,14 @@
 
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Waypoints } from 'lucide-react';
 import { captureAttribution, readAttribution } from '@/lib/attribution';
 import { maskWhatsapp, normalizeWhatsapp } from '@/lib/whatsapp';
 import { trackMeta } from '@/lib/meta-pixel';
+import { readPartnerCode, storePartnerCode } from '@/lib/partner';
+import { useAuth } from '@/lib/auth-context';
 
 // useSearchParams exige um Suspense boundary no build do Next 14
 export default function RegisterPage() {
@@ -25,6 +27,15 @@ function RegisterForm() {
     .replace(/[^a-z0-9_.-]/gi, '')
     .toLowerCase();
   const refCode = searchParams.get('ref') ?? '';
+  // Convite de parceiro (?pi=<token>) e código do link /p/<code> (?parceiro= ou guardado no navegador)
+  const inviteToken = (searchParams.get('pi') ?? '').replace(/[^a-f0-9]/gi, '').slice(0, 64);
+  const [invite, setInvite] = useState<{ partner: string; client_name: string; valid: boolean; license: boolean } | null>(null);
+  const { userId } = useAuth();
+  useEffect(() => {
+    const code = (searchParams.get('parceiro') ?? '').toLowerCase().replace(/[^a-z0-9-]/g, '');
+    if (code) storePartnerCode(code, 60);
+    if (inviteToken) supabase.rpc('partner_invite_info', { p_token: inviteToken }).then(({ data }) => setInvite(data as any));
+  }, [searchParams, inviteToken]);
   // Vindo da página de preços, abre o modal de assinatura logo após o cadastro
   // Vindo de um convite (?next=/convite/...), volta para ele após o cadastro
   const rawNext = searchParams.get('next');
@@ -66,6 +77,8 @@ function RegisterForm() {
           display_name: clean,
           whatsapp: phone,
           ...(refCode ? { referred_by_code: refCode.toUpperCase() } : {}),
+          ...(inviteToken ? { partner_invite: inviteToken } : {}),
+          ...(readPartnerCode() ? { partner_code: readPartnerCode() } : {}),
           ...(attribution ? { signup_source: attribution.source, signup_campaign: attribution.campaign } : {}),
         },
         emailRedirectTo: typeof window !== 'undefined' ? `${window.location.origin}/dashboard` : undefined,
@@ -81,6 +94,7 @@ function RegisterForm() {
           setLoading(false);
           return;
         }
+        if (inviteToken) await supabase.rpc('partner_accept_invite', { p_token: inviteToken });
         router.push(afterSignup);
         return;
       }
@@ -120,6 +134,21 @@ function RegisterForm() {
           <span className="font-display text-2xl">BioFlowzy</span>
         </Link>
         <h1 className="font-display text-3xl text-center mb-2">Criar conta</h1>
+        {invite?.valid && (
+          <div className="brutal-border bg-biolime p-3 mb-4 text-sm">
+            <p className="font-bold">Convite de {invite.partner}</p>
+            <p className="text-black/70">
+              Crie sua conta para {invite.partner} montar e acompanhar sua página com você.
+              {invite.license && ' O plano já está incluído.'}
+            </p>
+            {userId && (
+              <AcceptInvite token={inviteToken} />
+            )}
+          </div>
+        )}
+        {invite && !invite.valid && (
+          <p className="brutal-border bg-red-50 p-3 mb-4 text-sm font-bold">Este convite expirou ou já foi usado. Peça um novo link ao seu parceiro.</p>
+        )}
         {refCode ? (
           <p className="text-center text-sm mb-6 font-bold">Voce foi indicado! Crie sua conta gratuita.</p>
         ) : (
@@ -146,6 +175,28 @@ function RegisterForm() {
           Ja tem conta? <Link href={next ? `/login?next=${encodeURIComponent(next)}` : '/login'} className="font-bold underline">Entrar</Link>
         </div>
       </div>
+    </div>
+  );
+}
+
+// Já tem conta e está logado: aceita o convite do parceiro com a conta atual
+function AcceptInvite({ token }: { token: string }) {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  async function accept() {
+    setBusy(true);
+    setErr('');
+    const { error } = await supabase.rpc('partner_accept_invite', { p_token: token });
+    if (error) { setErr(error.message); setBusy(false); return; }
+    router.push('/dashboard');
+  }
+  return (
+    <div className="mt-3">
+      <button type="button" onClick={accept} disabled={busy} className="brutal-btn bg-black text-white px-4 py-2 text-xs">
+        {busy ? 'Aceitando...' : 'Aceitar com a minha conta atual'}
+      </button>
+      {err && <p className="text-xs font-bold text-biored mt-2">{err}</p>}
     </div>
   );
 }

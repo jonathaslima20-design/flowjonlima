@@ -9,7 +9,7 @@ import { readConsent } from '@/lib/consent';
 // (edge function meta-events) com o mesmo event_id, para o Meta deduplicar.
 
 // Rotas do próprio site; qualquer outro primeiro segmento é a página de um usuário
-const SITE_SEGMENTS = ['', 'login', 'register', 'forgot-password', 'dashboard', 'admin', 'exemplos', 'termos', 'privacidade', 'convite'];
+const SITE_SEGMENTS = ['', 'login', 'register', 'forgot-password', 'dashboard', 'admin', 'exemplos', 'termos', 'privacidade', 'convite', 'parceiros', 'p'];
 const SITE_HOSTS = ['bioflowzy.com', 'netlify.app', 'localhost', '127.0.0.1', 'vercel.app'];
 
 export function isSiteHost(host: string) {

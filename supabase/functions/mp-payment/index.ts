@@ -1,12 +1,14 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.58.0";
 import { paymentMetaContext, sendPurchase } from "../_shared/meta.ts";
+import { priceFor } from "../_shared/pricing.ts";
 
 // Checkout transparente (dentro do painel) pela API de Pagamentos do Mercado Pago.
 // Ações (usuário logado):
 //   { action: "config" }                                  → { enabled, publicKey }
 //   { action: "pix",  plan, period, payer }               → cria PIX e devolve QR code / copia e cola
 //   { action: "card", plan, period, card }                → paga com o token gerado pelo Card Payment Brick
+// Opcionais: coupon (cupom de parceiro, só no 1º pagamento) e kind: "license" + qty (parceiro comprando licenças).
 // O preço vem do banco. A liberação do plano segue pelo mp-webhook; no cartão aprovado na hora,
 // chama grant_paid_plan aqui mesmo (é idempotente).
 // Chaves: Admin → Pagamentos (Vault, via get_payment_secrets) ou secrets MP_ACCESS_TOKEN / MP_PUBLIC_KEY.
@@ -17,11 +19,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
-const PAID_PLANS = ["pro", "business"];
-const PERIODS: Record<string, { label: string; column: "price_cents" | "price_annual_cents" }> = {
-  quarterly: { label: "Trimestral", column: "price_cents" },
-  annual: { label: "Anual", column: "price_annual_cents" },
-};
 const KNOWN_STATUSES = ["pending", "approved", "authorized", "in_process", "in_mediation", "rejected", "cancelled", "refunded", "charged_back"];
 const PIX_MINUTES = 60;
 
@@ -70,23 +67,13 @@ Deno.serve(async (req: Request) => {
   if (action !== "pix" && action !== "card") return json({ error: "Ação inválida." }, 400);
   if (!mpToken) return json({ error: "Pagamentos ainda não configurados." }, 503);
 
-  const plan = String(body?.plan ?? "");
-  const period = String(body?.period ?? "");
-  if (!PAID_PLANS.includes(plan)) return json({ error: "Plano inválido." }, 400);
-  const periodInfo = PERIODS[period];
-  if (!periodInfo) return json({ error: "Período inválido." }, 400);
-
   const { data: profile } = await admin.from("profiles").select("suspended_at").eq("id", user.id).maybeSingle();
   if (!profile) return json({ error: "Perfil não encontrado." }, 404);
   if (profile.suspended_at) return json({ error: "Conta suspensa." }, 403);
 
-  const { data: planRow } = await admin
-    .from("plans")
-    .select("name, price_cents, price_annual_cents, is_active")
-    .eq("slug", plan)
-    .maybeSingle();
-  const amount = planRow?.[periodInfo.column];
-  if (!planRow?.is_active || !amount || amount <= 0) return json({ error: "Plano indisponível no momento." }, 400);
+  const { priced, error: priceErr } = await priceFor(admin, user.id, body);
+  if (!priced) return json({ error: priceErr ?? "Plano indisponível no momento." }, 400);
+  const amount = priced.amount;
 
   // Monta o pagamento antes de gravar, para não deixar linha pendente por erro de formulário
   let mpBody: Record<string, unknown>;
@@ -121,7 +108,7 @@ Deno.serve(async (req: Request) => {
 
   const { data: payment, error: payErr } = await admin
     .from("payments")
-    .insert({ profile_id: user.id, plan_slug: plan, period, amount_cents: amount, meta_context: paymentMetaContext(req, body?.meta) })
+    .insert({ profile_id: user.id, ...priced.row, meta_context: paymentMetaContext(req, body?.meta) })
     .select("id")
     .single();
   if (payErr || !payment) {
@@ -139,7 +126,7 @@ Deno.serve(async (req: Request) => {
     body: JSON.stringify({
       ...mpBody,
       transaction_amount: amount / 100,
-      description: `BioFlowzy ${planRow.name} ${periodInfo.label}`,
+      description: priced.description,
       statement_descriptor: "BIOFLOWZY",
       external_reference: payment.id,
       notification_url: `${supabaseUrl}/functions/v1/mp-webhook`,

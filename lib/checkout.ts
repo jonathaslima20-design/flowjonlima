@@ -7,8 +7,13 @@ export type CheckoutResult =
   | { ok: false; notConfigured: boolean; message: string };
 
 // Cria o pagamento na edge function mp-checkout e redireciona para o Checkout Pro
-export async function startCheckout(plan: PaidPlanSlug, period: BillingPeriod): Promise<CheckoutResult> {
-  const { data, error } = await supabase.functions.invoke('mp-checkout', { body: { plan, period, meta: getMetaContext() } });
+// extra: cupom de parceiro ou compra de licenças ({ kind: 'license', qty })
+export async function startCheckout(
+  plan: PaidPlanSlug,
+  period: BillingPeriod,
+  extra?: { coupon?: string | null; kind?: 'license'; qty?: number },
+): Promise<CheckoutResult> {
+  const { data, error } = await supabase.functions.invoke('mp-checkout', { body: { plan, period, ...extra, meta: getMetaContext() } });
   if (!error && data?.url) {
     window.location.href = data.url;
     return { ok: true };

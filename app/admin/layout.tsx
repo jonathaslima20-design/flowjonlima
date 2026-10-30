@@ -21,6 +21,7 @@ import {
   ChevronLeft,
   Menu,
   X,
+  Handshake,
 } from 'lucide-react';
 
 const nav = [
@@ -32,6 +33,7 @@ const nav = [
   { href: '/admin/plans', label: 'Planos', icon: CreditCard, exact: false },
   { href: '/admin/payments', label: 'Pagamentos', icon: Receipt, exact: false },
   { href: '/admin/payouts', label: 'Saques', icon: Wallet, exact: false },
+  { href: '/admin/parceiros', label: 'Parceiros', icon: Handshake, exact: false },
   { href: '/admin/tracking', label: 'Rastreamento', icon: Radar, exact: false },
 ];
 

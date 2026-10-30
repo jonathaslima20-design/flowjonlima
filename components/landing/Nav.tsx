@@ -30,9 +30,10 @@ export function Nav() {
         </Link>
 
         <nav className="hidden md:flex items-center gap-8 font-bold">
-          <a href="#features" className="hover:text-bioblue">Recursos</a>
-          <a href="#pricing" className="hover:text-bioblue">Preços</a>
-          <a href="#faq" className="hover:text-bioblue">FAQ</a>
+          <Link href="/#features" className="hover:text-bioblue">Recursos</Link>
+          <Link href="/#pricing" className="hover:text-bioblue">Preços</Link>
+          <Link href="/#faq" className="hover:text-bioblue">FAQ</Link>
+          <Link href="/parceiros" className="hover:text-bioblue">Programa de Parceiros</Link>
         </nav>
 
         <div className="hidden md:flex items-center gap-3">
@@ -53,9 +54,10 @@ export function Nav() {
       {open && (
         <div className="md:hidden bg-white border-t-2 border-black">
           <div className="px-4 py-4 flex flex-col gap-3 font-bold">
-            <a href="#features">Recursos</a>
-            <a href="#pricing">Preços</a>
-            <a href="#faq">FAQ</a>
+            <Link href="/#features">Recursos</Link>
+            <Link href="/#pricing">Preços</Link>
+            <Link href="/#faq">FAQ</Link>
+            <Link href="/parceiros">Programa de Parceiros</Link>
             <Link href="/login">Entrar</Link>
             <Link href="/register" className="brutal-btn bg-bioyellow px-4 py-2 w-fit">Criar grátis</Link>
           </div>

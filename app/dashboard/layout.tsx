@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
-import { LayoutDashboard, Link2, ChartBar as BarChart3, Palette, Settings, LogOut, Waypoints, ShieldCheck, Video, Image as ImageIcon, AtSign, Menu, X, Gift, LifeBuoy, Inbox, Layers } from 'lucide-react';
+import { LayoutDashboard, Link2, ChartBar as BarChart3, Palette, Settings, LogOut, Waypoints, ShieldCheck, Video, Image as ImageIcon, AtSign, Menu, X, Gift, LifeBuoy, Inbox, Layers, Handshake } from 'lucide-react';
 import { UpgradeModalProvider } from '@/components/dashboard/UpgradeModal';
 import { SidebarPlanCard } from '@/components/dashboard/SidebarPlanCard';
 import { PaymentReturnNotice } from '@/components/dashboard/PaymentReturnNotice';
@@ -16,6 +16,7 @@ import { PageSwitcher } from '@/components/dashboard/PageSwitcher';
 import { OnboardingProvider, useOnboarding } from '@/lib/onboarding';
 import { OnboardingSidebarCard } from '@/components/dashboard/OnboardingGuide';
 import { usePlan } from '@/hooks/use-plan';
+import { supabase } from '@/lib/supabase';
 
 const nav = [
   { href: '/dashboard', label: 'Visão geral', icon: LayoutDashboard },
@@ -73,12 +74,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 function DashboardShell({ path, isAdmin, signOut, children }: {
   path: string; isAdmin: boolean; signOut: () => void; children: React.ReactNode;
 }) {
-  const { pageId, ready } = useCurrentPage();
+  const { pageId, ready, accountId } = useCurrentPage();
   const onboarding = useOnboarding();
   const { accountPlan, loading: planLoading } = usePlan();
   // Enquanto o guia inicial não termina, o menu mostra o progresso no lugar do convite para upgrade (Free)
   const showGuideCard = onboarding.active && !onboarding.celebrate;
   const hidePlanCard = showGuideCard && (planLoading || accountPlan.slug === 'free');
+  // Parceiros (qualquer status) veem o Painel do Parceiro no menu
+  const [isPartner, setIsPartner] = useState(false);
+  useEffect(() => {
+    if (!accountId) return;
+    supabase.from('partners').select('id').eq('profile_id', accountId).maybeSingle().then(({ data }) => setIsPartner(!!data));
+  }, [accountId]);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
@@ -121,6 +128,14 @@ function DashboardShell({ path, isAdmin, signOut, children }: {
             </Link>
           );
         })}
+        {isPartner && (
+          <Link
+            href="/dashboard/parceiro"
+            className={`flex items-center gap-3 px-3 py-2 brutal-border font-bold text-sm ${path === '/dashboard/parceiro' ? 'bg-bioyellow brutal-shadow' : 'bg-biolime'}`}
+          >
+            <Handshake className="w-4 h-4" /> Painel do Parceiro
+          </Link>
+        )}
         {isAdmin && (
           <Link
             href="/admin"

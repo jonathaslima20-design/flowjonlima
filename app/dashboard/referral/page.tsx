@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { usePlan } from '@/hooks/use-plan';
@@ -164,6 +165,10 @@ export default function ReferralPage() {
         <p className="text-sm font-bold text-black/60">
           Indique amigos e ganhe comissao toda vez que eles assinarem um plano Pro.
         </p>
+        <Link href="/parceiros" className="mt-4 brutal-border bg-biolime p-3 flex items-center justify-between gap-3 text-sm hover:brutal-shadow">
+          <span><b>É agência, criador ou consultor?</b> No Programa de Parceiros a comissão é recorrente, com cupom para seus clientes.</span>
+          <ChevronRight className="w-4 h-4 shrink-0" />
+        </Link>
       </div>
 
       {/* Commission cards — visible to ALL */}

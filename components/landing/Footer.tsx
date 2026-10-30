@@ -24,6 +24,7 @@ export function Footer() {
           { label: 'Preços', href: '/#pricing' },
           { label: 'Exemplos', href: '/exemplos' },
           { label: 'Para agências', href: '/#agencias' },
+          { label: 'Programa de parceiros', href: '/parceiros' },
         ]} />
         <div>
           <h4 className="font-display text-sm mb-4">Contato</h4>

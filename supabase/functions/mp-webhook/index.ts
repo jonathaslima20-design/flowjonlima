@@ -113,6 +113,12 @@ Deno.serve(async (req: Request) => {
     }).eq("id", payment.id);
   }
 
+  // Reembolso ou chargeback: estorna a comissão do parceiro e revoga licenças não usadas
+  if (["refunded", "charged_back"].includes(status)) {
+    const { error } = await admin.rpc("partner_reverse_payment", { p_payment_id: payment.id });
+    if (error) console.error("partner_reverse_payment failed", error);
+  }
+
   if (status === "approved" && !payment.plan_granted_until) {
     const paidCents = Math.round(Number(mp.transaction_amount) * 100);
     if (mp.currency_id !== "BRL" || paidCents < payment.amount_cents) {

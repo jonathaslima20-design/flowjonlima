@@ -1,12 +1,12 @@
 'use client';
 
-import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { ArrowLeft, Check, CircleCheck, Clock, Copy, CreditCard, Loader2, QrCode, ShieldCheck, CircleAlert } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
-import { PLANS, PERIOD_LABELS, brl, monthlyPrice, type BillingPeriod, type PaidPlanSlug } from '@/lib/plans';
+import { PLANS, PERIOD_LABELS, brl, type BillingPeriod, type PaidPlanSlug } from '@/lib/plans';
 import { startCheckout } from '@/lib/checkout';
 import { getMetaContext, planEventData, trackMeta, trackPurchase } from '@/lib/meta-pixel';
 import { WhatsAppSupport } from '@/components/shared/WhatsAppSupport';
@@ -18,6 +18,12 @@ type Method = 'pix' | 'card';
 type Config = { enabled: boolean; publicKey: string | null };
 type Pix = { paymentId: string; qrCode: string | null; qrCodeBase64: string | null; ticketUrl: string | null; expiresAt: string | null };
 type Result = { kind: 'approved' | 'pending'; text: string };
+// Preço calculado no banco (checkout_quote / license_quote): desconto do parceiro ou licenças no atacado
+type Quote = {
+  list_cents: number; amount_cents: number; discount_cents: number; discount_pct: number;
+  partner_name?: string | null; coupon_code?: string | null; coupon_error?: string | null; error?: string; quantity?: number;
+};
+type Extra = { coupon?: string | null; kind?: 'license'; qty?: number } | undefined;
 
 const PAID: PaidPlanSlug[] = ['pro', 'business'];
 const PERIODS: BillingPeriod[] = ['quarterly', 'annual'];
@@ -86,10 +92,17 @@ function Checkout() {
   const params = useSearchParams();
   const plan = (PAID.includes(params.get('plan') as PaidPlanSlug) ? params.get('plan') : 'pro') as PaidPlanSlug;
   const period = (PERIODS.includes(params.get('period') as BillingPeriod) ? params.get('period') : 'quarterly') as BillingPeriod;
+  // Parceiro comprando licenças no atacado: ?kind=license&qty=10
+  const isLicense = params.get('kind') === 'license';
+  const qty = Math.max(1, Math.min(500, Math.floor(Number(params.get('qty')) || 0)));
   const { userId, email } = useAuth();
 
   const [config, setConfig] = useState<Config | null>(null);
   const [price, setPrice] = useState(PLANS[plan].prices[period]);
+  const [quote, setQuote] = useState<Quote | null>(null);
+  const [couponInput, setCouponInput] = useState('');
+  const [coupon, setCoupon] = useState<string | null>(null);
+  const [couponOpen, setCouponOpen] = useState(false);
   const [fallbackUrl, setFallbackUrl] = useState<string | null>(null);
   const [method, setMethod] = useState<Method>('pix');
   const [result, setResult] = useState<Result | null>(null);
@@ -105,9 +118,31 @@ function Checkout() {
     });
   }, [plan, period]);
 
+  // Preço final no banco: desconto do parceiro (cupom ou link) ou licenças com desconto de atacado
+  useEffect(() => {
+    const req = isLicense
+      ? supabase.rpc('license_quote', { p_plan: plan, p_period: period, p_qty: qty })
+      : supabase.rpc('checkout_quote', { p_plan: plan, p_period: period, p_coupon: coupon ?? undefined });
+    req.then(({ data }) => setQuote((data as unknown as Quote) ?? null));
+  }, [plan, period, coupon, isLicense, qty]);
+
+  const couponError = coupon ? quote?.coupon_error : null;
+  const finalPrice = quote && !quote.error && !couponError ? quote.amount_cents : price;
+  // Memorizado: o formulário do cartão é recriado quando muda
+  const extra = useMemo<Extra>(
+    () => (isLicense ? { kind: 'license', qty } : coupon && !couponError ? { coupon } : undefined),
+    [isLicense, qty, coupon, couponError],
+  );
+
+  function applyCoupon(e: React.FormEvent) {
+    e.preventDefault();
+    const code = couponInput.trim().toUpperCase();
+    setCoupon(code || null);
+  }
+
   async function payOnMercadoPago() {
     setRedirecting(true);
-    const res = await startCheckout(plan, period);
+    const res = await startCheckout(plan, period, extra);
     if (!res.ok) setRedirecting(false);
   }
 
@@ -121,27 +156,68 @@ function Checkout() {
   }, [plan, period]);
 
   const pixApproved = useCallback((paymentId: string) => {
-    trackPurchase(paymentId, planEventData(plan, period, price));
-    setResult({ kind: 'approved', text: 'Seu plano já está ativo. Aproveite todos os recursos!' });
-  }, [plan, period, price]);
+    trackPurchase(paymentId, planEventData(plan, period, finalPrice));
+    setResult({
+      kind: 'approved',
+      text: isLicense ? 'Suas licenças já estão disponíveis no Painel do Parceiro.' : 'Seu plano já está ativo. Aproveite todos os recursos!',
+    });
+  }, [plan, period, finalPrice, isLicense]);
   const def = PLANS[plan];
+  const hasDiscount = !!quote && !quote.error && !couponError && quote.discount_cents > 0;
 
   return (
     <div className="max-w-xl mx-auto">
-      <Link href="/dashboard" className="inline-flex items-center gap-1.5 text-sm font-bold mb-4 hover:underline">
+      <Link href={isLicense ? '/dashboard/parceiro?tab=licencas' : '/dashboard'} className="inline-flex items-center gap-1.5 text-sm font-bold mb-4 hover:underline">
         <ArrowLeft className="w-4 h-4" /> Voltar
       </Link>
 
-      <div className={`brutal-card p-5 mb-5 flex items-center justify-between gap-4 ${plan === 'pro' ? 'bg-bioyellow' : 'bg-biolime'}`}>
-        <div>
-          <p className="font-display text-2xl leading-tight">Plano {def.name}</p>
-          <p className="text-sm font-bold text-black/70">Pacote {PERIOD_LABELS[period].adjective} · equivale a {brl(monthlyPrice(plan, period))}/mês</p>
+      <div className={`brutal-card p-5 mb-5 ${plan === 'pro' ? 'bg-bioyellow' : 'bg-biolime'}`}>
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="font-display text-2xl leading-tight">{isLicense ? `${qty} licenças ${def.name}` : `Plano ${def.name}`}</p>
+            <p className="text-sm font-bold text-black/70">
+              {isLicense
+                ? `Pacote ${PERIOD_LABELS[period].adjective} para seus clientes · ${quote?.discount_pct ?? 0}% de desconto de atacado`
+                : `Pacote ${PERIOD_LABELS[period].adjective} · equivale a ${brl(Math.round(finalPrice / (period === 'annual' ? 12 : 3)))}/mês`}
+            </p>
+          </div>
+          <div className="text-right">
+            {hasDiscount && <p className="text-sm font-bold line-through text-black/50">{brl(quote!.list_cents)}</p>}
+            <p className="font-display text-3xl whitespace-nowrap">{brl(finalPrice)}</p>
+          </div>
         </div>
-        <p className="font-display text-3xl whitespace-nowrap">{brl(price)}</p>
+        {isLicense && quote?.error && <p className="mt-3 text-sm font-bold text-biored">{quote.error}</p>}
+        {!isLicense && hasDiscount && (
+          <p className="mt-3 text-sm font-bold inline-flex items-center gap-1.5 bg-white brutal-border px-2 py-1">
+            <Check className="w-4 h-4" /> {quote!.discount_pct}% de desconto{quote!.partner_name ? ` de ${quote!.partner_name}` : ''} no primeiro pagamento
+          </p>
+        )}
       </div>
 
+      {!isLicense && !result && (
+        <div className="mb-5 -mt-2">
+          {couponOpen || coupon ? (
+            <form onSubmit={applyCoupon} className="flex gap-2">
+              <input
+                value={couponInput}
+                onChange={e => setCouponInput(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
+                placeholder="Cupom de parceiro"
+                maxLength={20}
+                className="flex-1 min-w-0 brutal-input px-3 py-2 text-sm font-bold uppercase"
+              />
+              <button className="brutal-btn bg-black text-white px-4 py-2 text-sm">Aplicar</button>
+            </form>
+          ) : (
+            <button onClick={() => setCouponOpen(true)} className="text-xs font-bold underline">Tem um cupom de parceiro?</button>
+          )}
+          {couponError && <p className="mt-2 text-sm font-bold text-biored inline-flex items-center gap-1.5"><CircleAlert className="w-4 h-4" /> {couponError}</p>}
+        </div>
+      )}
+
       <div className="brutal-card bg-white p-5 md:p-6">
-        {result ? (
+        {isLicense && quote?.error ? (
+          <p className="text-sm font-bold text-center py-4">Ajuste a quantidade no Painel do Parceiro para continuar.</p>
+        ) : result ? (
           <ResultView result={result} />
         ) : !config ? (
           <div className="py-10 flex justify-center"><Loader2 className="w-6 h-6 animate-spin" /></div>
@@ -175,13 +251,14 @@ function Checkout() {
             </div>
 
             {method === 'pix' ? (
-              <PixForm plan={plan} period={period} userId={userId} email={email} onApproved={pixApproved} />
+              <PixForm plan={plan} period={period} extra={extra} userId={userId} email={email} onApproved={pixApproved} />
             ) : config.publicKey ? (
               <CardForm
                 publicKey={config.publicKey}
                 plan={plan}
                 period={period}
-                amount={price}
+                extra={extra}
+                amount={finalPrice}
                 email={email}
                 onResult={setResult}
               />
@@ -213,8 +290,8 @@ function Checkout() {
   );
 }
 
-function PixForm({ plan, period, userId, email, onApproved }: {
-  plan: PaidPlanSlug; period: BillingPeriod; userId: string | null; email: string | null; onApproved: (paymentId: string) => void;
+function PixForm({ plan, period, extra, userId, email, onApproved }: {
+  plan: PaidPlanSlug; period: BillingPeriod; extra: Extra; userId: string | null; email: string | null; onApproved: (paymentId: string) => void;
 }) {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -254,7 +331,7 @@ function PixForm({ plan, period, userId, email, onApproved }: {
     if (digits.length !== 11 && digits.length !== 14) { setError('Informe um CPF ou CNPJ válido.'); return; }
     setLoading(true);
     const { data, error } = await callPayment({
-      action: 'pix', plan, period, meta: getMetaContext(),
+      action: 'pix', plan, period, ...extra, meta: getMetaContext(),
       payer: { first_name: firstName, last_name: lastName, document: digits },
     });
     setLoading(false);
@@ -334,8 +411,8 @@ function PixForm({ plan, period, userId, email, onApproved }: {
   );
 }
 
-function CardForm({ publicKey, plan, period, amount, email, onResult }: {
-  publicKey: string; plan: PaidPlanSlug; period: BillingPeriod; amount: number; email: string | null; onResult: (r: Result) => void;
+function CardForm({ publicKey, plan, period, extra, amount, email, onResult }: {
+  publicKey: string; plan: PaidPlanSlug; period: BillingPeriod; extra: Extra; amount: number; email: string | null; onResult: (r: Result) => void;
 }) {
   const [state, setState] = useState<'loading' | 'ready' | 'failed'>('loading');
   const [error, setError] = useState('');
@@ -345,7 +422,7 @@ function CardForm({ publicKey, plan, period, amount, email, onResult }: {
   const submit = useCallback(async (formData: any) => {
     setError('');
     trackMeta('AddPaymentInfo', { ...planEventData(plan, period, amount), payment_type: 'card' }, { capi: true });
-    const { data, error } = await callPayment({ action: 'card', plan, period, card: formData, meta: getMetaContext() });
+    const { data, error } = await callPayment({ action: 'card', plan, period, ...extra, card: formData, meta: getMetaContext() });
     if (error) { setError(error); throw new Error(error); }
     if (data.status === 'approved') {
       trackPurchase(data.paymentId, planEventData(plan, period, amount));
@@ -357,7 +434,7 @@ function CardForm({ publicKey, plan, period, amount, email, onResult }: {
       setError(message);
       throw new Error(message);
     }
-  }, [plan, period, amount]);
+  }, [plan, period, amount, extra]);
 
   useEffect(() => {
     let controller: any;

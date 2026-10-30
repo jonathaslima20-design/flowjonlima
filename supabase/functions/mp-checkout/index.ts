@@ -1,21 +1,17 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.58.0";
 import { paymentMetaContext } from "../_shared/meta.ts";
+import { priceFor } from "../_shared/pricing.ts";
 
 // Cria um pagamento pendente e uma preferência do Checkout Pro do Mercado Pago.
 // Access Token: Admin → Pagamentos (Vault, via get_payment_secrets) ou secret MP_ACCESS_TOKEN. SITE_URL opcional.
 // { action: "check" } (só admin) confere o token na API do Mercado Pago.
+// Aceita coupon (cupom de parceiro) e kind: "license" + qty, como o mp-payment (preço em _shared/pricing.ts).
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
-};
-
-const PAID_PLANS = ["pro", "business"];
-const PERIODS: Record<string, { label: string; column: "price_cents" | "price_annual_cents" }> = {
-  quarterly: { label: "Trimestral", column: "price_cents" },
-  annual: { label: "Anual", column: "price_annual_cents" },
 };
 
 function json(body: unknown, status = 200) {
@@ -59,12 +55,6 @@ Deno.serve(async (req: Request) => {
 
   if (!mpToken) return json({ error: "Pagamentos ainda não configurados." }, 503);
 
-  const plan = String(body?.plan ?? "");
-  const period = String(body?.period ?? "");
-  if (!PAID_PLANS.includes(plan)) return json({ error: "Plano inválido." }, 400);
-  const periodInfo = PERIODS[period];
-  if (!periodInfo) return json({ error: "Período inválido." }, 400);
-
   const { data: profile } = await admin
     .from("profiles")
     .select("suspended_at")
@@ -74,19 +64,13 @@ Deno.serve(async (req: Request) => {
   if (profile.suspended_at) return json({ error: "Conta suspensa." }, 403);
 
   // O preço vem do banco, nunca do navegador
-  const { data: planRow } = await admin
-    .from("plans")
-    .select("name, price_cents, price_annual_cents, is_active")
-    .eq("slug", plan)
-    .maybeSingle();
-  const amount = planRow?.[periodInfo.column];
-  if (!planRow?.is_active || !amount || amount <= 0) {
-    return json({ error: "Plano indisponível no momento." }, 400);
-  }
+  const { priced, error: priceErr } = await priceFor(admin, user.id, body);
+  if (!priced) return json({ error: priceErr ?? "Plano indisponível no momento." }, 400);
+  const amount = priced.amount;
 
   const { data: payment, error: payErr } = await admin
     .from("payments")
-    .insert({ profile_id: user.id, plan_slug: plan, period, amount_cents: amount, meta_context: paymentMetaContext(req, body?.meta) })
+    .insert({ profile_id: user.id, ...priced.row, meta_context: paymentMetaContext(req, body?.meta) })
     .select("id")
     .single();
   if (payErr || !payment) {
@@ -103,8 +87,8 @@ Deno.serve(async (req: Request) => {
     },
     body: JSON.stringify({
       items: [{
-        id: `${plan}_${period}`,
-        title: `BioFlowzy ${planRow.name} ${periodInfo.label}`,
+        id: priced.itemId,
+        title: priced.description,
         quantity: 1,
         unit_price: amount / 100,
         currency_id: "BRL",

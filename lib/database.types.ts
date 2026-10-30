@@ -735,6 +735,120 @@ export type Database = {
           },
         ]
       }
+      partner_invites: {
+        Row: {
+          accepted_at: string | null
+          accepted_profile_id: string | null
+          client_name: string
+          created_at: string
+          expires_at: string
+          id: string
+          license_id: string | null
+          managed: boolean
+          partner_id: string
+          token: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_profile_id?: string | null
+          client_name?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          license_id?: string | null
+          managed?: boolean
+          partner_id: string
+          token?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_profile_id?: string | null
+          client_name?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          license_id?: string | null
+          managed?: boolean
+          partner_id?: string
+          token?: string
+        }
+        Relationships: []
+      }
+      partners: {
+        Row: {
+          admin_note: string
+          approved_at: string | null
+          audience: string
+          channels: string
+          code: string | null
+          company: string
+          coupon_code: string | null
+          created_at: string
+          custom_discount_pct: number | null
+          custom_rate: number | null
+          document: string
+          id: string
+          kind: string
+          message: string
+          name: string
+          pix_full_name: string
+          pix_key: string
+          profile_id: string
+          status: string
+          terms_accepted_at: string | null
+          updated_at: string
+          whatsapp: string
+        }
+        Insert: {
+          admin_note?: string
+          approved_at?: string | null
+          audience?: string
+          channels?: string
+          code?: string | null
+          company?: string
+          coupon_code?: string | null
+          created_at?: string
+          custom_discount_pct?: number | null
+          custom_rate?: number | null
+          document?: string
+          id?: string
+          kind?: string
+          message?: string
+          name: string
+          pix_full_name?: string
+          pix_key?: string
+          profile_id: string
+          status?: string
+          terms_accepted_at?: string | null
+          updated_at?: string
+          whatsapp?: string
+        }
+        Update: {
+          admin_note?: string
+          approved_at?: string | null
+          audience?: string
+          channels?: string
+          code?: string | null
+          company?: string
+          coupon_code?: string | null
+          created_at?: string
+          custom_discount_pct?: number | null
+          custom_rate?: number | null
+          document?: string
+          id?: string
+          kind?: string
+          message?: string
+          name?: string
+          pix_full_name?: string
+          pix_key?: string
+          profile_id?: string
+          status?: string
+          terms_accepted_at?: string | null
+          updated_at?: string
+          whatsapp?: string
+        }
+        Relationships: []
+      }
       payout_requests: {
         Row: {
           admin_note: string | null
@@ -1424,6 +1538,34 @@ export type Database = {
       }
       onboarding_status: { Args: { p_profile_id: string }; Returns: Json }
       touch_last_seen: { Args: never; Returns: undefined }
+      apply_partner: {
+        Args: {
+          p_kind: string; p_name: string; p_company: string; p_document: string; p_whatsapp: string
+          p_channels: string; p_audience: string; p_message: string
+        }
+        Returns: Json
+      }
+      partner_update_profile: { Args: { p: Json }; Returns: Json }
+      track_partner_click: { Args: { p_code: string }; Returns: boolean }
+      partner_invite_info: { Args: { p_token: string }; Returns: Json }
+      partner_accept_invite: { Args: { p_token: string }; Returns: boolean }
+      checkout_quote: { Args: { p_plan: string; p_period: string; p_coupon?: string }; Returns: Json }
+      license_quote: { Args: { p_plan: string; p_period: string; p_qty: number }; Returns: Json }
+      partner_assign_license: { Args: { p_license_id: string; p_profile_id: string }; Returns: string }
+      partner_request_payout: { Args: never; Returns: Json }
+      partner_create_invite: {
+        Args: { p_client_name: string; p_managed?: boolean; p_license_id?: string }
+        Returns: Json
+      }
+      partner_dashboard: { Args: never; Returns: Json }
+      admin_partners: { Args: never; Returns: Json }
+      admin_partner_detail: { Args: { p_partner_id: string }; Returns: Json }
+      admin_partner_payouts: { Args: never; Returns: Json }
+      admin_set_partner_status: { Args: { p_partner_id: string; p_status: string; p_note?: string }; Returns: Json }
+      admin_partner_attach: { Args: { p_partner_id: string; p_username: string; p_managed?: boolean }; Returns: boolean }
+      admin_partner_detach: { Args: { p_profile_id: string }; Returns: undefined }
+      admin_partner_adjust: { Args: { p_partner_id: string; p_cents: number; p_note: string }; Returns: Json }
+      admin_resolve_partner_payout: { Args: { p_payout_id: string; p_action: string; p_note?: string }; Returns: Json }
       track_view: {
         Args: { p_device?: string; p_profile_id: string; p_source?: string }
         Returns: boolean
