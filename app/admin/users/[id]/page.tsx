@@ -11,6 +11,7 @@ import { supabase } from '@/lib/supabase';
 import { brl, isPlanSlug, planLabel } from '@/lib/plans';
 import { IconWhatsapp } from '@/lib/social-icons';
 import { formatWhatsapp, whatsappLink } from '@/lib/whatsapp';
+import { lastSeenLabel } from '@/lib/last-seen';
 import { PlanEditDialog } from '@/components/admin/users/PlanEditDialog';
 import { UserAccountActions } from '@/components/admin/users/UserAccountActions';
 import { UserNotes, UserTags } from '@/components/admin/users/UserNotes';
@@ -44,6 +45,7 @@ type Overview = {
   email: string | null;
   email_confirmed_at: string | null;
   last_sign_in_at: string | null;
+  last_seen_at: string | null;
   providers: string[];
   whatsapp: string | null;
   commission_balance: number;
@@ -88,16 +90,6 @@ const PAYMENT_STATUS: Record<string, { label: string; cls: string }> = {
 
 const fmtDate = (v: string | null | undefined, time = false) =>
   v ? new Date(v).toLocaleString('pt-BR', time ? { dateStyle: 'short', timeStyle: 'short' } : { dateStyle: 'short' }) : '—';
-
-function relative(v: string | null): string {
-  if (!v) return 'nunca';
-  const days = Math.floor((Date.now() - new Date(v).getTime()) / 86400000);
-  if (days <= 0) return 'hoje';
-  if (days === 1) return 'ontem';
-  if (days < 30) return `há ${days} dias`;
-  if (days < 365) return `há ${Math.floor(days / 30)} meses`;
-  return `há ${Math.floor(days / 365)} anos`;
-}
 
 export default function AdminUserDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -255,7 +247,7 @@ export default function AdminUserDetailPage() {
                   </button>
                 )}
                 {!overview.email_confirmed_at && <span className="text-biored font-bold">e-mail não confirmado</span>}
-                <span>Último login: <strong className="text-black">{relative(overview.last_sign_in_at)}</strong></span>
+                <span title={fmtDate(overview.last_seen_at, true)}>Último acesso: <strong className="text-black">{lastSeenLabel(overview.last_seen_at)}</strong></span>
               </div>
             </div>
           </div>
@@ -316,6 +308,7 @@ export default function AdminUserDetailPage() {
                 </Info>
                 <Info label="Cliente desde">{fmtDate(profile.plan_started_at)}</Info>
                 <Info label="Cadastro">{fmtDate(profile.created_at, true)}</Info>
+                <Info label="Último acesso">{fmtDate(overview.last_seen_at, true)}</Info>
                 <Info label="Último login">{fmtDate(overview.last_sign_in_at, true)}</Info>
                 <Info label="Origem do cadastro">
                   {profile.signup_source ? `${profile.signup_source}${profile.signup_campaign ? ` / ${profile.signup_campaign}` : ''}` : '—'}

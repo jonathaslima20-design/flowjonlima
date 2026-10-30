@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useRef, useState, ReactNode } from 'react';
 import { openedFromRecoveryLink, supabase } from './supabase';
+import { readImpersonation } from './impersonation';
 
 type Role = 'admin' | 'user' | null;
 
@@ -82,6 +83,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => { sub.subscription.unsubscribe(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Último acesso (profile_private.last_seen_at, visto em Admin → Usuários). Não conta enquanto um admin
+  // está "como o usuário"; o banco grava no máximo a cada 2 minutos
+  useEffect(() => {
+    const userId = state.userId;
+    if (!userId) return;
+    let last = 0;
+    const touch = () => {
+      if (document.visibilityState !== 'visible' || Date.now() - last < 2 * 60_000) return;
+      if (readImpersonation()?.targetId === userId) return;
+      last = Date.now();
+      supabase.rpc('touch_last_seen').then(() => {});
+    };
+    touch();
+    const timer = setInterval(touch, 5 * 60_000);
+    document.addEventListener('visibilitychange', touch);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', touch);
+    };
+  }, [state.userId]);
 
   async function signOut() {
     await supabase.auth.signOut();

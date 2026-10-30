@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Copy, KeyRound, Loader2, LogOut, Mail, MailCheck, Trash2, UserRoundCog, X, Check } from 'lucide-react';
 import { adminUserAction } from '@/lib/admin-user';
 import { startImpersonation } from '@/lib/impersonation';
+import { DeleteUserDialog } from './DeleteUserDialog';
 
 type Props = {
   profileId: string;
@@ -26,7 +27,6 @@ export function UserAccountActions(p: Props) {
   const [error, setError] = useState('');
   const [reason, setReason] = useState('');
   const [newEmail, setNewEmail] = useState('');
-  const [confirmText, setConfirmText] = useState('');
   const [link, setLink] = useState('');
   const [copied, setCopied] = useState(false);
 
@@ -35,7 +35,6 @@ export function UserAccountActions(p: Props) {
   function open(d: Dialog) {
     setError('');
     setReason('');
-    setConfirmText('');
     setNewEmail(p.email ?? '');
     setLink('');
     setCopied(false);
@@ -83,11 +82,6 @@ export function UserAccountActions(p: Props) {
     if (ok) p.onChanged('E-mail confirmado.');
   }
 
-  async function remove() {
-    const ok = await run('delete', async () => (await adminUserAction('delete_user', p.profileId, { confirm: confirmText })).error);
-    if (ok) p.onDeleted();
-  }
-
   const btn = 'brutal-btn bg-white px-3 py-2 text-xs gap-2 justify-start w-full disabled:opacity-40 disabled:cursor-not-allowed';
 
   return (
@@ -119,7 +113,17 @@ export function UserAccountActions(p: Props) {
       </div>
       {error && !dialog && <p className="text-sm text-biored font-bold mt-2">{error}</p>}
 
-      {dialog && (
+      {dialog === 'delete' && (
+        <DeleteUserDialog
+          profileId={p.profileId}
+          username={p.username}
+          hasApprovedPayments={p.hasApprovedPayments}
+          onClose={() => setDialog(null)}
+          onDeleted={p.onDeleted}
+        />
+      )}
+
+      {dialog && dialog !== 'delete' && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => !busy && setDialog(null)}>
           <div className="brutal-card bg-white p-6 max-w-md w-full" onClick={e => e.stopPropagation()}>
             <div className="flex items-start justify-between mb-3">
@@ -128,7 +132,6 @@ export function UserAccountActions(p: Props) {
                 {dialog === 'recovery' && 'Redefinir senha'}
                 {dialog === 'revoke' && 'Desconectar de todos os aparelhos'}
                 {dialog === 'email' && 'Alterar e-mail'}
-                {dialog === 'delete' && 'Excluir conta'}
               </h3>
               <button onClick={() => setDialog(null)} className="p-1 hover:bg-gray-100 rounded"><X className="w-5 h-5" /></button>
             </div>
@@ -224,39 +227,6 @@ export function UserAccountActions(p: Props) {
                 >
                   {busy === 'email' && <Loader2 className="w-4 h-4 animate-spin" />} Salvar e-mail
                 </button>
-              </>
-            )}
-
-            {dialog === 'delete' && (
-              <>
-                {p.hasApprovedPayments ? (
-                  <p className="text-sm text-gray-600">
-                    Esta conta tem pagamentos aprovados. Excluir apagaria o histórico financeiro, que precisa ser guardado pela
-                    legislação fiscal. <strong>Suspenda a conta</strong> no lugar.
-                  </p>
-                ) : (
-                  <>
-                    <p className="text-sm text-gray-600 mb-3">
-                      Apaga a conta, todas as páginas, links, estatísticas e contatos de <strong>@{p.username}</strong>.
-                      <strong> Não dá para desfazer.</strong> Digite <span className="font-mono font-bold">{p.username}</span> para confirmar.
-                    </p>
-                    <input
-                      value={confirmText}
-                      onChange={e => setConfirmText(e.target.value)}
-                      autoFocus
-                      placeholder={p.username}
-                      className="brutal-input w-full px-3 py-2 text-sm mb-3"
-                    />
-                    {error && <p className="text-sm text-biored font-bold mb-3">{error}</p>}
-                    <button
-                      onClick={remove}
-                      disabled={confirmText.replace(/^@/, '').toLowerCase() !== p.username.toLowerCase() || busy === 'delete'}
-                      className="brutal-btn bg-biored text-white w-full py-2.5 text-sm gap-2 disabled:opacity-50"
-                    >
-                      {busy === 'delete' && <Loader2 className="w-4 h-4 animate-spin" />} Excluir definitivamente
-                    </button>
-                  </>
-                )}
               </>
             )}
           </div>

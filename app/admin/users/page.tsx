@@ -4,9 +4,11 @@ import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import type { Json } from '@/lib/database.types';
-import { Search, Shield, ShieldOff, Ban, CircleCheck as CheckCircle2, ExternalLink, ChevronLeft, ChevronRight, RefreshCw, Filter, Eye, Crown } from 'lucide-react';
+import { Search, Shield, ShieldOff, Ban, CircleCheck as CheckCircle2, ExternalLink, ChevronLeft, ChevronRight, RefreshCw, Filter, Eye, Crown, Trash2 } from 'lucide-react';
 import { isPlanSlug, planLabel } from '@/lib/plans';
 import { PlanEditDialog } from '@/components/admin/users/PlanEditDialog';
+import { DeleteUserDialog } from '@/components/admin/users/DeleteUserDialog';
+import { lastSeenLabel } from '@/lib/last-seen';
 import { IconWhatsapp } from '@/lib/social-icons';
 import { formatWhatsapp, whatsappLink } from '@/lib/whatsapp';
 
@@ -48,6 +50,9 @@ export default function AdminUsersPage() {
   const [planEdit, setPlanEdit] = useState<Profile | null>(null);
   // WhatsApp do cadastro (profile_private, leitura liberada para admin)
   const [phones, setPhones] = useState<Record<string, string>>({});
+  // Último acesso (RPC admin_last_seen)
+  const [lastSeen, setLastSeen] = useState<Record<string, string>>({});
+  const [deleteTarget, setDeleteTarget] = useState<Profile | null>(null);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -82,6 +87,8 @@ export default function AdminUsersPage() {
     if (ids.length) {
       const { data: priv } = await supabase.from('profile_private').select('profile_id, whatsapp').in('profile_id', ids);
       setPhones(Object.fromEntries((priv ?? []).filter(r => r.whatsapp).map(r => [r.profile_id, r.whatsapp])));
+      const { data: seen } = await supabase.rpc('admin_last_seen', { p_ids: ids });
+      setLastSeen(Object.fromEntries((seen ?? []).filter(r => r.last_seen_at).map(r => [r.profile_id, r.last_seen_at])));
     }
     setLoading(false);
   }, [search, filterRole, filterPlan, filterStatus, page]);
@@ -194,6 +201,7 @@ export default function AdminUsersPage() {
                   <th className="text-center px-4 py-3 font-display text-xs uppercase tracking-wider">Papel</th>
                   <th className="text-center px-4 py-3 font-display text-xs uppercase tracking-wider">Status</th>
                   <th className="text-left px-4 py-3 font-display text-xs uppercase tracking-wider hidden lg:table-cell">Cadastro</th>
+                  <th className="text-left px-4 py-3 font-display text-xs uppercase tracking-wider hidden lg:table-cell">Último acesso</th>
                   <th className="text-right px-4 py-3 font-display text-xs uppercase tracking-wider">Ações</th>
                 </tr>
               </thead>
@@ -248,6 +256,12 @@ export default function AdminUsersPage() {
                     </td>
                     <td className="px-4 py-3 text-xs text-gray-400 hidden lg:table-cell">
                       {p.created_at ? new Date(p.created_at).toLocaleDateString('pt-BR') : '—'}
+                    </td>
+                    <td
+                      className="px-4 py-3 text-xs text-gray-500 hidden lg:table-cell whitespace-nowrap"
+                      title={lastSeen[p.id] ? new Date(lastSeen[p.id]).toLocaleString('pt-BR') : undefined}
+                    >
+                      {lastSeenLabel(lastSeen[p.id])}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1.5">
@@ -304,6 +318,14 @@ export default function AdminUsersPage() {
                           className="p-1.5 hover:bg-red-50 rounded transition-colors"
                         >
                           {p.suspended_at ? <CheckCircle2 className="w-4 h-4 text-green-500" /> : <Ban className="w-4 h-4 text-gray-400" />}
+                        </button>
+                        <button
+                          title={p.role === 'admin' || p.id === adminId ? 'Contas de admin não podem ser excluídas aqui' : 'Excluir cadastro'}
+                          onClick={() => setDeleteTarget(p)}
+                          disabled={p.role === 'admin' || p.id === adminId}
+                          className="p-1.5 hover:bg-red-50 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                        >
+                          <Trash2 className="w-4 h-4 text-biored" />
                         </button>
                       </div>
                     </td>
@@ -377,6 +399,19 @@ export default function AdminUsersPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {deleteTarget && (
+        <DeleteUserDialog
+          profileId={deleteTarget.id}
+          username={deleteTarget.username}
+          onClose={() => setDeleteTarget(null)}
+          onDeleted={() => {
+            setProfiles(list => list.filter(p => p.id !== deleteTarget.id));
+            setTotal(t => Math.max(0, t - 1));
+            setDeleteTarget(null);
+          }}
+        />
       )}
 
       {planEdit && (
