@@ -30,6 +30,9 @@ const PAYMENT_STATUS: Record<string, string> = {
 
 const PERIOD: Record<string, string> = { quarterly: 'trimestral', annual: 'anual' };
 
+// Registros antigos usam pro_monthly / pro_annual
+const planName = (slug: string | null | undefined) => (slug?.startsWith('pro_') ? 'Pro' : planLabel(slug));
+
 function describe(e: Event): string {
   const d = (e.details && typeof e.details === 'object' && !Array.isArray(e.details) ? e.details : {}) as Record<string, any>;
   switch (e.kind) {
@@ -46,7 +49,7 @@ function describe(e: Event): string {
     case 'admin': {
       const parts: string[] = [];
       if (e.title === 'plan_change' && d.after) {
-        parts.push(`${planLabel(d.before?.plan)} → ${planLabel(d.after.plan)}`);
+        parts.push(`${planName(d.before?.plan)} → ${planName(d.after.plan)}`);
         parts.push(d.after.plan_expires_at ? `até ${new Date(d.after.plan_expires_at).toLocaleDateString('pt-BR')}` : 'sem expiração');
       }
       if (e.title === 'update_email') parts.push(`${d.before ?? '?'} → ${d.after ?? '?'}`);
