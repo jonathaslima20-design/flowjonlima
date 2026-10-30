@@ -24,6 +24,18 @@ type Metrics = {
   top_pages: { username: string; views: number; clicks: number }[];
 };
 
+// Guia inicial do painel (RPC admin_onboarding_funnel): cadastros do período que fizeram cada passo
+type Funnel = Record<'signups' | 'avatar' | 'bio' | 'link' | 'social' | 'theme' | 'shared' | 'completed' | 'dismissed', number>;
+const FUNNEL_STEPS: { key: keyof Funnel; label: string }[] = [
+  { key: 'avatar', label: 'Foto' },
+  { key: 'bio', label: 'Bio' },
+  { key: 'link', label: 'Link ativo com endereço' },
+  { key: 'social', label: 'Rede social' },
+  { key: 'theme', label: 'Visual alterado' },
+  { key: 'shared', label: 'Compartilhou ou teve visitas' },
+  { key: 'completed', label: 'Página pronta (100%)' },
+];
+
 const PERIODS = [7, 30, 90, 365];
 const SOURCE_LABELS: Record<string, string> = { badge: 'Selo "feito com BioFlowzy"', direto: 'Direto / desconhecido' };
 
@@ -35,13 +47,18 @@ export default function AdminMetricsPage() {
   const [days, setDays] = useState(30);
   const [data, setData] = useState<Metrics | null>(null);
   const [error, setError] = useState('');
+  const [funnel, setFunnel] = useState<Funnel | null>(null);
 
   useEffect(() => {
     (async () => {
       setError('');
-      const { data: d, error: e } = await supabase.rpc('admin_growth_metrics', { p_days: days });
+      const [{ data: d, error: e }, { data: f }] = await Promise.all([
+        supabase.rpc('admin_growth_metrics', { p_days: days }),
+        supabase.rpc('admin_onboarding_funnel', { p_days: days }),
+      ]);
       if (e) { setError(e.message); return; }
       setData(d as unknown as Metrics);
+      setFunnel(f as unknown as Funnel | null);
     })();
   }, [days]);
 
@@ -89,6 +106,32 @@ export default function AdminMetricsPage() {
               bg="bg-biolime"
             />
           </div>
+
+          {funnel && (
+            <Card title={`Guia inicial: ${funnel.signups} cadastro(s) no período`}>
+              {funnel.signups === 0 ? (
+                <p className="text-sm text-black/60">Nenhum cadastro no período.</p>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {FUNNEL_STEPS.map(s => (
+                    <div key={s.key}>
+                      <div className="flex justify-between text-xs font-bold">
+                        <span>{s.label}</span>
+                        <span>{funnel[s.key]} · {pct(funnel[s.key], funnel.signups)}</span>
+                      </div>
+                      <div className="h-3 brutal-border bg-white mt-1">
+                        <div className={`h-full ${s.key === 'completed' ? 'bg-biolime' : 'bg-bioblue'}`} style={{ width: `${(funnel[s.key] / funnel.signups) * 100}%` }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <p className="text-[11px] text-black/50 mt-3">
+                Situação atual de quem se cadastrou no período. O passo com a maior queda é onde as pessoas desistem.
+                {funnel.dismissed > 0 && ` ${funnel.dismissed} fechou(aram) o guia antes de terminar.`}
+              </p>
+            </Card>
+          )}
 
           <div className="grid lg:grid-cols-2 gap-6">
             <Card title="Origem dos cadastros">

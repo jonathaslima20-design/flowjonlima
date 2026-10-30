@@ -90,7 +90,7 @@ export function StarterTemplates({ profileId, currentBio, onApplied }: { profile
 
   return (
     <section className="brutal-card p-5 bg-biolime mt-8">
-      <h2 className="font-display text-2xl">Comece com um modelo</h2>
+      <h2 className="font-display text-2xl">Quer pular etapas? Comece com um modelo</h2>
       <p className="text-sm font-bold text-black/70 mt-1">Escolha o seu tipo de negócio e a gente monta a base da sua página em segundos.</p>
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
         {TEMPLATES.map(t => {

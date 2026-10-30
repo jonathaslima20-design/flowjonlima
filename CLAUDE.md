@@ -69,6 +69,7 @@ Plataforma de link in bio (bioflowzy.com). Originalmente gerada no Bolt.new (tem
 - QR code (`components/dashboard/QrCodeCard.tsx`, exige `qr_code`) aponta para `?utm_source=qrcode`
 - Contagem regressiva (Business, `countdown`): `profiles.countdown_title/countdown_ends_at`; `orderedSections` (themes/types.ts) insere `<PageCountdown>` antes das seções em todos os temas, com dados do `CountdownProvider` (página pública e prévias); editor em `CountdownCard` na tela de Links
 - Modelos por nicho (`components/dashboard/StarterTemplates.tsx`) aparecem no painel enquanto não há links nem redes; usam só temas gratuitos
+- Guia inicial ("Sua página está X% pronta", `lib/onboarding.tsx` + `components/dashboard/OnboardingGuide.tsx`): só na página principal da conta logada. Passos calculados no banco por `onboarding_steps` (foto, bio, link ativo com endereço, rede social, visual fora do padrão, compartilhou ou já teve tráfego) via RPC `onboarding_status`; `profile_private.onboarding_shared_at/completed_at/dismissed_at`. Comemoração ao chegar a 100% (só contas com até 30 dias). Enquanto ativo: card de progresso no menu no lugar do convite de upgrade (Free), sem números zerados nem QR bloqueado na Visão geral (QR Free aparece no fim depois do guia). Funil em Admin → Métricas (`admin_onboarding_funnel`)
 
 ## Múltiplas páginas (Business)
 - Página extra = linha em `profiles` com `owner_id` = perfil principal (NULL = página principal / conta). Conteúdo continua por `profile_id`

@@ -8,6 +8,9 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 import { MousePointerClick, Link2, AtSign, Video } from 'lucide-react';
 import { QrCodeCard } from '@/components/dashboard/QrCodeCard';
 import { StarterTemplates } from '@/components/dashboard/StarterTemplates';
+import { OnboardingGuide, ShareButtons } from '@/components/dashboard/OnboardingGuide';
+import { useOnboarding } from '@/lib/onboarding';
+import { usePlan } from '@/hooks/use-plan';
 
 type Profile = { id: string; username: string; display_name: string; bio: string | null };
 
@@ -36,6 +39,10 @@ export default function DashboardHome() {
   // Página sem nenhum link (ativo ou não) nem rede social: oferece os modelos por nicho
   const [isEmpty, setIsEmpty] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
+  // Sem nenhuma visita nem clique: no lugar dos números zerados, um convite para compartilhar
+  const [hasTraffic, setHasTraffic] = useState(false);
+  const onboarding = useOnboarding();
+  const { has } = usePlan();
 
   useEffect(() => {
     (async () => {
@@ -59,6 +66,7 @@ export default function DashboardHome() {
         { count: socialCount },
         { count: videoCount },
         { count: allLinksCount },
+        { count: viewCount },
       ] = await Promise.all([
         supabase.from('clicks').select('*', { count: 'exact', head: true }).eq('profile_id', pid),
         supabase.from('clicks').select('*', { count: 'exact', head: true }).eq('profile_id', pid).eq('entity_type', 'link'),
@@ -68,8 +76,10 @@ export default function DashboardHome() {
         supabase.from('social_links').select('*', { count: 'exact', head: true }).eq('profile_id', pid),
         supabase.from('videos').select('*', { count: 'exact', head: true }).eq('profile_id', pid),
         supabase.from('links').select('*', { count: 'exact', head: true }).eq('profile_id', pid),
+        supabase.from('page_views').select('*', { count: 'exact', head: true }).eq('profile_id', pid),
       ]);
       setIsEmpty(!allLinksCount && !socialCount);
+      setHasTraffic(!!totalClicks || !!viewCount);
 
       setStats({
         totalClicks: totalClicks ?? 0,
@@ -139,16 +149,33 @@ export default function DashboardHome() {
           href={`/${profile?.username}`}
           target="_blank"
           rel="noreferrer"
+          onClick={onboarding.markShared}
           className="brutal-btn bg-bioyellow px-5 py-2 text-sm"
         >
           Ver minha bio
         </a>
       </div>
 
-      {!loading && isEmpty && profile && (
-        <StarterTemplates profileId={profile.id} currentBio={profile.bio} onApplied={() => setReloadKey(k => k + 1)} />
+      {onboarding.active && profile && (
+        <OnboardingGuide profileId={profile.id} username={profile.username} reloadKey={reloadKey} />
       )}
 
+      {!loading && isEmpty && profile && (
+        <StarterTemplates profileId={profile.id} currentBio={profile.bio} onApplied={() => { setReloadKey(k => k + 1); onboarding.reload(); }} />
+      )}
+
+      {!loading && !hasTraffic && !onboarding.active && profile?.username && (
+        <section className="brutal-card p-6 mt-8 bg-white">
+          <h2 className="font-display text-2xl">Seus visitantes aparecem aqui</h2>
+          <p className="text-sm text-black/70 mt-1 mb-4">
+            Assim que alguém abrir sua página ou clicar nos seus links, você acompanha tudo por aqui. Comece compartilhando o seu link.
+          </p>
+          <ShareButtons username={profile.username} compact />
+        </section>
+      )}
+
+      {(loading || hasTraffic) && (
+      <>
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-8">
         <StatCard label="Cliques totais" value={loading ? '...' : stats.totalClicks} icon={MousePointerClick} bg="bg-bioyellow" />
         <StatCard label="Cliques em links" value={loading ? '...' : stats.linkClicks} icon={Link2} bg="bg-biolime" />
@@ -156,7 +183,7 @@ export default function DashboardHome() {
         <StatCard label="Cliques em redes" value={loading ? '...' : stats.socialClicks} icon={AtSign} bg="bg-white" />
       </div>
 
-      {profile?.username && (
+      {profile?.username && has('qr_code') && (
         <div className="mt-8">
           <QrCodeCard username={profile.username} />
         </div>
@@ -231,6 +258,15 @@ export default function DashboardHome() {
           </Link>
         </div>
       </div>
+      </>
+      )}
+
+      {/* QR code: no plano Free (bloqueado) só aparece depois do guia inicial, no fim da tela */}
+      {!loading && profile?.username && (has('qr_code') ? !hasTraffic : !onboarding.active) && (
+        <div className="mt-8">
+          <QrCodeCard username={profile.username} />
+        </div>
+      )}
     </div>
   );
 }

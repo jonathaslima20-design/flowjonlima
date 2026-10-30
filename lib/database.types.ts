@@ -827,6 +827,9 @@ export type Database = {
       profile_private: {
         Row: {
           last_seen_at: string | null
+          onboarding_completed_at: string | null
+          onboarding_dismissed_at: string | null
+          onboarding_shared_at: string | null
           commission_balance: number
           pix_full_name: string
           pix_key: string
@@ -836,6 +839,9 @@ export type Database = {
         }
         Insert: {
           last_seen_at?: string | null
+          onboarding_completed_at?: string | null
+          onboarding_dismissed_at?: string | null
+          onboarding_shared_at?: string | null
           commission_balance?: number
           pix_full_name?: string
           pix_key?: string
@@ -845,6 +851,9 @@ export type Database = {
         }
         Update: {
           last_seen_at?: string | null
+          onboarding_completed_at?: string | null
+          onboarding_dismissed_at?: string | null
+          onboarding_shared_at?: string | null
           commission_balance?: number
           pix_full_name?: string
           pix_key?: string
@@ -1292,6 +1301,7 @@ export type Database = {
     Functions: {
       admin_dashboard_stats: { Args: never; Returns: Json }
       admin_growth_metrics: { Args: { p_days?: number }; Returns: Json }
+      admin_onboarding_funnel: { Args: { p_days: number }; Returns: Json }
       admin_last_seen: {
         Args: { p_ids: string[] }
         Returns: { last_seen_at: string; profile_id: string }[]
@@ -1412,6 +1422,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      onboarding_status: { Args: { p_profile_id: string }; Returns: Json }
       touch_last_seen: { Args: never; Returns: undefined }
       track_view: {
         Args: { p_device?: string; p_profile_id: string; p_source?: string }

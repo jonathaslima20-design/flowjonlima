@@ -13,6 +13,9 @@ import { refreshPublicBio } from '@/lib/revalidate-bio';
 import { Toaster } from '@/components/ui/sonner';
 import { PageProvider, useCurrentPage } from '@/lib/page-context';
 import { PageSwitcher } from '@/components/dashboard/PageSwitcher';
+import { OnboardingProvider, useOnboarding } from '@/lib/onboarding';
+import { OnboardingSidebarCard } from '@/components/dashboard/OnboardingGuide';
+import { usePlan } from '@/hooks/use-plan';
 
 const nav = [
   { href: '/dashboard', label: 'Visão geral', icon: LayoutDashboard },
@@ -60,7 +63,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <PageProvider>
-      <DashboardShell path={path} isAdmin={role === 'admin'} signOut={signOut}>{children}</DashboardShell>
+      <OnboardingProvider>
+        <DashboardShell path={path} isAdmin={role === 'admin'} signOut={signOut}>{children}</DashboardShell>
+      </OnboardingProvider>
     </PageProvider>
   );
 }
@@ -69,6 +74,11 @@ function DashboardShell({ path, isAdmin, signOut, children }: {
   path: string; isAdmin: boolean; signOut: () => void; children: React.ReactNode;
 }) {
   const { pageId, ready } = useCurrentPage();
+  const onboarding = useOnboarding();
+  const { accountPlan, loading: planLoading } = usePlan();
+  // Enquanto o guia inicial não termina, o menu mostra o progresso no lugar do convite para upgrade (Free)
+  const showGuideCard = onboarding.active && !onboarding.celebrate;
+  const hidePlanCard = showGuideCard && (planLoading || accountPlan.slug === 'free');
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
@@ -120,7 +130,8 @@ function DashboardShell({ path, isAdmin, signOut, children }: {
           </Link>
         )}
       </nav>
-      <SidebarPlanCard />
+      {showGuideCard && <OnboardingSidebarCard />}
+      {!hidePlanCard && <SidebarPlanCard />}
       <button onClick={signOut} className="brutal-btn bg-white py-2 mt-3 text-sm gap-2">
         <LogOut className="w-4 h-4" /> Sair
       </button>
