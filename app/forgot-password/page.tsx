@@ -11,7 +11,9 @@ export default function ForgotPassword() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    const { error } = await supabase.auth.resetPasswordForEmail(email);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/redefinir-senha`,
+    });
     if (error) setErr(error.message);
     else setSent(true);
   }

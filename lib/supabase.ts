@@ -9,6 +9,10 @@ declare global {
   var __bioflowzy_supabase: SupabaseClient<Database> | undefined;
 }
 
+// Link de redefinição de senha: lido antes de o cliente processar (e limpar) o #access_token da URL
+export const openedFromRecoveryLink =
+  typeof window !== 'undefined' && /type=recovery/.test(window.location.hash);
+
 export const supabase: SupabaseClient<Database> =
   globalThis.__bioflowzy_supabase ??
   createClient<Database>(url, anon, {

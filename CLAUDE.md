@@ -45,6 +45,14 @@ Plataforma de link in bio (bioflowzy.com). Originalmente gerada no Bolt.new (tem
 - Suspensão (`suspended_at`) bloqueia edição/inserção no banco, a página pública (404) e o domínio próprio
 - Usernames reservados: `is_reserved_username()` no banco (cadastro chama via RPC)
 
+## Admin → Usuários
+- Lista em `app/admin/users`; detalhes em `app/admin/users/[id]` (abas Visão geral, Páginas, Pagamentos, Linha do tempo, Notas). Página extra redireciona para a conta dona
+- RPCs (só admin): `admin_user_overview(p_profile_id)` (auth.users, profile_private, contagens, visitas/cliques 30d, pagamentos, indicações, páginas) e `admin_user_timeline(p_profile_id)` (cadastro, login, pagamentos, páginas, indicações e `admin_audit_log`)
+- Notas e etiquetas: `admin_user_notes` / `admin_user_tags` (só admin). Troca de plano em `components/admin/users/PlanEditDialog.tsx`
+- Ações de conta pela edge function `admin-user` (`lib/admin-user.ts`): `impersonate`, `recovery_link` / `send_recovery`, `revoke_sessions` (RPC `admin_revoke_sessions`, só service_role), `update_email`, `confirm_email`, `delete_user` (bloqueado com pagamento aprovado). Tudo vai para `admin_audit_log`; contas admin não podem ser acessadas nem excluídas
+- "Entrar como o usuário" (`lib/impersonation.ts`): a função gera um magic link (`hashed_token`), o painel guarda a sessão do admin em `localStorage.bf_impersonation` e troca com `verifyOtp`; `ImpersonationBanner` (layout raiz) mostra a faixa e volta ao admin em "Voltar ao admin" ou após 1 hora (`signOut({ scope: 'local' })` só encerra a sessão do acesso). Termos (item 8) avisam que o suporte pode acessar a conta
+- Redefinição de senha: `/redefinir-senha` (`supabase.auth.updateUser`); `lib/supabase.ts` detecta `type=recovery` na URL e o `AuthProvider` leva para a tela mesmo se o link cair na home
+
 ## Performance da página pública
 - `app/[username]/page.tsx` é ISR (`revalidate = 30` + `generateStaticParams` vazio); o layout do painel chama `/api/revalidate-bio` (via `lib/revalidate-bio.ts`) ao trocar de página ou sair da aba, para o usuário ver as edições na hora
 - Fontes dos temas em `app/layout.tsx` têm `preload: false` (só Archivo Black e Space Grotesk, usadas no site, são pré-carregadas)

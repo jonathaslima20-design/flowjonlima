@@ -73,6 +73,7 @@ export default function TermsPage() {
           <li>Trabalhamos para manter o serviço no ar o tempo todo, mas podem ocorrer interrupções para manutenção ou por falhas de fornecedores.</li>
           <li>Não nos responsabilizamos pelo conteúdo publicado pelos usuários, pelos sites para onde os links apontam nem por negociações feitas entre você e seus visitantes ou clientes.</li>
           <li>Nada nestes Termos limita direitos que a lei garante ao consumidor.</li>
+          <li>Para prestar suporte, resolver problemas técnicos ou verificar violações destes Termos, a equipe de administração pode acessar o painel da sua conta. Cada acesso é registrado internamente, com data e motivo.</li>
         </ul>
       </Section>
 

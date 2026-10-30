@@ -1,10 +1,12 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import type { Json } from '@/lib/database.types';
-import { Search, Shield, ShieldOff, Ban, CircleCheck as CheckCircle2, ExternalLink, ChevronLeft, ChevronRight, RefreshCw, Filter, X, Eye, Crown } from 'lucide-react';
-import { PLANS, PlanSlug, isPlanSlug, planLabel } from '@/lib/plans';
+import { Search, Shield, ShieldOff, Ban, CircleCheck as CheckCircle2, ExternalLink, ChevronLeft, ChevronRight, RefreshCw, Filter, Eye, Crown } from 'lucide-react';
+import { isPlanSlug, planLabel } from '@/lib/plans';
+import { PlanEditDialog } from '@/components/admin/users/PlanEditDialog';
 import { IconWhatsapp } from '@/lib/social-icons';
 import { formatWhatsapp, whatsappLink } from '@/lib/whatsapp';
 
@@ -25,13 +27,6 @@ interface Profile {
   theme: string | null;
 }
 
-interface UserDetail extends Profile {
-  links_count: number;
-  socials_count: number;
-  videos_count: number;
-  banners_count: number;
-}
-
 const PAGE_SIZE = 25;
 
 type FilterRole = 'all' | 'admin' | 'user';
@@ -48,14 +43,9 @@ export default function AdminUsersPage() {
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [detail, setDetail] = useState<UserDetail | null>(null);
-  const [detailLoading, setDetailLoading] = useState(false);
   const [confirmAction, setConfirmAction] = useState<{ type: string; profile: Profile } | null>(null);
   const [adminId, setAdminId] = useState<string>('');
   const [planEdit, setPlanEdit] = useState<Profile | null>(null);
-  const [planEditSlug, setPlanEditSlug] = useState<PlanSlug>('free');
-  const [planEditExpires, setPlanEditExpires] = useState<string>('');
-  const [planSaving, setPlanSaving] = useState(false);
   // WhatsApp do cadastro (profile_private, leitura liberada para admin)
   const [phones, setPhones] = useState<Record<string, string>>({});
 
@@ -110,33 +100,6 @@ export default function AdminUsersPage() {
     });
   }
 
-  function openPlanEdit(p: Profile) {
-    const slug: PlanSlug = isPlanSlug(p.plan) ? p.plan : 'free';
-    setPlanEdit(p);
-    setPlanEditSlug(slug);
-    setPlanEditExpires(p.plan_expires_at ? p.plan_expires_at.slice(0, 10) : '');
-  }
-
-  function setExpiryOffset(days: number) {
-    const d = new Date();
-    d.setDate(d.getDate() + days);
-    setPlanEditExpires(d.toISOString().slice(0, 10));
-  }
-
-  async function savePlan() {
-    if (!planEdit) return;
-    setPlanSaving(true);
-    const prev = { plan: planEdit.plan, plan_expires_at: planEdit.plan_expires_at };
-    const expires = planEditSlug === 'free' ? null : (planEditExpires ? new Date(planEditExpires + 'T23:59:59').toISOString() : null);
-    const patch: any = { plan: planEditSlug, plan_expires_at: expires };
-    if (planEditSlug !== 'free' && !planEdit.plan_started_at) patch.plan_started_at = new Date().toISOString();
-    await supabase.from('profiles').update(patch).eq('id', planEdit.id);
-    await logAction('plan_change', planEdit.id, { before: prev, after: { plan: planEditSlug, plan_expires_at: expires } });
-    setProfiles(list => list.map(p => p.id === planEdit.id ? { ...p, plan: planEditSlug, plan_expires_at: expires, is_pro: planEditSlug !== 'free' } : p));
-    setPlanSaving(false);
-    setPlanEdit(null);
-  }
-
   async function toggleRole(profile: Profile) {
     setActionLoading(profile.id + '_role');
     const newRole = profile.role === 'admin' ? 'user' : 'admin';
@@ -155,21 +118,6 @@ export default function AdminUsersPage() {
     setProfiles(prev => prev.map(p => p.id === profile.id ? { ...p, suspended_at: newVal } : p));
     setActionLoading(null);
     setConfirmAction(null);
-  }
-
-  async function openDetail(profile: Profile) {
-    setDetailLoading(true);
-    setDetail({ ...profile, links_count: 0, socials_count: 0, videos_count: 0, banners_count: 0 });
-    const { data } = await supabase.rpc('user_detail_counts', { p_profile_id: profile.id });
-    const row = Array.isArray(data) ? data[0] : data;
-    setDetail({
-      ...profile,
-      links_count: Number(row?.links_count ?? 0),
-      socials_count: Number(row?.socials_count ?? 0),
-      videos_count: Number(row?.videos_count ?? 0),
-      banners_count: Number(row?.banners_count ?? 0),
-    });
-    setDetailLoading(false);
   }
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
@@ -261,10 +209,10 @@ export default function AdminUsersPage() {
                             {(p.display_name || p.username)[0]?.toUpperCase()}
                           </div>
                         )}
-                        <div>
+                        <Link href={`/admin/users/${p.id}`} className="hover:underline">
                           <div className="font-bold leading-tight">{p.display_name || p.username}</div>
                           <div className="text-xs text-gray-400">@{p.username}</div>
-                        </div>
+                        </Link>
                       </div>
                     </td>
                     <td className="px-4 py-3 hidden md:table-cell">
@@ -303,13 +251,13 @@ export default function AdminUsersPage() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1.5">
-                        <button
+                        <Link
                           title="Ver detalhes"
-                          onClick={() => openDetail(p)}
+                          href={`/admin/users/${p.id}`}
                           className="p-1.5 hover:bg-gray-100 rounded transition-colors"
                         >
                           <Eye className="w-4 h-4 text-gray-500" />
-                        </button>
+                        </Link>
                         {phones[p.id] ? (
                           <a
                             href={whatsappLink(phones[p.id], greeting(p)) ?? undefined}
@@ -336,7 +284,7 @@ export default function AdminUsersPage() {
                         </a>
                         <button
                           title="Gerenciar plano"
-                          onClick={() => openPlanEdit(p)}
+                          onClick={() => setPlanEdit(p)}
                           className="p-1.5 hover:bg-yellow-50 rounded transition-colors"
                         >
                           <Crown className={`w-4 h-4 ${p.is_pro ? 'text-yellow-500' : 'text-gray-400'}`} />
@@ -431,150 +379,15 @@ export default function AdminUsersPage() {
         </div>
       )}
 
-      {/* Detail Modal */}
-      {detail && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="brutal-card bg-white p-6 max-w-md w-full">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center gap-3">
-                {detail.avatar_url ? (
-                  <img src={detail.avatar_url} alt="" className="w-12 h-12 rounded-full object-cover brutal-border" />
-                ) : (
-                  <div className="w-12 h-12 rounded-full bg-gray-100 brutal-border flex items-center justify-center font-display text-xl">
-                    {(detail.display_name || detail.username)[0]?.toUpperCase()}
-                  </div>
-                )}
-                <div>
-                  <div className="font-display text-lg leading-tight">{detail.display_name || detail.username}</div>
-                  <div className="text-sm text-gray-400">@{detail.username}</div>
-                </div>
-              </div>
-              <button onClick={() => setDetail(null)} className="p-1 hover:bg-gray-100 rounded">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {detail.bio && (
-              <p className="text-sm text-gray-600 mb-4 p-3 bg-gray-50 border border-gray-100">{detail.bio}</p>
-            )}
-
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              {[
-                { label: 'Links', value: detailLoading ? '…' : detail.links_count },
-                { label: 'Redes sociais', value: detailLoading ? '…' : detail.socials_count },
-                { label: 'Vídeos', value: detailLoading ? '…' : detail.videos_count },
-                { label: 'Banners', value: detailLoading ? '…' : detail.banners_count },
-              ].map(({ label, value }) => (
-                <div key={label} className="p-3 bg-gray-50 brutal-border text-center">
-                  <div className="font-display text-2xl">{value}</div>
-                  <div className="text-xs text-gray-500">{label}</div>
-                </div>
-              ))}
-            </div>
-
-            <div className="text-xs text-gray-400 space-y-1 mb-4">
-              <div>Tema: <span className="font-bold text-black capitalize">{detail.theme || 'cupertino'}</span></div>
-              <div>Plano: <span className="font-bold text-black">{planLabel(detail.plan)}</span></div>
-              {detail.plan_expires_at && (
-                <div>Expira em: <span className="font-bold text-black">{new Date(detail.plan_expires_at).toLocaleDateString('pt-BR')}</span></div>
-              )}
-              {detail.referral_code && (
-                <div>Código de indicação: <span className="font-bold text-black font-mono">{detail.referral_code}</span></div>
-              )}
-              <div>Cadastro: <span className="font-bold text-black">{detail.created_at ? new Date(detail.created_at).toLocaleDateString('pt-BR') : '—'}</span></div>
-              <div>Status: <span className="font-bold text-black">{detail.suspended_at ? 'Suspenso' : 'Ativo'}</span></div>
-              <div>WhatsApp: <span className="font-bold text-black">{phones[detail.id] ? formatWhatsapp(phones[detail.id]) : 'não cadastrado'}</span></div>
-            </div>
-
-            {phones[detail.id] && (
-              <a
-                href={whatsappLink(phones[detail.id], greeting(detail)) ?? undefined}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="brutal-btn bg-biolime px-4 py-2 text-sm w-full justify-center gap-2 mb-2"
-              >
-                <IconWhatsapp className="w-4 h-4" /> Conversar no WhatsApp
-              </a>
-            )}
-
-            <a
-              href={`/${detail.username}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="brutal-btn bg-bioyellow px-4 py-2 text-sm w-full justify-center gap-2"
-            >
-              <ExternalLink className="w-4 h-4" /> Ver perfil público
-            </a>
-          </div>
-        </div>
-      )}
-
-      {/* Plan Edit Modal */}
       {planEdit && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="brutal-card bg-white p-6 max-w-md w-full">
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <h3 className="font-display text-xl mb-1">Gerenciar plano</h3>
-                <p className="text-xs text-gray-500">@{planEdit.username}</p>
-              </div>
-              <button onClick={() => setPlanEdit(null)} className="p-1 hover:bg-gray-100 rounded">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <label className="block text-xs font-bold uppercase tracking-wide mb-2">Plano</label>
-            <div className="grid grid-cols-3 gap-2 mb-4">
-              {(Object.keys(PLANS) as PlanSlug[]).map(slug => (
-                <button
-                  key={slug}
-                  onClick={() => setPlanEditSlug(slug)}
-                  className={`brutal-border px-3 py-2 text-xs font-bold ${planEditSlug === slug ? 'bg-black text-white' : 'bg-white'}`}
-                >
-                  {PLANS[slug].name}
-                </button>
-              ))}
-            </div>
-
-            <label className="block text-xs font-bold uppercase tracking-wide mb-2">Validade</label>
-            <input
-              type="date"
-              value={planEditExpires}
-              onChange={e => setPlanEditExpires(e.target.value)}
-              disabled={planEditSlug === 'free'}
-              className="brutal-input px-3 py-2 w-full text-sm mb-2 disabled:bg-neutral-100"
-            />
-            <div className="flex gap-2 flex-wrap mb-4">
-              <button type="button" onClick={() => setExpiryOffset(30)} disabled={planEditSlug === 'free'} className="brutal-btn bg-white px-2 py-1 text-xs disabled:opacity-40">+30 dias</button>
-              <button type="button" onClick={() => setExpiryOffset(365)} disabled={planEditSlug === 'free'} className="brutal-btn bg-white px-2 py-1 text-xs disabled:opacity-40">+1 ano</button>
-              <button type="button" onClick={() => setPlanEditExpires('')} disabled={planEditSlug === 'free'} className="brutal-btn bg-white px-2 py-1 text-xs disabled:opacity-40">Sem expiração</button>
-            </div>
-
-            <p className="text-[11px] text-gray-500 mb-4">
-              {planEditSlug === 'free'
-                ? 'Usuário voltará para o plano Free sem expiração.'
-                : planEditExpires
-                  ? `Plano válido até ${new Date(planEditExpires + 'T23:59:59').toLocaleDateString('pt-BR')}.`
-                  : 'Plano vitalício (sem data de expiração).'}
-            </p>
-
-            <div className="flex gap-3">
-              <button
-                onClick={savePlan}
-                disabled={planSaving}
-                className="brutal-btn bg-black text-white px-4 py-2 text-sm flex-1 disabled:opacity-60"
-              >
-                {planSaving ? 'Salvando...' : 'Salvar plano'}
-              </button>
-              <button
-                onClick={() => setPlanEdit(null)}
-                className="brutal-btn bg-white px-4 py-2 text-sm flex-1"
-              >
-                Cancelar
-              </button>
-            </div>
-          </div>
-        </div>
+        <PlanEditDialog
+          target={planEdit}
+          onClose={() => setPlanEdit(null)}
+          onSaved={r => {
+            setProfiles(list => list.map(p => p.id === planEdit.id ? { ...p, ...r, is_pro: r.plan !== 'free' } : p));
+            setPlanEdit(null);
+          }}
+        />
       )}
     </div>
   );

@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useRef, useState, ReactNode } from 'react';
-import { supabase } from './supabase';
+import { openedFromRecoveryLink, supabase } from './supabase';
 
 type Role = 'admin' | 'user' | null;
 
@@ -54,9 +54,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
+    if (openedFromRecoveryLink && window.location.pathname !== '/redefinir-senha') {
+      // Espera o cliente guardar a sessão do link antes de trocar de página
+      supabase.auth.getSession().then(() => { window.location.href = '/redefinir-senha'; });
+      return;
+    }
     refresh();
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       (async () => {
+        // Link de redefinição de senha (e-mail ou link do admin): leva à tela de nova senha
+        if (event === 'PASSWORD_RECOVERY' && window.location.pathname !== '/redefinir-senha') {
+          window.location.href = '/redefinir-senha';
+          return;
+        }
         const user = session?.user;
         if (!user) {
           loadedForUser.current = null;

@@ -48,6 +48,51 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_user_notes: {
+        Row: {
+          author_id: string | null
+          body: string
+          created_at: string
+          id: string
+          profile_id: string
+        }
+        Insert: {
+          author_id?: string | null
+          body: string
+          created_at?: string
+          id?: string
+          profile_id: string
+        }
+        Update: {
+          author_id?: string | null
+          body?: string
+          created_at?: string
+          id?: string
+          profile_id?: string
+        }
+        Relationships: []
+      }
+      admin_user_tags: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          profile_id: string
+          tag: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          profile_id: string
+          tag: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          profile_id?: string
+          tag?: string
+        }
+        Relationships: []
+      }
       admin_settings: {
         Row: {
           key: string
@@ -1244,6 +1289,18 @@ export type Database = {
     Functions: {
       admin_dashboard_stats: { Args: never; Returns: Json }
       admin_growth_metrics: { Args: { p_days?: number }; Returns: Json }
+      admin_revoke_sessions: { Args: { p_user_id: string }; Returns: number }
+      admin_user_overview: { Args: { p_profile_id: string }; Returns: Json }
+      admin_user_timeline: {
+        Args: { p_profile_id: string }
+        Returns: {
+          actor: string
+          at: string
+          details: Json
+          kind: string
+          title: string
+        }[]
+      }
       admin_payment_secrets_status: {
         Args: never
         Returns: {

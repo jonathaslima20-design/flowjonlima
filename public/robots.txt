@@ -4,6 +4,7 @@ Disallow: /dashboard
 Disallow: /admin
 Disallow: /api/
 Disallow: /convite/
+Disallow: /redefinir-senha
 
 User-agent: facebookexternalhit
 Allow: /

@@ -22,6 +22,7 @@ import {
 } from 'next/font/google';
 import { AuthProvider } from '@/lib/auth-context';
 import { SiteTracking } from '@/components/shared/SiteTracking';
+import { ImpersonationBanner } from '@/components/shared/ImpersonationBanner';
 
 const archivo = Archivo_Black({ subsets: ['latin'], weight: '400', variable: '--font-archivo-black', display: 'swap', preload: true });
 const grotesk = Space_Grotesk({ subsets: ['latin'], variable: '--font-space-grotesk', display: 'swap', preload: true });
@@ -118,7 +119,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   ].join(' ');
   return (
     <html lang="pt-BR" className={classes}>
-      <body className="antialiased bg-white text-black"><AuthProvider>{children}<SiteTracking pixelId={pixelId} /></AuthProvider></body>
+      <body className="antialiased bg-white text-black"><AuthProvider>{children}<SiteTracking pixelId={pixelId} /><ImpersonationBanner /></AuthProvider></body>
     </html>
   );
 }
