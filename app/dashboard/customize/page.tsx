@@ -1,17 +1,31 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { usePageId } from '@/lib/page-context';
 import { BioPreview } from '@/components/dashboard/BioPreview';
 import { THEMES, getTheme } from '@/themes/registry';
+import { COLLECTION_2026 } from '@/themes/collection';
 import { ThemeMockup } from '@/components/themes/ThemeMockup';
 import { ThemeControls } from '@/components/dashboard/ThemeControls';
 import { SectionOrderControl } from '@/components/dashboard/SectionOrderControl';
-import { Check, Eye, Lock, X } from 'lucide-react';
+import { Check, Eye, Layers, Lock, Palette, Search, SlidersHorizontal, Sparkles, X } from 'lucide-react';
 import { fetchAllShowcasePresets, catalogDemoFor, ShowcasePreset } from '@/lib/theme-showcase';
 import { usePlan } from '@/hooks/use-plan';
 import { useUpgradeModal } from '@/components/dashboard/UpgradeModal';
+
+// Aparência: abas (Tema / Cores e estilo / Ordem das seções) e prévia ao lado (celular: botão "Ver prévia").
+// Clicar num tema só o testa na prévia; a troca acontece em "Aplicar".
+
+type Tab = 'tema' | 'estilo' | 'ordem';
+const TABS: { key: Tab; label: string; icon: typeof Palette }[] = [
+  { key: 'tema', label: 'Tema', icon: Palette },
+  { key: 'estilo', label: 'Cores e estilo', icon: SlidersHorizontal },
+  { key: 'ordem', label: 'Ordem das seções', icon: Layers },
+];
+const TAB_KEY = 'bioflowzy.customizeTab';
+const NEW_THEMES = new Set(COLLECTION_2026.map(t => t.meta.key));
+type Filter = 'all' | 'free' | 'pro' | 'new';
 
 export default function CustomizePage() {
   const pageId = usePageId();
@@ -29,7 +43,26 @@ export default function CustomizePage() {
   const { has } = usePlan();
   const { open: openUpgrade } = useUpgradeModal();
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [tab, setTab] = useState<Tab>('tema');
+  // Tema em teste (aparece na prévia, ainda não aplicado)
+  const [candidate, setCandidate] = useState<string | null>(null);
+  const [filter, setFilter] = useState<Filter>('all');
+  const [query, setQuery] = useState('');
   const saveTimer = useRef<any>(null);
+  const savedTimer = useRef<any>(null);
+
+  useEffect(() => {
+    try {
+      const t = localStorage.getItem(TAB_KEY) as Tab | null;
+      if (t && TABS.some(x => x.key === t)) setTab(t);
+    } catch {}
+  }, []);
+
+  function changeTab(t: Tab) {
+    setTab(t);
+    try { localStorage.setItem(TAB_KEY, t); } catch {}
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 
   useEffect(() => {
     (async () => {
@@ -68,12 +101,17 @@ export default function CustomizePage() {
     })();
   }, [pageId]);
 
+  function flashSaved() {
+    setSaved(true);
+    if (savedTimer.current) clearTimeout(savedTimer.current);
+    savedTimer.current = setTimeout(() => setSaved(false), 1800);
+  }
+
   async function update(patch: any) {
     const next = { ...profile, ...patch };
     setProfile(next);
     await supabase.from('profiles').update(patch).eq('id', profileId);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 1500);
+    flashSaved();
   }
 
   function updateThemeSetting(themeKey: string, key: string, value: any) {
@@ -83,8 +121,7 @@ export default function CustomizePage() {
       if (saveTimer.current) clearTimeout(saveTimer.current);
       saveTimer.current = setTimeout(async () => {
         await supabase.from('profiles').update({ theme_settings: nextSettings }).eq('id', profileId);
-        setSaved(true);
-        setTimeout(() => setSaved(false), 1500);
+        flashSaved();
       }, 300);
       return { ...prev, theme_settings: nextSettings };
     });
@@ -103,11 +140,7 @@ export default function CustomizePage() {
       border_width: defaults.border_width ?? 2,
       shadow_offset: defaults.shadow_offset ?? 4,
     };
-    const next = { ...profile, ...patch };
-    setProfile(next);
-    await supabase.from('profiles').update(patch).eq('id', profileId);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 1500);
+    await update(patch);
   }
 
   async function resetThemeGroup(themeKey: string, group: string) {
@@ -126,12 +159,7 @@ export default function CustomizePage() {
       }
     }
     const nextSettings = { ...current, [themeKey]: themeSet };
-    const patch = { ...corePatch, theme_settings: nextSettings };
-    const next = { ...profile, ...patch };
-    setProfile(next);
-    await supabase.from('profiles').update(patch).eq('id', profileId);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 1500);
+    await update({ ...corePatch, theme_settings: nextSettings });
   }
 
   function updateCoreField(field: string, value: any) {
@@ -148,12 +176,12 @@ export default function CustomizePage() {
       const activeKey = profile?.theme || 'cupertino';
       const nextSettings = { ...current, [activeKey]: { ...(current[activeKey] || {}), [coreKey]: value } };
       await supabase.from('profiles').update({ [field]: value, theme_settings: nextSettings }).eq('id', profileId);
-      setSaved(true);
-      setTimeout(() => setSaved(false), 1500);
+      flashSaved();
     }, 300);
   }
 
-  async function applyTheme(themeKey: string) {
+  // Campos que mudam ao trocar de tema: guarda as cores do tema atual e recupera as do novo (ou os padrões dele)
+  function themeSwitchPatch(themeKey: string) {
     const currentKey = profile?.theme || 'cupertino';
     const currentSettings = (profile?.theme_settings && typeof profile.theme_settings === 'object') ? profile.theme_settings : {};
 
@@ -172,7 +200,7 @@ export default function CustomizePage() {
     const stored = nextSettings[themeKey] || {};
     const defaults = getTheme(themeKey).meta.defaults;
 
-    await update({
+    return {
       theme: themeKey,
       bg_color: stored._core_bg_color ?? defaults.bg_color,
       button_color: stored._core_button_color ?? defaults.button_color,
@@ -180,10 +208,41 @@ export default function CustomizePage() {
       border_width: stored._core_border_width ?? defaults.border_width ?? 2,
       shadow_offset: stored._core_shadow_offset ?? defaults.shadow_offset ?? 4,
       theme_settings: nextSettings,
-    });
+    };
   }
 
   const activeKey = profile?.theme || 'cupertino';
+  const isLocked = (key: string) => key !== activeKey && proOnlyThemes.includes(key) && !has('pro_themes');
+
+  async function applyCandidate() {
+    if (!candidate) return;
+    // Temas Pro: o banco também bloqueia a troca para quem não tem o recurso
+    if (isLocked(candidate)) { openUpgrade(); return; }
+    await update(themeSwitchPatch(candidate));
+    setCandidate(null);
+    setPreviewOpen(false);
+  }
+
+  function pickTheme(key: string) {
+    setCandidate(key === activeKey ? null : key);
+  }
+
+  const themeList = useMemo(() => [
+    ...catalogOrder.filter(k => THEMES[k]).map(k => THEMES[k]),
+    ...Object.values(THEMES).filter(({ meta }) => !catalogOrder.includes(meta.key)),
+  ].filter(({ meta }) => !disabledThemes.includes(meta.key) || activeKey === meta.key), [catalogOrder, disabledThemes, activeKey]);
+
+  const visibleThemes = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return themeList.filter(({ meta }) => {
+      const pro = proOnlyThemes.includes(meta.key);
+      if (filter === 'free' && pro) return false;
+      if (filter === 'pro' && !pro) return false;
+      if (filter === 'new' && !NEW_THEMES.has(meta.key)) return false;
+      if (q && !meta.name.toLowerCase().includes(q) && !meta.description.toLowerCase().includes(q)) return false;
+      return true;
+    });
+  }, [themeList, filter, query, proOnlyThemes]);
 
   if (!profile) return <div>Carregando...</div>;
 
@@ -192,152 +251,216 @@ export default function CustomizePage() {
   const themeValues = (profile.theme_settings && typeof profile.theme_settings === 'object')
     ? (profile.theme_settings[activeKey] || {})
     : {};
+  const previewProfile = candidate ? { ...profile, ...themeSwitchPatch(candidate) } : profile;
+  const candidateName = candidate ? getTheme(candidate).meta.name : '';
+  const candidateLocked = candidate ? isLocked(candidate) : false;
+
+  const preview = (
+    <BioPreview profileId={profileId} profile={previewProfile} links={links} socials={socials} videos={videos} banners={banners} />
+  );
+
+  const applyBar = candidate && (
+    <div className="flex items-center gap-2">
+      <button onClick={() => setCandidate(null)} className="brutal-btn bg-white px-4 py-2 text-sm">Cancelar</button>
+      <button onClick={applyCandidate} className="brutal-btn bg-black text-white px-4 py-2 text-sm gap-1.5">
+        {candidateLocked ? <><Lock className="w-4 h-4" /> Liberar no Pro</> : <><Check className="w-4 h-4" /> Aplicar {candidateName}</>}
+      </button>
+    </div>
+  );
 
   return (
-    <div className="grid lg:grid-cols-[1fr_360px] gap-8">
-      <div>
-        <h1 className="font-display text-4xl mb-6">Aparencia</h1>
+    <div className="grid lg:grid-cols-[minmax(0,1fr)_360px] gap-8 pb-24 lg:pb-0">
+      <div className="min-w-0">
+        <div className="flex items-center justify-between gap-3 mb-4">
+          <h1 className="font-display text-4xl">Aparência</h1>
+          <span className={`text-xs font-bold inline-flex items-center gap-1 transition-opacity ${saved ? 'opacity-100' : 'opacity-0'}`} aria-live="polite">
+            <Check className="w-4 h-4" /> Salvo
+          </span>
+        </div>
 
-        <Section title="Tema">
-          <p className="text-xs font-bold text-black/60 mb-3">
-            Cada tema tem um layout e personalidade unicos. Suas cores continuam aplicadas.
-          </p>
-          <div className="grid sm:grid-cols-2 gap-4">
-            {[
-              ...catalogOrder.filter(k => THEMES[k]).map(k => THEMES[k]),
-              ...Object.values(THEMES).filter(({ meta }) => !catalogOrder.includes(meta.key)),
-            ].filter(({ meta }) => !disabledThemes.includes(meta.key) || activeKey === meta.key).map(({ meta }) => {
-              const active = activeKey === meta.key;
-              // Temas Pro: o banco também bloqueia a troca para quem não tem o recurso
-              const locked = !active && proOnlyThemes.includes(meta.key) && !has('pro_themes');
-              const preset = showcase[meta.key];
-              const hasShowcase = preset?.show_in_catalog;
-              const demo = hasShowcase ? catalogDemoFor(preset) : null;
-              return (
-                <button
-                  key={meta.key}
-                  onClick={() => (locked ? openUpgrade() : applyTheme(meta.key))}
-                  className={`group brutal-border text-left transition-all overflow-hidden bg-white ${active ? 'brutal-shadow -translate-y-0.5' : 'hover:-translate-y-0.5 hover:brutal-shadow'}`}
-                >
-                  <div className="relative bg-[#F7F7F5] border-b-[3px] border-black flex items-center justify-center py-6">
-                    <ThemeMockup
-                      themeKey={meta.key}
-                      overrides={demo?.profile as any}
-                      links={demo?.links}
-                      socials={demo?.socials}
-                      videos={demo?.videos}
-                      banners={demo?.banners}
-                      themeSettings={demo?.themeSettings}
-                      height={454}
-                    />
-                    {locked && (
-                      <span className="absolute top-2 right-2 text-[10px] font-bold uppercase bg-bioyellow text-black px-2 py-1 brutal-border flex items-center gap-1 z-10">
-                        <Lock className="w-3 h-3" /> Pro
-                      </span>
-                    )}
-                    {active && (
-                      <span className="absolute top-2 right-2 text-[10px] font-bold uppercase bg-black text-white px-2 py-1 brutal-border flex items-center gap-1 z-10">
-                        <Check className="w-3 h-3" /> Ativo
-                      </span>
-                    )}
-                  </div>
-                  <div className={`p-3 ${active ? 'bg-bioyellow' : 'bg-white'}`}>
-                    <div className="flex items-center justify-between">
-                      <span className="font-display text-lg">{meta.name}</span>
-                    </div>
-                    <p className="text-xs mt-1 text-black/70 line-clamp-2">{meta.description}</p>
-                  </div>
-                </button>
-              );
-            })}
+        {/* Fundo igual ao do painel (biolime/20 sobre branco) para o conteúdo não aparecer por trás das abas */}
+        <div className="sticky top-16 md:top-0 z-20 -mx-6 px-6 md:-ml-10 md:pl-10 md:mr-0 md:pr-0 py-2 bg-[#F2FCE0]">
+          <div className="flex gap-1.5 overflow-x-auto">
+            {TABS.map(t => (
+              <button
+                key={t.key}
+                onClick={() => changeTab(t.key)}
+                className={`shrink-0 inline-flex items-center gap-2 px-3 py-2 brutal-border text-sm font-bold ${tab === t.key ? 'bg-bioyellow brutal-shadow' : 'bg-white hover:bg-bioyellow/40'}`}
+              >
+                <t.icon className="w-4 h-4" /> {t.label}
+              </button>
+            ))}
           </div>
-        </Section>
+        </div>
 
-        <Section title="Ordem das Seções">
-          <p className="text-xs font-bold text-black/60 mb-3">
-            Arraste para reorganizar a ordem dos elementos na sua página.
-          </p>
-          <SectionOrderControl
-            order={profile.section_order || ['socials', 'links', 'banners', 'videos']}
-            onChange={(next) => update({ section_order: next })}
-          />
-        </Section>
+        {tab === 'tema' && (
+          <div className="mt-4 flex flex-col gap-5">
+            <section className="brutal-card bg-white p-4 flex items-center gap-4 flex-wrap">
+              <div className="flex -space-x-2" aria-hidden>
+                {[profile.bg_color, profile.button_color, profile.text_color].map((c, i) => (
+                  <span key={i} className="w-9 h-9 rounded-full brutal-border" style={{ backgroundColor: c || '#fff' }} />
+                ))}
+              </div>
+              <div className="flex-1 min-w-[160px]">
+                <p className="text-[10px] font-bold uppercase tracking-wide text-black/60">Tema atual</p>
+                <p className="font-display text-xl leading-tight">{activeTheme.meta.name}</p>
+              </div>
+              <button onClick={() => changeTab('estilo')} className="brutal-btn bg-black text-white px-4 py-2 text-sm gap-2">
+                <SlidersHorizontal className="w-4 h-4" /> Personalizar
+              </button>
+            </section>
 
-        {themeControls.length > 0 && (
-          <Section title={`Ajustes de ${activeTheme.meta.name}`}>
-            <ThemeControls
-              controls={themeControls}
-              values={themeValues}
-              coreValues={{
-                bg_color: profile.bg_color,
-                button_color: profile.button_color,
-                text_color: profile.text_color,
-                avatar_size: profile.avatar_size,
-                border_width: profile.border_width,
-                shadow_offset: profile.shadow_offset,
-              }}
-              onChange={(k, v) => updateThemeSetting(activeKey, k, v)}
-              onCoreChange={updateCoreField}
-              onReset={() => resetThemeSettings(activeKey)}
-              onResetGroup={(g) => resetThemeGroup(activeKey, g)}
-            />
-          </Section>
+            <section className="brutal-card bg-white p-4">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div className="inline-flex brutal-border bg-white p-1 gap-1">
+                  {([['all', 'Todos'], ['free', 'Grátis'], ['pro', 'Pro'], ['new', 'Novos']] as [Filter, string][]).map(([k, l]) => (
+                    <button key={k} onClick={() => setFilter(k)} className={`px-3 py-1 text-xs font-bold ${filter === k ? 'bg-black text-white' : ''}`}>{l}</button>
+                  ))}
+                </div>
+                <label className="relative flex-1 min-w-[160px] max-w-xs">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-black/50" />
+                  <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Buscar tema" className="w-full brutal-input pl-8 pr-3 py-1.5 text-sm" />
+                </label>
+              </div>
+              <p className="text-xs text-black/60 mt-3 mb-4">Clique num tema para ver como fica com o seu conteúdo. Nada muda até você aplicar.</p>
+
+              {visibleThemes.length === 0 ? (
+                <p className="text-sm text-black/60 py-6 text-center">Nenhum tema encontrado.</p>
+              ) : (
+                <div className="grid grid-cols-2 xl:grid-cols-3 gap-3 md:gap-4">
+                  {visibleThemes.map(({ meta }) => {
+                    const active = activeKey === meta.key;
+                    const testing = candidate === meta.key;
+                    const pro = proOnlyThemes.includes(meta.key);
+                    const locked = isLocked(meta.key);
+                    const preset = showcase[meta.key];
+                    const demo = preset?.show_in_catalog ? catalogDemoFor(preset) : null;
+                    return (
+                      <button
+                        key={meta.key}
+                        onClick={() => pickTheme(meta.key)}
+                        className={`group brutal-border text-left overflow-hidden bg-white transition-all ${testing ? 'brutal-shadow -translate-y-0.5 ring-2 ring-bioblue' : active ? 'brutal-shadow' : 'hover:-translate-y-0.5 hover:brutal-shadow'}`}
+                      >
+                        <div className="relative bg-[#F7F7F5] border-b-2 border-black flex justify-center py-4">
+                          <LazyMount>
+                            {(w, h) => (
+                            <ThemeMockup
+                              themeKey={meta.key}
+                              overrides={demo?.profile as any}
+                              links={demo?.links}
+                              socials={demo?.socials}
+                              videos={demo?.videos}
+                              banners={demo?.banners}
+                              themeSettings={demo?.themeSettings}
+                              width={w}
+                              height={h}
+                            />
+                            )}
+                          </LazyMount>
+                          <span className="absolute top-2 left-2 flex flex-col gap-1 items-start z-10">
+                            {active && <Badge className="bg-black text-white"><Check className="w-3 h-3" /> Ativo</Badge>}
+                          </span>
+                          {testing && (
+                            <span className="absolute bottom-2 inset-x-2 z-10 flex justify-center">
+                              <Badge className="bg-bioblue text-white"><Eye className="w-3 h-3" /> Na prévia</Badge>
+                            </span>
+                          )}
+                          <span className="absolute top-2 right-2 flex flex-col gap-1 items-end z-10">
+                            {pro && <Badge className="bg-bioyellow text-black">{locked && <Lock className="w-3 h-3" />} Pro</Badge>}
+                            {NEW_THEMES.has(meta.key) && !pro && <Badge className="bg-biolime text-black"><Sparkles className="w-3 h-3" /> Novo</Badge>}
+                          </span>
+                        </div>
+                        <div className={`px-3 py-2 ${active ? 'bg-bioyellow' : 'bg-white'}`}>
+                          <p className="font-display text-base leading-tight truncate">{meta.name}</p>
+                          <p className="text-[11px] text-black/60 line-clamp-1">{meta.description}</p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+          </div>
         )}
 
-        {saved && <div className="mt-4 inline-block brutal-card px-4 py-2 bg-biolime font-bold">Salvo!</div>}
+        {tab === 'estilo' && (
+          <section className="brutal-card bg-white p-5 mt-4">
+            <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
+              <h2 className="font-display text-xl">Ajustes de {activeTheme.meta.name}</h2>
+              <button onClick={() => changeTab('tema')} className="text-xs font-bold underline">Trocar tema</button>
+            </div>
+            {themeControls.length > 0 ? (
+              <ThemeControls
+                controls={themeControls}
+                values={themeValues}
+                coreValues={{
+                  bg_color: profile.bg_color,
+                  button_color: profile.button_color,
+                  text_color: profile.text_color,
+                  avatar_size: profile.avatar_size,
+                  border_width: profile.border_width,
+                  shadow_offset: profile.shadow_offset,
+                }}
+                onChange={(k, v) => updateThemeSetting(activeKey, k, v)}
+                onCoreChange={updateCoreField}
+                onReset={() => resetThemeSettings(activeKey)}
+                onResetGroup={(g) => resetThemeGroup(activeKey, g)}
+              />
+            ) : (
+              <p className="text-sm text-black/60">Este tema não tem ajustes extras.</p>
+            )}
+          </section>
+        )}
+
+        {tab === 'ordem' && (
+          <section className="brutal-card bg-white p-5 mt-4">
+            <h2 className="font-display text-xl">Ordem das seções</h2>
+            <p className="text-xs font-bold text-black/60 mt-1 mb-4">Arraste para reorganizar a ordem dos elementos na sua página.</p>
+            <SectionOrderControl
+              order={profile.section_order || ['socials', 'links', 'banners', 'videos']}
+              onChange={(next) => update({ section_order: next })}
+            />
+          </section>
+        )}
       </div>
 
       <div className="hidden lg:block">
-        <div className="sticky top-6">
-          <h2 className="font-display text-lg mb-4">Preview</h2>
-          <BioPreview
-            profileId={profileId}
-            profile={profile}
-            links={links}
-            socials={socials}
-            videos={videos}
-            banners={banners}
-          />
+        <div className="sticky top-6 flex flex-col items-center gap-3">
+          <h2 className="font-display text-lg self-start">{candidate ? `Testando: ${candidateName}` : 'Prévia'}</h2>
+          {preview}
+          {candidate ? applyBar : <p className="text-xs text-black/60 text-center">As mudanças são salvas automaticamente.</p>}
         </div>
       </div>
 
-      {/* Mobile floating preview button */}
-      <button
-        onClick={() => setPreviewOpen(true)}
-        className="lg:hidden fixed bottom-6 right-6 z-40 flex items-center gap-2 bg-black text-white font-bold text-sm px-4 py-3 brutal-border brutal-shadow active:translate-y-0.5 active:shadow-none transition-all"
-      >
-        <Eye className="w-4 h-4" />
-        Visualizar
-      </button>
+      {/* Celular: barra fixa com prévia e, ao testar um tema, aplicar/cancelar */}
+      <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white border-t-[3px] border-black px-4 py-3 flex items-center justify-between gap-2">
+        <button onClick={() => setPreviewOpen(true)} className="brutal-btn bg-white px-3 py-2 text-sm gap-1.5">
+          <Eye className="w-4 h-4" /> Ver prévia
+        </button>
+        {candidate ? (
+          <div className="flex items-center gap-2 min-w-0">
+            <button onClick={() => setCandidate(null)} aria-label="Cancelar" className="brutal-btn bg-white p-2"><X className="w-4 h-4" /></button>
+            <button onClick={applyCandidate} className="brutal-btn bg-black text-white px-3 py-2 text-sm gap-1.5 truncate">
+              {candidateLocked ? <><Lock className="w-4 h-4" /> Liberar no Pro</> : <><Check className="w-4 h-4" /> Aplicar {candidateName}</>}
+            </button>
+          </div>
+        ) : (
+          <span className={`text-xs font-bold inline-flex items-center gap-1 ${saved ? 'opacity-100' : 'opacity-0'}`}><Check className="w-4 h-4" /> Salvo</span>
+        )}
+      </div>
 
-      {/* Mobile preview drawer */}
       {previewOpen && (
         <div className="lg:hidden fixed inset-0 z-50 flex flex-col">
-          <div
-            className="absolute inset-0 bg-black/60"
-            onClick={() => setPreviewOpen(false)}
-          />
+          <div className="absolute inset-0 bg-black/60" onClick={() => setPreviewOpen(false)} />
           <div className="relative mt-auto bg-white brutal-border-t max-h-[92dvh] flex flex-col animate-slide-up">
             <div className="flex items-center justify-between px-5 py-3 border-b-[3px] border-black shrink-0">
-              <span className="font-display text-lg">Preview</span>
-              <button
-                onClick={() => setPreviewOpen(false)}
-                className="brutal-btn p-2 bg-white"
-                aria-label="Fechar preview"
-              >
+              <span className="font-display text-lg">{candidate ? `Testando: ${candidateName}` : 'Prévia'}</span>
+              <button onClick={() => setPreviewOpen(false)} className="brutal-btn p-2 bg-white" aria-label="Fechar prévia">
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="overflow-y-auto flex-1 flex items-start justify-center py-6 px-4">
-              <BioPreview
-                profileId={profileId}
-                profile={profile}
-                links={links}
-                socials={socials}
-                videos={videos}
-                banners={banners}
-              />
-            </div>
+            <div className="overflow-y-auto flex-1 flex items-start justify-center py-6 px-4">{preview}</div>
+            {candidate && <div className="border-t-[3px] border-black px-4 py-3 flex justify-end shrink-0">{applyBar}</div>}
           </div>
         </div>
       )}
@@ -345,12 +468,31 @@ export default function CustomizePage() {
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Badge({ className, children }: { className: string; children: React.ReactNode }) {
+  return <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 brutal-border inline-flex items-center gap-1 ${className}`}>{children}</span>;
+}
+
+// Só monta a miniatura quando o card chega perto da tela (são vários temas renderizados de verdade).
+// O celular ocupa a largura do card inteiro, na proporção do frame (220 x 504), sem cortar.
+const PHONE_RATIO = 504 / 220;
+function LazyMount({ children }: { children: (width: number, height: number) => React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+  const [width, setWidth] = useState(0);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([e]) => setWidth(Math.round(e.contentRect.width)));
+    ro.observe(el);
+    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setVisible(true); io.disconnect(); } }, { rootMargin: '300px' });
+    io.observe(el);
+    return () => { ro.disconnect(); io.disconnect(); };
+  }, []);
+  const w = Math.min(200, Math.max(0, width - 28));
+  const h = Math.round(w * PHONE_RATIO);
   return (
-    <div className="brutal-card p-5 mb-5">
-      <h3 className="font-display text-lg mb-3">{title}</h3>
-      {children}
+    <div ref={ref} className="w-full flex justify-center">
+      {visible && w > 0 ? children(w, h) : <div className="bg-white/60 rounded-[20px] animate-pulse" style={{ width: w || 120, height: (h || 270) + 16 }} />}
     </div>
   );
 }
-

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Search, RotateCcw } from 'lucide-react';
+import { ChevronDown, Search, RotateCcw } from 'lucide-react';
 import type { ControlDef } from '@/themes/types';
 import { CURATED_FONTS } from '@/themes/types';
 
@@ -110,8 +110,17 @@ export function ThemeControls({ controls, values, coreValues, onChange, onCoreCh
     return map;
   }, [filtered]);
 
+  // Um grupo aberto por vez; com busca ou categoria ativa, todos os resultados ficam abertos
+  const filtering = query.trim() !== '' || activeCat !== 'all';
+  const groupNames = Object.keys(groups);
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
+  useEffect(() => {
+    setOpenGroup(g => (g && groupNames.includes(g) ? g : groupNames[0] ?? null));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [groupNames.join('|')]);
+
   if (controls.length === 0) {
-    return <p className="text-xs text-black/60">Este tema nao possui controles avancados.</p>;
+    return <p className="text-xs text-black/60">Este tema não tem ajustes extras.</p>;
   }
 
   return (
@@ -139,27 +148,44 @@ export function ThemeControls({ controls, values, coreValues, onChange, onCoreCh
         <p className="text-xs text-black/60">Nenhum controle encontrado.</p>
       )}
 
-      {Object.entries(groups).map(([group, items]) => (
-        <div key={group} className="border-t-2 border-black/10 pt-3">
-          <div className="flex items-center justify-between mb-2">
-            <h4 className="text-[10px] font-bold uppercase tracking-widest text-black/60">{group}</h4>
-            {onResetGroup && (
-              <button
-                onClick={() => onResetGroup(group)}
-                className="text-[10px] font-bold uppercase text-black/50 hover:text-black inline-flex items-center gap-1"
-                title={`Restaurar padrões de ${group}`}
-              >
-                <RotateCcw className="w-3 h-3" /> Padrão
-              </button>
-            )}
-          </div>
-          <div className="flex flex-col gap-4">
-            {items.map(c => (
-              <Control key={c.key} def={c} value={getValue(c)} onChange={(v) => handleChange(c, v)} />
-            ))}
-          </div>
-        </div>
-      ))}
+      <div className="flex flex-col gap-2">
+        {Object.entries(groups).map(([group, items]) => {
+          const open = filtering || openGroup === group;
+          return (
+            <div key={group} className={`brutal-border ${open ? 'bg-white' : 'bg-[#F7F7F5]'}`}>
+              <div className="flex items-center justify-between gap-2 px-3">
+                <button
+                  onClick={() => setOpenGroup(open && !filtering ? null : group)}
+                  aria-expanded={open}
+                  className="flex-1 flex items-center justify-between gap-2 py-2.5 text-left"
+                >
+                  <span className="font-bold text-sm">{group}</span>
+                  <span className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold text-black/50">{items.length}</span>
+                    <ChevronDown className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} />
+                  </span>
+                </button>
+                {open && onResetGroup && (
+                  <button
+                    onClick={() => onResetGroup(group)}
+                    className="text-[10px] font-bold uppercase text-black/50 hover:text-black inline-flex items-center gap-1"
+                    title={`Restaurar padrões de ${group}`}
+                  >
+                    <RotateCcw className="w-3 h-3" /> Padrão
+                  </button>
+                )}
+              </div>
+              {open && (
+                <div className="flex flex-col gap-4 px-3 pb-4 pt-1 border-t-2 border-black/10">
+                  {items.map(c => (
+                    <Control key={c.key} def={c} value={getValue(c)} onChange={(v) => handleChange(c, v)} />
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
       <button
         onClick={onReset}
         className="self-start text-xs font-bold uppercase tracking-widest underline underline-offset-4 text-black/70 hover:text-black"
