@@ -50,6 +50,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
+    // Pro/Business: a foto do perfil vira o ícone da aba (Free e sem foto seguem com o ícone do BioFlowzy)
+    ...(seo && hasAvatar ? { icons: { icon: avatar as string, apple: avatar as string } } : {}),
     openGraph: {
       title: seo?.seo_title || name,
       description,

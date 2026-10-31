@@ -64,7 +64,7 @@ Plataforma de link in bio (bioflowzy.com). Originalmente gerada no Bolt.new (tem
 - Visitas: `page_views` via RPC `track_view` (origem detectada em `lib/visit-source.ts`, dispositivo, país do header `cf-ipcountry`); cliques: `clicks` via `track_click`
 - Tela de analytics usa a RPC `profile_analytics(p_days)`, que agrega no banco e limita aos `analytics_days` do plano
 - Agendamento: `links.starts_at/ends_at` (trigger exige `scheduling`); a página pública filtra a janela
-- SEO: `profiles.seo_title/seo_description/seo_image_url` (exige `seo`); `generateMetadata` ignora os campos se o plano venceu
+- SEO: `profiles.seo_title/seo_description/seo_image_url` (exige `seo`); `generateMetadata` ignora os campos se o plano venceu. Com `seo` e foto de perfil, a foto vira o ícone da aba (`icons` no `generateMetadata`); Free e sem foto usam o ícone do BioFlowzy
 - Leads: botão é um link com `url = LEAD_FORM_URL` (`lib/leads.ts`); `BioClient` intercepta o clique e abre `LeadFormModal`; envio pela RPC `submit_lead` (limite mensal `leads`), contatos em `page_leads`
 - QR code (`components/dashboard/QrCodeCard.tsx`, exige `qr_code`) aponta para `?utm_source=qrcode`
 - Contagem regressiva (Business, `countdown`): `profiles.countdown_title/countdown_ends_at`; `orderedSections` (themes/types.ts) insere `<PageCountdown>` antes das seções em todos os temas, com dados do `CountdownProvider` (página pública e prévias); editor em `CountdownCard` na tela de Links
