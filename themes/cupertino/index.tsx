@@ -42,7 +42,6 @@ export const cupertinoMeta: BioThemeMeta = {
       { value: 'regular', label: 'Regular' },
       { value: 'spacious', label: 'Espaçosa' },
     ], default: 'regular', group: 'Layout', category: 'layout' },
-    { key: 'sectionLabel', label: 'Rótulo da seção', type: 'text', default: 'Links', maxLength: 20, group: 'Textos', category: 'textos' },
     { key: 'footerText', label: 'Rodapé', type: 'text', default: '', placeholder: 'Ex: Feito em Cupertino', maxLength: 60, group: 'Textos', category: 'textos' },
     { key: 'titleFont', label: 'Fonte do título', type: 'fontFamily', default: 'inter', group: 'Tipografia', category: 'tipografia' },
     { key: 'bodyFont', label: 'Fonte do corpo', type: 'fontFamily', default: 'inter', group: 'Tipografia', category: 'tipografia' },
@@ -182,12 +181,6 @@ export function CupertinoTheme({ profile, links, socials, videos, banners, secti
             ) : null,
             links: links.length > 0 ? (
               <div key="links" className="flex flex-col" style={{ gap }}>
-                <div className="mb-2 px-1 flex items-center justify-between">
-                  <span className="text-[13px] font-semibold tracking-[-0.01em]" style={{ color: subText, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                    {s.sectionLabel || 'Links'}
-                  </span>
-                  <span className="text-[13px] tabular-nums" style={{ color: subText }}>{String(links.length).padStart(2, '0')}</span>
-                </div>
                 {links.map((l: any) => (
                   <a
                     key={l.id}
